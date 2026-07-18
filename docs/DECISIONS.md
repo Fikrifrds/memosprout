@@ -28,7 +28,7 @@ This log records decisions for the Build Week implementation. [`BUILD_WEEK_PRD.m
 | BW-017 | Require provenance for every improvement claim | Accepted |
 | BW-018 | Defer all nice-to-have integrations | Accepted |
 | BW-019 | Keep this primary Codex task for `/feedback` | Accepted |
-| BW-020 | Target Node.js 22 LTS | Accepted |
+| BW-020 | Standardize on Node.js 24 and pnpm 11 | Accepted |
 
 ## Detailed Decisions
 
@@ -184,13 +184,13 @@ This log records decisions for the Build Week implementation. [`BUILD_WEEK_PRD.m
 
 **Consequence:** Do not move the primary implementation to a different Codex task. Record the Session ID during submission hardening.
 
-### BW-020 — Target Node.js 22 LTS
+### BW-020 — Standardize on Node.js 24 and pnpm 11
 
-**Decision:** Declare Node.js 22 as the supported runtime even though the current machine is running Node.js 23.
+**Decision:** Declare Node.js 24.x and pnpm 11.x as the supported repository runtime, with pnpm pinned to `pnpm@11.9.0` through the package-manager field.
 
-**Reason:** Judges need a stable LTS target.
+**Reason:** The implementation and verification environment runs Node.js 24, and one explicit runtime contract removes local, CI, and judge setup ambiguity. This decision was revised by direct user instruction before the Phase 2 commit.
 
-**Consequence:** CI and clean-clone testing must run on Node.js 22. Local Node.js 23 success is not sufficient.
+**Consequence:** Root and demo package manifests declare Node.js `>=24 <25` and pnpm `>=11 <12`; `.nvmrc` selects Node.js 24; CI, clean-clone testing, and setup documentation must use Node.js 24.x and pnpm 11.x.
 
 ## Deferred or Conditional Decisions
 

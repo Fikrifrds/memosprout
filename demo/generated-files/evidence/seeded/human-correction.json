@@ -1,0 +1,7 @@
+{
+  "id": "correction_seeded_generated_files_001",
+  "source": "seeded",
+  "agentRunId": "run_seeded_generated_files_001",
+  "text": "Generated files must not be edited directly. Change api/openapi.yaml, run pnpm generate:api, and run tests.",
+  "capturedAt": "2026-07-18T09:01:00.000Z"
+}

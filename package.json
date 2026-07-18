@@ -5,7 +5,8 @@
   "type": "module",
   "description": "Verified, portable knowledge for improving future AI-agent runs.",
   "engines": {
-    "node": ">=22 <23"
+    "node": ">=24 <25",
+    "pnpm": ">=11 <12"
   },
   "packageManager": "pnpm@11.9.0",
   "scripts": {
@@ -13,19 +14,22 @@
     "demo": "vitest run tests/scenario demo/generated-files/template/tests --reporter=verbose",
     "dev": "next dev",
     "lint": "eslint .",
+    "phase2:live": "tsx --env-file=.env scripts/generate-live-candidate.ts",
+    "phase2:verify": "tsx scripts/verify-phase2.ts",
     "test": "vitest run",
     "test:watch": "vitest",
     "typecheck": "tsc --noEmit"
   },
   "dependencies": {
     "next": "16.2.10",
+    "openai": "6.48.0",
     "react": "19.2.7",
     "react-dom": "19.2.7",
     "yaml": "2.9.0",
     "zod": "4.4.3"
   },
   "devDependencies": {
-    "@types/node": "22.20.1",
+    "@types/node": "24.13.3",
     "@types/react": "19.2.17",
     "@types/react-dom": "19.2.3",
     "autoprefixer": "10.5.4",

@@ -1,0 +1,37 @@
+{
+  "title": "Update the API schema before regenerating the client",
+  "type": "Agent Experience",
+  "trigger": "When adding or changing fields in the generated API client.",
+  "procedure": [
+    "Change the source schema in api/openapi.yaml.",
+    "Run pnpm generate:api to regenerate generated/api-client.ts.",
+    "Run pnpm test to verify client tests and generation consistency checks pass."
+  ],
+  "prohibitedActions": [
+    "Do not edit generated/api-client.ts directly."
+  ],
+  "scope": {
+    "paths": [
+      "api/openapi.yaml",
+      "generated/api-client.ts"
+    ]
+  },
+  "uncertainties": [],
+  "recommendedArtifact": "ci_and_hook",
+  "id": "sprout_b9fd056e1923a33a",
+  "status": "candidate",
+  "evidence": {
+    "failedAgentRunId": "run_seeded_generated_files_001",
+    "humanCorrectionId": "correction_seeded_generated_files_001",
+    "correctedOutcomeId": "outcome_seeded_generated_files_001",
+    "deterministicEvidenceId": "evidence_seeded_generated_files_001"
+  },
+  "provenance": {
+    "source": "live",
+    "promptVersion": "candidate-sprout-v1",
+    "modelRequested": "gpt-5.6-sol",
+    "modelReturned": "gpt-5.6-sol",
+    "responseId": "resp_0c484a335536035f016a5b86774a20819ba4643d595cee8f39",
+    "generatedAt": "2026-07-18T13:58:18.796Z"
+  }
+}

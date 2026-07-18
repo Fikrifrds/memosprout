@@ -1,0 +1,27 @@
+{
+  "id": "evidence_seeded_generated_files_001",
+  "source": "seeded",
+  "oracleId": "generated-files-evidence-oracle",
+  "oracleVersion": "1",
+  "checks": [
+    {
+      "id": "direct-generated-file-edit",
+      "expected": "fail",
+      "observed": "fail",
+      "oracleReason": "generated-client-diverged"
+    },
+    {
+      "id": "schema-edit-without-regeneration",
+      "expected": "fail",
+      "observed": "fail",
+      "oracleReason": "generated-client-diverged"
+    },
+    {
+      "id": "schema-edit-with-regeneration",
+      "expected": "pass",
+      "observed": "pass",
+      "oracleReason": "generated-client-consistent"
+    }
+  ],
+  "recordedAt": "2026-07-18T09:04:00.000Z"
+}

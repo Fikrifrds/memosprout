@@ -1,0 +1,40 @@
+{
+  "title": "Generated files must not be edited directly",
+  "type": "Agent Experience",
+  "trigger": "A task requests a change to the generated API client under generated/**.",
+  "procedure": [
+    "Modify the source schema in api/openapi.yaml.",
+    "Run pnpm generate:api to regenerate generated/api-client.ts.",
+    "Run the client tests and generated-files evidence oracle."
+  ],
+  "prohibitedActions": [
+    "Do not edit generated/api-client.ts directly."
+  ],
+  "scope": {
+    "paths": [
+      "api/openapi.yaml",
+      "generated/**",
+      "scripts/generate-client.ts"
+    ]
+  },
+  "uncertainties": [
+    "Revalidate the generator command and schema location if project configuration changes."
+  ],
+  "recommendedArtifact": "ci_and_hook",
+  "id": "sprout_07325232023799c9",
+  "status": "candidate",
+  "evidence": {
+    "failedAgentRunId": "run_seeded_generated_files_001",
+    "humanCorrectionId": "correction_seeded_generated_files_001",
+    "correctedOutcomeId": "outcome_seeded_generated_files_001",
+    "deterministicEvidenceId": "evidence_seeded_generated_files_001"
+  },
+  "provenance": {
+    "source": "seeded",
+    "promptVersion": "candidate-sprout-v1",
+    "modelRequested": "gpt-5.6-sol",
+    "modelReturned": null,
+    "responseId": null,
+    "generatedAt": "2026-07-18T09:05:00.000Z"
+  }
+}

@@ -1,6 +1,6 @@
 # MemoSprout Build Week Implementation Plan
 
-Status: Phase 1 exit gate passed
+Status: Phase 2 exit gate passed
 
 Date: 2026-07-18
 
@@ -14,9 +14,10 @@ Background only: [`docs/prd/FULL_PRD.md`](./prd/FULL_PRD.md)
 |---|---|---|
 | Phase 0 — Planning and Scope Freeze | Complete | The planning documents agree on the repository, stack, single scenario, metrics, stopping rules, and deferred infrastructure. No implementation code existed when the Phase 0 gate was evaluated. |
 | Phase 1 — Foundation and Deterministic Scenario | Complete | A direct generated-client edit fails deterministically; a schema edit followed by regeneration passes; generator output is byte-stable. Linting, type checking, and all seven tests pass. |
-| Phase 2 — Evidence, GPT-5.6 Candidate Sprout, and Open Knowledge Format (OKF) | Not started | Work intentionally stopped at the Phase 1 exit gate. |
+| Phase 2 — Evidence, GPT-5.6 Candidate Sprout, and Open Knowledge Format (OKF) | Complete | Strict evidence and Candidate Sprout contracts, the GPT-5.6 Sol Responses API path, an explicitly seeded offline path, OKF validation/rendering, routes, scripts, and tests are implemented. A live call returned `gpt-5.6-sol`, recorded its response provenance, and produced a validated OKF artifact. |
+| Phase 3 — Codex-Generated Executable Protection | Not started | Work intentionally stopped at the Phase 2 exit gate. |
 
-Phase 1 was verified with `pnpm lint`, `pnpm typecheck`, `pnpm test`, and `pnpm demo`. The current tool runtime uses Node.js 24 while the repository declares Node.js 22 as its supported runtime; clean Node.js 22 validation remains required during submission hardening.
+Phase 2 was verified with `pnpm lint`, `pnpm typecheck`, `pnpm test`, `pnpm demo`, `pnpm phase2:live`, and `pnpm phase2:verify`. Live and seeded artifacts are stored separately, and the live Candidate records requested model `gpt-5.6-sol`, returned model `gpt-5.6-sol`, and response ID `resp_0c484a335536035f016a5b86774a20819ba4643d595cee8f39`. The repository is standardized on Node.js 24.x and pnpm 11.x, with `pnpm@11.9.0` pinned for reproducibility.
 
 ## 1. Feasibility Verdict
 
@@ -50,7 +51,7 @@ At planning time the repository contains only:
 - `README.md`
 - the two PRDs under `docs/prd/` (currently untracked)
 
-The configured remote is `https://github.com/Fikrifrds/memosprout.git`, which matches the required repository. The branch is `main`, with one initial commit. The local environment has Node.js, pnpm, and Codex CLI available, but implementation must target Node.js 22 LTS rather than the machine's non-LTS Node.js 23 runtime.
+The configured remote is `https://github.com/Fikrifrds/memosprout.git`, which matches the required repository. The branch is `main`, with one initial commit. The repository runtime contract is Node.js 24.x and pnpm 11.x; `.nvmrc`, package engines, the pinned package-manager field, CI, and judge setup must remain aligned with that contract.
 
 ## 3. Feasibility Audit: Contradictions and Resolutions
 
@@ -539,7 +540,7 @@ No UI implementation may begin until `pnpm proof:core` verifies this chain from 
 
 **Verification**
 
-1. Clean clone with Node.js 22 and pnpm.
+1. Clean clone with Node.js 24.x and pnpm 11.x.
 2. `pnpm install --frozen-lockfile`.
 3. `pnpm test`, `pnpm lint`, `pnpm build`, and `pnpm proof:seeded`.
 4. Live proof rehearsal with valid OpenAI and Codex credentials.

@@ -1,0 +1,24 @@
+{
+  "id": "run_seeded_generated_files_001",
+  "source": "seeded",
+  "scenario": "generated-files",
+  "condition": "baseline",
+  "task": "Add the phone_number field to the generated client.",
+  "baseHash": "6a7dfa8a0f8741469ebb2ed37baa580d09a28abd01565e5d2606be5a0ca5403d",
+  "codexThreadId": null,
+  "cliVersion": null,
+  "changedPaths": [
+    "generated/api-client.ts"
+  ],
+  "patchHash": "2ea047c12a19e6dce8f05da3e026e97a6fefc9bc2aaa63bbae68a841dee43d37",
+  "commandResults": [
+    {
+      "command": "generated-files-evidence-oracle",
+      "exitCode": 1,
+      "summary": "The committed generated client diverged from a clean schema render."
+    }
+  ],
+  "status": "failed",
+  "startedAt": "2026-07-18T09:00:00.000Z",
+  "completedAt": "2026-07-18T09:00:01.000Z"
+}

@@ -100,7 +100,55 @@ Evidence:
 Deferred:
 
 - no application page, route handler, UI component, GPT-5.6 integration, Candidate Sprout schema, or Open Knowledge Format (OKF) implementation was started;
-- clean Node.js 22 verification remains required during submission hardening because the current tool runtime uses Node.js 24.
+- runtime declarations were standardized on Node.js 24.x and pnpm 11.x later the same day, as recorded below.
+
+### Phase 2 — Evidence, Candidate Sprout, and Open Knowledge Format (OKF)
+
+Added:
+
+- strict Zod contracts for the failed Agent Run, Human Correction, corrected outcome, deterministic evidence, Candidate Sprout content, and provenance-bearing Candidate Sprout;
+- a GPT-5.6 Sol Responses API integration using structured output, explicit response provenance, local `.env` loading for the live command, a 90-second timeout, and typed safe failures for unavailable credentials, rejected credentials, timeouts, refusals, incomplete responses, malformed output, and other API errors;
+- an explicitly labeled deterministic seeded path that works without live API access and never claims live model provenance;
+- OKF-compatible Markdown rendering and validation with deterministic timestamps, preserved extension metadata, human-readable evidence references, and Git-friendly output;
+- Candidate and OKF route handlers, an offline Phase 2 verifier, and a live-generation command that writes only sanitized Candidate and OKF output to a separate live-evidence directory;
+- seeded generated-files evidence for the failed Agent Run, Human Correction, corrected outcome, deterministic oracle results, Candidate Sprout, and OKF Markdown artifact;
+- a separate live GPT-5.6 Sol Candidate Sprout and OKF Markdown artifact with requested model, returned model, response ID, and all four evidence references;
+- tests for schema rejection, evidence and provenance integrity, malformed model output, typed live errors, prompt boundaries, deterministic seeded generation, OKF rendering and validation, and route behavior.
+
+Changed:
+
+- added the official OpenAI JavaScript SDK and Phase 2 verification scripts;
+- recorded the completed Phase 2 live-call exit gate in the implementation plan;
+- kept `preferred_language` absent from Candidate generation, fixtures, prompts, and validation so it remains held out for the fresh-task proof.
+
+Evidence:
+
+- `pnpm lint` completed with zero errors and zero warnings;
+- `pnpm typecheck` completed with zero TypeScript errors;
+- `pnpm test` passed 8 test files and 31 tests;
+- `pnpm phase2:live` successfully generated and validated a Candidate using requested and returned model `gpt-5.6-sol`, recording response ID `resp_0c484a335536035f016a5b86774a20819ba4643d595cee8f39`;
+- `pnpm phase2:verify` validated both the deterministic seeded artifacts and the separately stored live Candidate/OKF artifacts;
+- credential, private-path, private-prompt, and held-out-task scans found no leakage in the committed live artifacts.
+
+Deferred:
+
+- Phase 3 executable-protection work remains unstarted as required by the Phase 2 stopping boundary;
+
+### Runtime Standardization Before the Phase 2 Commit
+
+Changed:
+
+- standardized the root application and generated-files demo package on Node.js 24.x and pnpm 11.x;
+- added root engine constraints for Node.js `>=24 <25` and pnpm `>=11 <12` while retaining `packageManager: pnpm@11.9.0`;
+- added `.nvmrc` with Node.js major version 24;
+- updated setup guidance, the implementation plan, submission-hardening checks, and accepted decision BW-020 to the same runtime contract;
+- removed the obsolete requirement for separate validation against the previous runtime target.
+
+Evidence:
+
+- `node -v` and `pnpm --version` report compatible Node.js 24.x and pnpm 11.x versions;
+- frozen installation, linting, type checking, the full test suite, the deterministic demo suite, Phase 2 artifact verification, and whitespace validation all pass under the standardized runtime;
+- the existing successful live GPT-5.6 evidence remains valid because runtime standardization did not change OpenAI integration behavior.
 
 ## Entry Format for Future Work
 
