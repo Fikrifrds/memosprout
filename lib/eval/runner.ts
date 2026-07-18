@@ -6,6 +6,7 @@ import {
   mkdtemp,
   readFile,
   rm,
+  stat,
   symlink,
   writeFile,
 } from "node:fs/promises";
@@ -135,6 +136,47 @@ export async function prepareEvaluationRepository(condition: EvaluationCondition
     if (result.exitCode !== 0) throw new Error(`Evaluation repository setup failed: ${result.stderr}`);
   }
   return repositoryRoot;
+}
+
+async function pathExists(path: string): Promise<boolean> {
+  try {
+    await stat(path);
+    return true;
+  } catch {
+    return false;
+  }
+}
+
+export async function assertEvaluationRepositoryIsolation(): Promise<void> {
+  for (const condition of ["baseline", "protected"] as const) {
+    const repositoryRoot = await prepareEvaluationRepository(condition);
+    try {
+      const artifactPresence = await Promise.all(
+        protectedOnlyPaths.map((path) => pathExists(join(repositoryRoot, path))),
+      );
+      const shouldExposeProtection = condition === "protected";
+      if (artifactPresence.some((present) => present !== shouldExposeProtection)) {
+        throw new Error(`${condition} repository materialization violates protection isolation.`);
+      }
+      const packageJson = JSON.parse(
+        await readFile(join(repositoryRoot, "package.json"), "utf8"),
+      ) as { scripts?: Record<string, string> };
+      const checkScript = packageJson.scripts?.["check:generated"];
+      if (
+        (condition === "baseline" && checkScript !== undefined) ||
+        (condition === "protected" && checkScript !== "tsx scripts/check-generated-files.ts")
+      ) {
+        throw new Error(`${condition} repository package scripts violate protection isolation.`);
+      }
+      for (const forbiddenDirectory of ["knowledge", "evidence"]) {
+        if (await pathExists(join(repositoryRoot, forbiddenDirectory))) {
+          throw new Error(`${condition} repository exposes non-promoted evaluation knowledge.`);
+        }
+      }
+    } finally {
+      await rm(repositoryRoot, { recursive: true, force: true });
+    }
+  }
 }
 
 async function getChangedPaths(repositoryRoot: string): Promise<string[]> {

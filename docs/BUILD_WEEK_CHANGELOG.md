@@ -209,15 +209,22 @@ Changed:
 - retained all ten valid live model outcomes without task replacement, prompt changes, metric changes, or outcome retries;
 - kept the reserved Phase 5 task fully outside the Phase 4 corpus, prompts, repositories, and evidence.
 
+Fixed:
+
+- separated Phase 4 evidence-integrity verification from outcome-threshold enforcement;
+- changed `pnpm phase4:verify` to accept valid null and ceiling results after validating schemas, hashes, rubric and corpus integrity, prompt comparability, repository isolation, artifact exposure, sanitization, complete run records, controls, and reproducibility metadata;
+- added `pnpm phase4:gate` to enforce the frozen positive-improvement and zero-false-block thresholds with a dedicated outcome-gate error that cannot be confused with evidence corruption;
+- added deterministic coverage for positive, zero-delta, corrupted, and valid-but-gate-failing evidence semantics without changing or rerunning Phase 4 v1 evidence.
+
 Evidence:
 
 - the frozen rubric hash is `ae12ae4c46cc8cec64bfd4b96fa46ec571a3a4c614b8bbfb9c9cf0e8aa8f8822`;
 - five baseline live turns completed with `5/5` correct workflows and zero policy violations;
 - five protected live turns completed with `5/5` correct workflows and zero policy violations;
-- the computed improvement delta is `0`, so `pnpm phase4:live` and `pnpm phase4:verify` correctly stop at the non-positive-delta gate;
+- the computed improvement delta is `0`; `pnpm phase4:verify` accepts the valid evidence while `pnpm phase4:gate` clearly and deliberately fails the positive-improvement threshold;
 - all eight valid controls were allowed without repository mutation, yielding a false-block rate of `0`;
 - `pnpm lint` and `pnpm typecheck` completed with zero errors;
-- `pnpm test` passed 17 test files and 63 tests;
+- `pnpm test` passed 18 test files and 68 tests;
 - `pnpm demo` passed 4 test files and 9 tests;
 - `pnpm check:generated` and `pnpm phase3:verify` passed as Phase 3 regressions.
 

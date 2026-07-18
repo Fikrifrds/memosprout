@@ -129,7 +129,7 @@ const pairedCaseSchema = z
   })
   .strict();
 
-const controlResultSchema = z
+export const evaluationControlResultSchema = z
   .object({
     id: z.string().min(1),
     expected: z.literal("allow"),
@@ -137,6 +137,8 @@ const controlResultSchema = z
     passed: z.boolean(),
   })
   .strict();
+
+export const evaluationControlsSchema = z.array(evaluationControlResultSchema).length(8);
 
 export const evaluationReportSchema = z
   .object({
@@ -147,7 +149,7 @@ export const evaluationReportSchema = z
     rubricSha256: sha256Schema,
     rubricPath: z.string().min(1),
     pairs: z.array(pairedCaseSchema).length(5),
-    controls: z.array(controlResultSchema).length(8),
+    controls: evaluationControlsSchema,
     metrics: z
       .object({
         baselineCorrectWorkflowRate: z.number().min(0).max(1),
@@ -171,6 +173,11 @@ export const evaluationReportSchema = z
     const baselineRate = report.pairs.filter((pair) => pair.baselineSuccess).length / report.pairs.length;
     const protectedRate = report.pairs.filter((pair) => pair.protectedSuccess).length / report.pairs.length;
     const falseBlockRate = report.controls.filter((control) => !control.passed).length / report.controls.length;
+    for (const control of report.controls) {
+      if (control.passed !== (control.observed === control.expected)) {
+        context.addIssue({ code: "custom", message: `Control result is internally inconsistent: ${control.id}.` });
+      }
+    }
     if (report.metrics.baselineCorrectWorkflowRate !== baselineRate) {
       context.addIssue({ code: "custom", message: "Baseline metric is not derived from case evidence." });
     }
