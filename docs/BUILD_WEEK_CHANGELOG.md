@@ -61,6 +61,47 @@ Verified:
 - Markdown code fences remain balanced in every standardized document;
 - no implementation code was added.
 
+### Phase 0 — Planning and Scope Freeze
+
+Verified:
+
+- every Build Week must-build requirement maps to a phase in `docs/IMPLEMENTATION_PLAN.md`;
+- the repository, constrained TypeScript stack, generated-files scenario, evaluation metrics, and stopping rules agree across the authoritative implementation documents;
+- prohibited infrastructure and long-term product features are absent from the implementation structure and accepted decisions;
+- all submission-facing planning material is in English;
+- the gate was evaluated before Phase 1 implementation code was added.
+
+### Phase 1 — Foundation and Deterministic Scenario
+
+Added:
+
+- root Next.js, TypeScript, Tailwind CSS, Zod, Vitest, ESLint, and pnpm configuration;
+- a pnpm lockfile and explicit dependency-build allowlist;
+- one synthetic generated-files repository with an OpenAPI source schema, deterministic TypeScript client generator, committed generated client, and ordinary client tests;
+- a reusable generated-files scenario module;
+- an external SHA-256 evidence oracle that compares the committed generated client with a clean render from the schema;
+- scenario tests covering clean generation, direct edits, missing regeneration, correct regeneration, and byte stability.
+
+Changed:
+
+- closed the command block in the root `AGENTS.md` so the required commands render correctly;
+- pinned ESLint 9.39.5 after ESLint 10.7.0 proved incompatible with the current Next.js React lint plugin;
+- marked Phases 0 and 1 complete in the implementation plan.
+
+Evidence:
+
+- `pnpm install --frozen-lockfile` completed successfully;
+- `pnpm lint` completed with zero errors and zero warnings;
+- `pnpm typecheck` completed with zero TypeScript errors;
+- `pnpm test` passed 3 test files and 7 tests;
+- `pnpm demo` passed the same 3 test files and 7 tests with individual scenario names;
+- the standalone generator command completed and reproduced `generated/api-client.ts` byte-for-byte.
+
+Deferred:
+
+- no application page, route handler, UI component, GPT-5.6 integration, Candidate Sprout schema, or Open Knowledge Format (OKF) implementation was started;
+- clean Node.js 22 verification remains required during submission hardening because the current tool runtime uses Node.js 24.
+
 ## Entry Format for Future Work
 
 Future entries must use the date the change was completed and include only applicable sections:

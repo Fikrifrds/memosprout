@@ -1,9 +1,22 @@
 # MemoSprout Build Week Implementation Plan
 
-Status: Approved planning baseline  
-Date: 2026-07-18  
-Authoritative scope: [`docs/prd/BUILD_WEEK_PRD.md`](./prd/BUILD_WEEK_PRD.md)  
+Status: Phase 1 exit gate passed
+
+Date: 2026-07-18
+
+Authoritative scope: [`docs/prd/BUILD_WEEK_PRD.md`](./prd/BUILD_WEEK_PRD.md)
+
 Background only: [`docs/prd/FULL_PRD.md`](./prd/FULL_PRD.md)
+
+## Implementation Progress
+
+| Phase | Status | Verified outcome |
+|---|---|---|
+| Phase 0 — Planning and Scope Freeze | Complete | The planning documents agree on the repository, stack, single scenario, metrics, stopping rules, and deferred infrastructure. No implementation code existed when the Phase 0 gate was evaluated. |
+| Phase 1 — Foundation and Deterministic Scenario | Complete | A direct generated-client edit fails deterministically; a schema edit followed by regeneration passes; generator output is byte-stable. Linting, type checking, and all seven tests pass. |
+| Phase 2 — Evidence, GPT-5.6 Candidate Sprout, and Open Knowledge Format (OKF) | Not started | Work intentionally stopped at the Phase 1 exit gate. |
+
+Phase 1 was verified with `pnpm lint`, `pnpm typecheck`, `pnpm test`, and `pnpm demo`. The current tool runtime uses Node.js 24 while the repository declares Node.js 22 as its supported runtime; clean Node.js 22 validation remains required during submission hardening.
 
 ## 1. Feasibility Verdict
 
