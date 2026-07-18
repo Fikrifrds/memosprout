@@ -19,6 +19,9 @@
     "phase2:verify": "tsx scripts/verify-phase2.ts",
     "phase3:live": "tsx scripts/generate-protection.ts",
     "phase3:verify": "tsx scripts/verify-phase3.ts",
+    "phase4:baseline": "tsx scripts/capture-baseline.ts",
+    "phase4:live": "tsx scripts/run-eval.ts",
+    "phase4:verify": "tsx scripts/verify-phase4.ts",
     "test": "vitest run",
     "test:watch": "vitest",
     "typecheck": "tsc --noEmit"

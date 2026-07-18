@@ -1,0 +1,40 @@
+{
+  "type": "object",
+  "properties": {
+    "version": {
+      "type": "string",
+      "const": "1"
+    },
+    "taskId": {
+      "type": "string",
+      "enum": [
+        "add-email-address",
+        "add-display-name",
+        "add-mobile-number",
+        "add-account-status",
+        "add-timezone-name"
+      ]
+    },
+    "requestedField": {
+      "type": "string",
+      "enum": [
+        "email_address",
+        "display_name",
+        "mobile_number",
+        "account_status",
+        "timezone_name"
+      ]
+    },
+    "summary": {
+      "type": "string"
+    },
+    "commandsRun": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    }
+  },
+  "required": ["version", "taskId", "requestedField", "summary", "commandsRun"],
+  "additionalProperties": false
+}

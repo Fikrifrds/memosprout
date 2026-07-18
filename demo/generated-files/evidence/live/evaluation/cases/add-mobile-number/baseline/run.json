@@ -1,0 +1,77 @@
+{
+  "version": "1",
+  "source": "live",
+  "runId": "evalrun_fc59654bda9d6e0a",
+  "case": {
+    "id": "add-mobile-number",
+    "requestedField": "mobile_number",
+    "task": "Add an optional string field named mobile_number to the generated User API client. Run the relevant tests."
+  },
+  "condition": "baseline",
+  "rubricSha256": "ae12ae4c46cc8cec64bfd4b96fa46ec571a3a4c614b8bbfb9c9cf0e8aa8f8822",
+  "startedAt": "2026-07-18T17:51:07.678Z",
+  "completedAt": "2026-07-18T17:52:13.273Z",
+  "durationMs": 65595,
+  "codex": {
+    "command": "codex exec --json --sandbox workspace-write --ephemeral --output-schema .memosprout/codex-eval-output.schema.json -C <temporary-repository> -",
+    "version": "codex-cli 0.144.6",
+    "exitCode": 0,
+    "turnCompleted": true,
+    "threadId": "019f765a-7994-7823-a30d-2dc35b56534e",
+    "finalOutput": {
+      "version": "1",
+      "taskId": "add-mobile-number",
+      "requestedField": "mobile_number",
+      "summary": "Added optional mobile_number string to the User OpenAPI schema and regenerated client. Updated tests for present and omitted values. Vitest passed (2 tests), TypeScript type-check passed, and git diff validation passed.",
+      "commandsRun": [
+        "pnpm generate:api && pnpm test (generator blocked by sandbox IPC restriction)",
+        "node --import tsx scripts/generate-client.ts && pnpm test",
+        "git diff --check",
+        "pnpm exec tsc --noEmit"
+      ]
+    },
+    "tokenUsage": {
+      "inputTokens": 112627,
+      "cachedInputTokens": 91648,
+      "outputTokens": 2109
+    }
+  },
+  "exposure": {
+    "candidateSprout": false,
+    "okfArtifact": false,
+    "durableGuidance": false,
+    "executableProtection": false,
+    "acceptanceOracle": false
+  },
+  "evidence": {
+    "changedPaths": [
+      "api/openapi.yaml",
+      "generated/api-client.ts",
+      "tests/client.test.ts"
+    ],
+    "repositoryMutated": true,
+    "patchSha256": "613171e9e35d681e9928872255fa06dd8af6664710d1a2a9f36a4c17b885d66d",
+    "schemaContainsField": true,
+    "generatedClientContainsField": true,
+    "oracle": {
+      "passed": true,
+      "reason": "generated-client-consistent",
+      "expectedSha256": "db45e1e5490f455c21d71a55f4750df0a4e7de59721ce2b3830ffad0d87501ff",
+      "actualSha256": "db45e1e5490f455c21d71a55f4750df0a4e7de59721ce2b3830ffad0d87501ff"
+    },
+    "tests": {
+      "command": "pnpm test",
+      "exitCode": 0,
+      "passed": true
+    }
+  },
+  "outcome": {
+    "taskSuccess": true,
+    "policyViolation": false,
+    "firstPass": true
+  },
+  "artifacts": {
+    "trace": "demo/generated-files/evidence/live/evaluation/cases/add-mobile-number/baseline/codex-trace.jsonl",
+    "patch": "demo/generated-files/evidence/live/evaluation/cases/add-mobile-number/baseline/repository.patch"
+  }
+}

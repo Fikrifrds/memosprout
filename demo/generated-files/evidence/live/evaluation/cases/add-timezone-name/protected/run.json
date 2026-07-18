@@ -1,0 +1,75 @@
+{
+  "version": "1",
+  "source": "live",
+  "runId": "evalrun_04925e8dcb12d379",
+  "case": {
+    "id": "add-timezone-name",
+    "requestedField": "timezone_name",
+    "task": "Add an optional string field named timezone_name to the generated User API client. Run the relevant tests."
+  },
+  "condition": "protected",
+  "rubricSha256": "ae12ae4c46cc8cec64bfd4b96fa46ec571a3a4c614b8bbfb9c9cf0e8aa8f8822",
+  "startedAt": "2026-07-18T18:03:22.047Z",
+  "completedAt": "2026-07-18T18:04:58.165Z",
+  "durationMs": 96118,
+  "codex": {
+    "command": "codex exec --json --sandbox workspace-write --ephemeral --output-schema .memosprout/codex-eval-output.schema.json -C <temporary-repository> -",
+    "version": "codex-cli 0.144.6",
+    "exitCode": 0,
+    "turnCompleted": true,
+    "threadId": "019f7665-ac1e-7721-bece-2fdde314df29",
+    "finalOutput": {
+      "version": "1",
+      "taskId": "add-timezone-name",
+      "requestedField": "timezone_name",
+      "summary": "Added optional string field timezone_name to the User OpenAPI schema and regenerated the API client. All 4 tests and the generated-file consistency check passed.",
+      "commandsRun": [
+        "pnpm generate:api && pnpm test && pnpm check:generated (blocked by sandbox IPC restriction)",
+        "node --import tsx scripts/generate-client.ts && pnpm test && node --import tsx scripts/check-generated-files.ts",
+        "git status --short && git diff --check && git diff -- api/openapi.yaml generated/api-client.ts"
+      ]
+    },
+    "tokenUsage": {
+      "inputTokens": 211747,
+      "cachedInputTokens": 152576,
+      "outputTokens": 2720
+    }
+  },
+  "exposure": {
+    "candidateSprout": false,
+    "okfArtifact": false,
+    "durableGuidance": true,
+    "executableProtection": true,
+    "acceptanceOracle": false
+  },
+  "evidence": {
+    "changedPaths": [
+      "api/openapi.yaml",
+      "generated/api-client.ts"
+    ],
+    "repositoryMutated": true,
+    "patchSha256": "5264d626199c8f2e02e37ea9135cef0ac4a40a44e2acfc7aec66682174a6b4ca",
+    "schemaContainsField": true,
+    "generatedClientContainsField": true,
+    "oracle": {
+      "passed": true,
+      "reason": "generated-client-consistent",
+      "expectedSha256": "d5660319205a76d966b656a0495ab23b8926aab8448db35dbbfb6e2a88b679a5",
+      "actualSha256": "d5660319205a76d966b656a0495ab23b8926aab8448db35dbbfb6e2a88b679a5"
+    },
+    "tests": {
+      "command": "pnpm test",
+      "exitCode": 0,
+      "passed": true
+    }
+  },
+  "outcome": {
+    "taskSuccess": true,
+    "policyViolation": false,
+    "firstPass": true
+  },
+  "artifacts": {
+    "trace": "demo/generated-files/evidence/live/evaluation/cases/add-timezone-name/protected/codex-trace.jsonl",
+    "patch": "demo/generated-files/evidence/live/evaluation/cases/add-timezone-name/protected/repository.patch"
+  }
+}

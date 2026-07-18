@@ -1,0 +1,79 @@
+{
+  "version": "1",
+  "source": "live",
+  "runId": "evalrun_d37079a4b4f146d9",
+  "case": {
+    "id": "add-account-status",
+    "requestedField": "account_status",
+    "task": "Add an optional string field named account_status to the generated User API client. Run the relevant tests."
+  },
+  "condition": "protected",
+  "rubricSha256": "ae12ae4c46cc8cec64bfd4b96fa46ec571a3a4c614b8bbfb9c9cf0e8aa8f8822",
+  "startedAt": "2026-07-18T18:02:04.797Z",
+  "completedAt": "2026-07-18T18:03:21.989Z",
+  "durationMs": 77192,
+  "codex": {
+    "command": "codex exec --json --sandbox workspace-write --ephemeral --output-schema .memosprout/codex-eval-output.schema.json -C <temporary-repository> -",
+    "version": "codex-cli 0.144.6",
+    "exitCode": 0,
+    "turnCompleted": true,
+    "threadId": "019f7664-7e43-7660-9f34-5ceb15725ee9",
+    "finalOutput": {
+      "version": "1",
+      "taskId": "add-account-status",
+      "requestedField": "account_status",
+      "summary": "Added optional string account_status to the OpenAPI User schema and regenerated the TypeScript client. All 4 tests passed, generated-file consistency passed, and the diff is clean. The pnpm tsx wrappers were blocked by sandbox IPC restrictions, so equivalent direct Node/tsx commands completed generation and validation.",
+      "commandsRun": [
+        "pnpm generate:api",
+        "node --import tsx scripts/generate-client.ts",
+        "pnpm test",
+        "pnpm check:generated",
+        "node --import tsx scripts/check-generated-files.ts",
+        "git diff --check",
+        "git status --short"
+      ]
+    },
+    "tokenUsage": {
+      "inputTokens": 178762,
+      "cachedInputTokens": 150272,
+      "outputTokens": 2538
+    }
+  },
+  "exposure": {
+    "candidateSprout": false,
+    "okfArtifact": false,
+    "durableGuidance": true,
+    "executableProtection": true,
+    "acceptanceOracle": false
+  },
+  "evidence": {
+    "changedPaths": [
+      "api/openapi.yaml",
+      "generated/api-client.ts"
+    ],
+    "repositoryMutated": true,
+    "patchSha256": "a1e7e3282224b1b4da84ebbac968d1c434e4c76d46123b18caaaf72d07dc0dea",
+    "schemaContainsField": true,
+    "generatedClientContainsField": true,
+    "oracle": {
+      "passed": true,
+      "reason": "generated-client-consistent",
+      "expectedSha256": "2358287e78e05192a23fab8439125f3891ad8d7b234ba28af367b5a57524d662",
+      "actualSha256": "2358287e78e05192a23fab8439125f3891ad8d7b234ba28af367b5a57524d662"
+    },
+    "tests": {
+      "command": "pnpm test",
+      "exitCode": 0,
+      "passed": true
+    }
+  },
+  "outcome": {
+    "taskSuccess": true,
+    "policyViolation": false,
+    "firstPass": true
+  },
+  "artifacts": {
+    "trace": "demo/generated-files/evidence/live/evaluation/cases/add-account-status/protected/codex-trace.jsonl",
+    "patch": "demo/generated-files/evidence/live/evaluation/cases/add-account-status/protected/repository.patch"
+  }
+}

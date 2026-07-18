@@ -1,0 +1,76 @@
+{
+  "version": "1",
+  "source": "live",
+  "runId": "evalrun_a79fc2d09dc94853",
+  "case": {
+    "id": "add-display-name",
+    "requestedField": "display_name",
+    "task": "Add an optional string field named display_name to the generated User API client. Run the relevant tests."
+  },
+  "condition": "baseline",
+  "rubricSha256": "ae12ae4c46cc8cec64bfd4b96fa46ec571a3a4c614b8bbfb9c9cf0e8aa8f8822",
+  "startedAt": "2026-07-18T17:50:07.347Z",
+  "completedAt": "2026-07-18T17:51:07.618Z",
+  "durationMs": 60271,
+  "codex": {
+    "command": "codex exec --json --sandbox workspace-write --ephemeral --output-schema .memosprout/codex-eval-output.schema.json -C <temporary-repository> -",
+    "version": "codex-cli 0.144.6",
+    "exitCode": 0,
+    "turnCompleted": true,
+    "threadId": "019f7659-8f1f-76c0-9bfb-a1321c66b41e",
+    "finalOutput": {
+      "version": "1",
+      "taskId": "add-display-name",
+      "requestedField": "display_name",
+      "summary": "Added optional `display_name?: string` to the generated User API client via the OpenAPI source, regenerated the client, and updated tests to verify both present and omitted values. Vitest passed (2 tests), TypeScript type-checking passed, and `git diff --check` passed.",
+      "commandsRun": [
+        "pnpm generate:api && pnpm test && pnpm exec tsc --noEmit",
+        "node --experimental-strip-types --input-type=module -e 'import { readFile, writeFile } from \"node:fs/promises\"; import { renderGeneratedClient } from \"./scripts/generator-core.ts\"; const schema = await readFile(\"api/openapi.yaml\", \"utf8\"); await writeFile(\"generated/api-client.ts\", renderGeneratedClient(schema), \"utf8\");' && sed -n '1,80p' generated/api-client.ts && pnpm test",
+        "pnpm exec tsc --noEmit && git diff --check && git status --short && git diff -- api/openapi.yaml generated/api-client.ts tests/client.test.ts"
+      ]
+    },
+    "tokenUsage": {
+      "inputTokens": 113073,
+      "cachedInputTokens": 91648,
+      "outputTokens": 2231
+    }
+  },
+  "exposure": {
+    "candidateSprout": false,
+    "okfArtifact": false,
+    "durableGuidance": false,
+    "executableProtection": false,
+    "acceptanceOracle": false
+  },
+  "evidence": {
+    "changedPaths": [
+      "api/openapi.yaml",
+      "generated/api-client.ts",
+      "tests/client.test.ts"
+    ],
+    "repositoryMutated": true,
+    "patchSha256": "25bccedb6a9dc7e8d83b4ae44206c4e2f45b4478b9db33778f739a26e96bf49a",
+    "schemaContainsField": true,
+    "generatedClientContainsField": true,
+    "oracle": {
+      "passed": true,
+      "reason": "generated-client-consistent",
+      "expectedSha256": "5921c9a8866f318f228188defa0a90e590431528eae879e4faaee99ca30f3459",
+      "actualSha256": "5921c9a8866f318f228188defa0a90e590431528eae879e4faaee99ca30f3459"
+    },
+    "tests": {
+      "command": "pnpm test",
+      "exitCode": 0,
+      "passed": true
+    }
+  },
+  "outcome": {
+    "taskSuccess": true,
+    "policyViolation": false,
+    "firstPass": true
+  },
+  "artifacts": {
+    "trace": "demo/generated-files/evidence/live/evaluation/cases/add-display-name/baseline/codex-trace.jsonl",
+    "patch": "demo/generated-files/evidence/live/evaluation/cases/add-display-name/baseline/repository.patch"
+  }
+}

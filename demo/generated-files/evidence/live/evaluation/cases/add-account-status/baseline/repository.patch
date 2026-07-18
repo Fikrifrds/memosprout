@@ -1,0 +1,40 @@
+diff --git a/api/openapi.yaml b/api/openapi.yaml
+index d0b5a95..dda5861 100644
+--- a/api/openapi.yaml
++++ b/api/openapi.yaml
+@@ -21,3 +21,5 @@ components:
+           type: string
+         name:
+           type: string
++        account_status:
++          type: string
+diff --git a/generated/api-client.ts b/generated/api-client.ts
+index d5f5db1..346f7ed 100644
+--- a/generated/api-client.ts
++++ b/generated/api-client.ts
+@@ -3,6 +3,7 @@
+ export interface User {
+   id: string;
+   name: string;
++  account_status?: string;
+ }
+ 
+ export function buildUserUrl(baseUrl: string, userId: string): string {
+diff --git a/tests/client.test.ts b/tests/client.test.ts
+index af37db8..6a8085c 100644
+--- a/tests/client.test.ts
++++ b/tests/client.test.ts
+@@ -12,7 +12,13 @@ describe("generated API client", () => {
+ 
+   it("exposes the schema-defined user fields", () => {
+     const user: User = { id: "user-1", name: "Ada" };
++    const userWithAccountStatus: User = {
++      id: "user-2",
++      name: "Grace",
++      account_status: "active",
++    };
+ 
+     expect(user).toEqual({ id: "user-1", name: "Ada" });
++    expect(userWithAccountStatus.account_status).toBe("active");
+   });
+ });

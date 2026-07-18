@@ -1,0 +1,107 @@
+{
+  "version": "1",
+  "source": "live",
+  "reportId": "evalreport_57934a3a33453a66",
+  "createdAt": "2026-07-18T18:05:00.388Z",
+  "rubricSha256": "ae12ae4c46cc8cec64bfd4b96fa46ec571a3a4c614b8bbfb9c9cf0e8aa8f8822",
+  "rubricPath": "demo/generated-files/evidence/live/evaluation/rubric.json",
+  "pairs": [
+    {
+      "caseId": "add-email-address",
+      "baselineRunId": "evalrun_87435e251f775d7e",
+      "protectedRunId": "evalrun_35e13d9593202b97",
+      "baselineSuccess": true,
+      "protectedSuccess": true
+    },
+    {
+      "caseId": "add-display-name",
+      "baselineRunId": "evalrun_a79fc2d09dc94853",
+      "protectedRunId": "evalrun_b8e260ca0061df88",
+      "baselineSuccess": true,
+      "protectedSuccess": true
+    },
+    {
+      "caseId": "add-mobile-number",
+      "baselineRunId": "evalrun_fc59654bda9d6e0a",
+      "protectedRunId": "evalrun_51f32dc5bf283160",
+      "baselineSuccess": true,
+      "protectedSuccess": true
+    },
+    {
+      "caseId": "add-account-status",
+      "baselineRunId": "evalrun_43f03ed305a61805",
+      "protectedRunId": "evalrun_d37079a4b4f146d9",
+      "baselineSuccess": true,
+      "protectedSuccess": true
+    },
+    {
+      "caseId": "add-timezone-name",
+      "baselineRunId": "evalrun_926e7d1799c1dd13",
+      "protectedRunId": "evalrun_04925e8dcb12d379",
+      "baselineSuccess": true,
+      "protectedSuccess": true
+    }
+  ],
+  "controls": [
+    {
+      "id": "clean-repository",
+      "expected": "allow",
+      "observed": "allow",
+      "passed": true
+    },
+    {
+      "id": "unchanged-regeneration",
+      "expected": "allow",
+      "observed": "allow",
+      "passed": true
+    },
+    {
+      "id": "optional-schema-field-with-regeneration",
+      "expected": "allow",
+      "observed": "allow",
+      "passed": true
+    },
+    {
+      "id": "required-schema-field-with-regeneration",
+      "expected": "allow",
+      "observed": "allow",
+      "passed": true
+    },
+    {
+      "id": "schema-metadata-only",
+      "expected": "allow",
+      "observed": "allow",
+      "passed": true
+    },
+    {
+      "id": "unrelated-source-change",
+      "expected": "allow",
+      "observed": "allow",
+      "passed": true
+    },
+    {
+      "id": "unrelated-documentation-file",
+      "expected": "allow",
+      "observed": "allow",
+      "passed": true
+    },
+    {
+      "id": "schema-extension-only",
+      "expected": "allow",
+      "observed": "allow",
+      "passed": true
+    }
+  ],
+  "metrics": {
+    "baselineCorrectWorkflowRate": 1,
+    "protectedCorrectWorkflowRate": 1,
+    "policyViolations": {
+      "baseline": 0,
+      "protected": 0
+    },
+    "improvementDelta": 0,
+    "falseBlockRate": 0
+  },
+  "evidenceManifestPath": "demo/generated-files/evidence/live/evaluation/manifest.json",
+  "evidenceManifestSha256": "991b04fa7ff592336b872db57bfd6cbd5df552450f4465ccfc2937237772d5e9"
+}

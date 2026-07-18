@@ -1,0 +1,78 @@
+{
+  "version": "1",
+  "source": "live",
+  "runId": "evalrun_43f03ed305a61805",
+  "case": {
+    "id": "add-account-status",
+    "requestedField": "account_status",
+    "task": "Add an optional string field named account_status to the generated User API client. Run the relevant tests."
+  },
+  "condition": "baseline",
+  "rubricSha256": "ae12ae4c46cc8cec64bfd4b96fa46ec571a3a4c614b8bbfb9c9cf0e8aa8f8822",
+  "startedAt": "2026-07-18T17:52:13.330Z",
+  "completedAt": "2026-07-18T17:53:14.432Z",
+  "durationMs": 61102,
+  "codex": {
+    "command": "codex exec --json --sandbox workspace-write --ephemeral --output-schema .memosprout/codex-eval-output.schema.json -C <temporary-repository> -",
+    "version": "codex-cli 0.144.6",
+    "exitCode": 0,
+    "turnCompleted": true,
+    "threadId": "019f765b-79b8-7ec1-a3d5-fc8131a5f4d1",
+    "finalOutput": {
+      "version": "1",
+      "taskId": "add-account-status",
+      "requestedField": "account_status",
+      "summary": "Added account_status as an optional string in the User OpenAPI schema and regenerated API client. Extended tests to cover omitted and populated values. All 2 tests, TypeScript checking, and diff validation passed.",
+      "commandsRun": [
+        "pnpm generate:api && pnpm test (generation blocked by sandbox IPC permissions)",
+        "node --import tsx scripts/generate-client.ts",
+        "pnpm test",
+        "git diff --check",
+        "pnpm exec tsc --noEmit"
+      ]
+    },
+    "tokenUsage": {
+      "inputTokens": 130936,
+      "cachedInputTokens": 106752,
+      "outputTokens": 1925
+    }
+  },
+  "exposure": {
+    "candidateSprout": false,
+    "okfArtifact": false,
+    "durableGuidance": false,
+    "executableProtection": false,
+    "acceptanceOracle": false
+  },
+  "evidence": {
+    "changedPaths": [
+      "api/openapi.yaml",
+      "generated/api-client.ts",
+      "tests/client.test.ts"
+    ],
+    "repositoryMutated": true,
+    "patchSha256": "f86f820416500aaeb6c74da1270e5858f01b8cbfb84fdbcad9c7dff85cd0adca",
+    "schemaContainsField": true,
+    "generatedClientContainsField": true,
+    "oracle": {
+      "passed": true,
+      "reason": "generated-client-consistent",
+      "expectedSha256": "2358287e78e05192a23fab8439125f3891ad8d7b234ba28af367b5a57524d662",
+      "actualSha256": "2358287e78e05192a23fab8439125f3891ad8d7b234ba28af367b5a57524d662"
+    },
+    "tests": {
+      "command": "pnpm test",
+      "exitCode": 0,
+      "passed": true
+    }
+  },
+  "outcome": {
+    "taskSuccess": true,
+    "policyViolation": false,
+    "firstPass": true
+  },
+  "artifacts": {
+    "trace": "demo/generated-files/evidence/live/evaluation/cases/add-account-status/baseline/codex-trace.jsonl",
+    "patch": "demo/generated-files/evidence/live/evaluation/cases/add-account-status/baseline/repository.patch"
+  }
+}

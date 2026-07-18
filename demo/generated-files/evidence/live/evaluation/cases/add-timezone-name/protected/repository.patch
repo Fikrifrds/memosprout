@@ -1,0 +1,22 @@
+diff --git a/api/openapi.yaml b/api/openapi.yaml
+index d0b5a95..375141a 100644
+--- a/api/openapi.yaml
++++ b/api/openapi.yaml
+@@ -21,3 +21,5 @@ components:
+           type: string
+         name:
+           type: string
++        timezone_name:
++          type: string
+diff --git a/generated/api-client.ts b/generated/api-client.ts
+index d5f5db1..f40ea95 100644
+--- a/generated/api-client.ts
++++ b/generated/api-client.ts
+@@ -3,6 +3,7 @@
+ export interface User {
+   id: string;
+   name: string;
++  timezone_name?: string;
+ }
+ 
+ export function buildUserUrl(baseUrl: string, userId: string): string {

@@ -1,0 +1,50 @@
+[
+  {
+    "id": "clean-repository",
+    "expected": "allow",
+    "observed": "allow",
+    "passed": true
+  },
+  {
+    "id": "unchanged-regeneration",
+    "expected": "allow",
+    "observed": "allow",
+    "passed": true
+  },
+  {
+    "id": "optional-schema-field-with-regeneration",
+    "expected": "allow",
+    "observed": "allow",
+    "passed": true
+  },
+  {
+    "id": "required-schema-field-with-regeneration",
+    "expected": "allow",
+    "observed": "allow",
+    "passed": true
+  },
+  {
+    "id": "schema-metadata-only",
+    "expected": "allow",
+    "observed": "allow",
+    "passed": true
+  },
+  {
+    "id": "unrelated-source-change",
+    "expected": "allow",
+    "observed": "allow",
+    "passed": true
+  },
+  {
+    "id": "unrelated-documentation-file",
+    "expected": "allow",
+    "observed": "allow",
+    "passed": true
+  },
+  {
+    "id": "schema-extension-only",
+    "expected": "allow",
+    "observed": "allow",
+    "passed": true
+  }
+]

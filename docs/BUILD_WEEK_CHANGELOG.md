@@ -190,6 +190,41 @@ Evidence:
 - the promoted `pnpm check:generated` command exited zero on the clean repository;
 - no Phase 4 or UI implementation was started.
 
+## 2026-07-19
+
+### Phase 4 — Baseline vs. Protected Evaluation
+
+Added:
+
+- a frozen five-case generated-files evaluation corpus, a fixed scoring rubric, and eight existing nonviolating controls;
+- byte-identical baseline and protected task prompts, with condition differences supplied only by isolated repository materialization;
+- strict Zod contracts for Codex summaries, live run evidence, paired reports, controls, token/runtime metadata, and the evidence manifest;
+- temporary-Git-repository runners that dynamically resolve Codex and pnpm, preserve the Node.js 24 runtime, capture sanitized traces and patches, and run each model outcome exactly once;
+- separately stored live and seeded evaluation reports plus case-level evidence and manifest hashes;
+- deterministic tests for corpus reproducibility, provider-schema compatibility, baseline artifact isolation, protected artifact exposure, paired-case comparability, metric derivation, duplicate and missing evidence rejection, and manifest tamper detection.
+
+Changed:
+
+- marked Phase 4 as stopped rather than complete because the frozen positive-delta exit gate did not pass;
+- retained all ten valid live model outcomes without task replacement, prompt changes, metric changes, or outcome retries;
+- kept the reserved Phase 5 task fully outside the Phase 4 corpus, prompts, repositories, and evidence.
+
+Evidence:
+
+- the frozen rubric hash is `ae12ae4c46cc8cec64bfd4b96fa46ec571a3a4c614b8bbfb9c9cf0e8aa8f8822`;
+- five baseline live turns completed with `5/5` correct workflows and zero policy violations;
+- five protected live turns completed with `5/5` correct workflows and zero policy violations;
+- the computed improvement delta is `0`, so `pnpm phase4:live` and `pnpm phase4:verify` correctly stop at the non-positive-delta gate;
+- all eight valid controls were allowed without repository mutation, yielding a false-block rate of `0`;
+- `pnpm lint` and `pnpm typecheck` completed with zero errors;
+- `pnpm test` passed 17 test files and 63 tests;
+- `pnpm demo` passed 4 test files and 9 tests;
+- `pnpm check:generated` and `pnpm phase3:verify` passed as Phase 3 regressions.
+
+Deferred:
+
+- Phase 5 and all UI work remain unstarted because measured protected improvement is a core-proof gate.
+
 ## Entry Format for Future Work
 
 Future entries must use the date the change was completed and include only applicable sections:

@@ -1,0 +1,80 @@
+{
+  "version": "1",
+  "source": "live",
+  "runId": "evalrun_b8e260ca0061df88",
+  "case": {
+    "id": "add-display-name",
+    "requestedField": "display_name",
+    "task": "Add an optional string field named display_name to the generated User API client. Run the relevant tests."
+  },
+  "condition": "protected",
+  "rubricSha256": "ae12ae4c46cc8cec64bfd4b96fa46ec571a3a4c614b8bbfb9c9cf0e8aa8f8822",
+  "startedAt": "2026-07-18T17:58:05.268Z",
+  "completedAt": "2026-07-18T17:59:54.083Z",
+  "durationMs": 108815,
+  "codex": {
+    "command": "codex exec --json --sandbox workspace-write --ephemeral --output-schema .memosprout/codex-eval-output.schema.json -C <temporary-repository> -",
+    "version": "codex-cli 0.144.6",
+    "exitCode": 0,
+    "turnCompleted": true,
+    "threadId": "019f7660-d6c6-72f2-a961-2afbd5f0d014",
+    "finalOutput": {
+      "version": "1",
+      "taskId": "add-display-name",
+      "requestedField": "display_name",
+      "summary": "Added optional `display_name?: string` to the generated User API client via `api/openapi.yaml`. Regenerated the client, passed all 4 tests, passed generated-file verification through the equivalent socket-free loader, and passed `git diff --check`. The standard tsx-based generate/check commands were attempted but blocked by sandbox IPC restrictions.",
+      "commandsRun": [
+        "pwd && rg -n \"User|display_name|properties:\" api/openapi.yaml package.json pnpm-lock.yaml 2>/dev/null | head -n 160 && git status --short",
+        "sed -n '1,140p' api/openapi.yaml && sed -n '1,180p' package.json && sed -n '1,180p' generated/api-client.ts && rg -n \"getUser|User|email_address|mobile_number|account_status|timezone_name\" . --glob '!node_modules' --glob '!generated/api-client.ts'",
+        "sed -n '1,220p' scripts/generator-core.ts && sed -n '1,180p' scripts/generate-client.ts && sed -n '1,220p' scripts/check-generated-files.ts && sed -n '1,160p' tests/client.test.ts",
+        "git diff -- api/openapi.yaml && pnpm generate:api",
+        "node --import tsx scripts/generate-client.ts && git diff -- api/openapi.yaml generated/api-client.ts",
+        "pnpm test",
+        "pnpm check:generated",
+        "node --import tsx scripts/check-generated-files.ts && git diff --check && git status --short && git diff -- api/openapi.yaml generated/api-client.ts"
+      ]
+    },
+    "tokenUsage": {
+      "inputTokens": 172908,
+      "cachedInputTokens": 147200,
+      "outputTokens": 3787
+    }
+  },
+  "exposure": {
+    "candidateSprout": false,
+    "okfArtifact": false,
+    "durableGuidance": true,
+    "executableProtection": true,
+    "acceptanceOracle": false
+  },
+  "evidence": {
+    "changedPaths": [
+      "api/openapi.yaml",
+      "generated/api-client.ts"
+    ],
+    "repositoryMutated": true,
+    "patchSha256": "b00b9bcd176c113ff733fc35bc0053f89d378c9fee62dc80c67fff514c7c15bd",
+    "schemaContainsField": true,
+    "generatedClientContainsField": true,
+    "oracle": {
+      "passed": true,
+      "reason": "generated-client-consistent",
+      "expectedSha256": "5921c9a8866f318f228188defa0a90e590431528eae879e4faaee99ca30f3459",
+      "actualSha256": "5921c9a8866f318f228188defa0a90e590431528eae879e4faaee99ca30f3459"
+    },
+    "tests": {
+      "command": "pnpm test",
+      "exitCode": 0,
+      "passed": true
+    }
+  },
+  "outcome": {
+    "taskSuccess": true,
+    "policyViolation": false,
+    "firstPass": true
+  },
+  "artifacts": {
+    "trace": "demo/generated-files/evidence/live/evaluation/cases/add-display-name/protected/codex-trace.jsonl",
+    "patch": "demo/generated-files/evidence/live/evaluation/cases/add-display-name/protected/repository.patch"
+  }
+}

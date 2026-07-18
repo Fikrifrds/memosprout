@@ -1,0 +1,135 @@
+{
+  "version": "1",
+  "generatedAt": "2026-07-18T18:05:00.387Z",
+  "rubricSha256": "ae12ae4c46cc8cec64bfd4b96fa46ec571a3a4c614b8bbfb9c9cf0e8aa8f8822",
+  "entries": [
+    {
+      "path": "demo/generated-files/evidence/live/evaluation/cases/add-account-status/baseline/codex-trace.jsonl",
+      "sha256": "b4c1a0173984b6457e06098c6b0b4e077eac30875e7916e099eecd8e7039f8c6"
+    },
+    {
+      "path": "demo/generated-files/evidence/live/evaluation/cases/add-account-status/baseline/repository.patch",
+      "sha256": "f86f820416500aaeb6c74da1270e5858f01b8cbfb84fdbcad9c7dff85cd0adca"
+    },
+    {
+      "path": "demo/generated-files/evidence/live/evaluation/cases/add-account-status/baseline/run.json",
+      "sha256": "a819fcdebea4488df35e38bbaf411db7c255bb20e98fd7ae7b2e6213fd20fad8"
+    },
+    {
+      "path": "demo/generated-files/evidence/live/evaluation/cases/add-account-status/protected/codex-trace.jsonl",
+      "sha256": "a987fab9da47fda1a013736a2e314ea4466f112c424edd16ba355321f286e424"
+    },
+    {
+      "path": "demo/generated-files/evidence/live/evaluation/cases/add-account-status/protected/repository.patch",
+      "sha256": "a1e7e3282224b1b4da84ebbac968d1c434e4c76d46123b18caaaf72d07dc0dea"
+    },
+    {
+      "path": "demo/generated-files/evidence/live/evaluation/cases/add-account-status/protected/run.json",
+      "sha256": "610b417965d3447d4093295aeb625489ee93856f9719ae20860f71b15294ddfb"
+    },
+    {
+      "path": "demo/generated-files/evidence/live/evaluation/cases/add-display-name/baseline/codex-trace.jsonl",
+      "sha256": "6013f66feb44fe54e20230ec984bd6a0ac7093de59fe325fb6a89182754c8c60"
+    },
+    {
+      "path": "demo/generated-files/evidence/live/evaluation/cases/add-display-name/baseline/repository.patch",
+      "sha256": "25bccedb6a9dc7e8d83b4ae44206c4e2f45b4478b9db33778f739a26e96bf49a"
+    },
+    {
+      "path": "demo/generated-files/evidence/live/evaluation/cases/add-display-name/baseline/run.json",
+      "sha256": "549e2a5115e3c9bead4084a0987a6d70e243d7ee7f0d14463fa4a1a4db68a63a"
+    },
+    {
+      "path": "demo/generated-files/evidence/live/evaluation/cases/add-display-name/protected/codex-trace.jsonl",
+      "sha256": "a127b70ee66c0224b0acc84823454df434e5a08fb22653e6c101dfddbe5c03b5"
+    },
+    {
+      "path": "demo/generated-files/evidence/live/evaluation/cases/add-display-name/protected/repository.patch",
+      "sha256": "b00b9bcd176c113ff733fc35bc0053f89d378c9fee62dc80c67fff514c7c15bd"
+    },
+    {
+      "path": "demo/generated-files/evidence/live/evaluation/cases/add-display-name/protected/run.json",
+      "sha256": "0358ff31f9334b1b5c49a8e426d5b189d379c4a5dd41e1601dcfb91f6f002d82"
+    },
+    {
+      "path": "demo/generated-files/evidence/live/evaluation/cases/add-email-address/baseline/codex-trace.jsonl",
+      "sha256": "530c21762293fb7f28b9c5ee58354bfd46343ebeaedc2b9ae56cf07d81d8d930"
+    },
+    {
+      "path": "demo/generated-files/evidence/live/evaluation/cases/add-email-address/baseline/repository.patch",
+      "sha256": "636d8a0fcf118a919a70888ac79482d6ff2ec3c3d5e40d9e98a09f3a697dea34"
+    },
+    {
+      "path": "demo/generated-files/evidence/live/evaluation/cases/add-email-address/baseline/run.json",
+      "sha256": "82ea091c0494865f77e92a5235a71b2c5d8a697298f0de2905712e5f1379aa20"
+    },
+    {
+      "path": "demo/generated-files/evidence/live/evaluation/cases/add-email-address/protected/codex-trace.jsonl",
+      "sha256": "8d9226b41b62edc85dc8608597e3902d9be91a676ca502dec335982f633239f8"
+    },
+    {
+      "path": "demo/generated-files/evidence/live/evaluation/cases/add-email-address/protected/repository.patch",
+      "sha256": "d93823b28ef2996cd2308e57cd2f9b4b741d9b0a8327e4568cc1ac50eeccfcb6"
+    },
+    {
+      "path": "demo/generated-files/evidence/live/evaluation/cases/add-email-address/protected/run.json",
+      "sha256": "bbd9caad67c678255696d0db74365bc727b087c68766a6c7b0182d1fde64ef26"
+    },
+    {
+      "path": "demo/generated-files/evidence/live/evaluation/cases/add-mobile-number/baseline/codex-trace.jsonl",
+      "sha256": "7d8c96455e3753dafb879cbcaf4268c438464d4a2e98f2d4101255a0fc81e842"
+    },
+    {
+      "path": "demo/generated-files/evidence/live/evaluation/cases/add-mobile-number/baseline/repository.patch",
+      "sha256": "613171e9e35d681e9928872255fa06dd8af6664710d1a2a9f36a4c17b885d66d"
+    },
+    {
+      "path": "demo/generated-files/evidence/live/evaluation/cases/add-mobile-number/baseline/run.json",
+      "sha256": "32717be09f6a102c7496b0032685d3440acd9028e7a8e7b162045256d27b046b"
+    },
+    {
+      "path": "demo/generated-files/evidence/live/evaluation/cases/add-mobile-number/protected/codex-trace.jsonl",
+      "sha256": "525d0a400180f8757a298f07bbce853baba599a78bfa48e70fa26bd7842be07f"
+    },
+    {
+      "path": "demo/generated-files/evidence/live/evaluation/cases/add-mobile-number/protected/repository.patch",
+      "sha256": "004f7e85823e3815c06b7314371424d06a1b55fd8c083ef2fc597acdb656d40f"
+    },
+    {
+      "path": "demo/generated-files/evidence/live/evaluation/cases/add-mobile-number/protected/run.json",
+      "sha256": "776d95bcfeae17d90164058f726af6f6099d4945332e6cbf2414a2e6aa74391b"
+    },
+    {
+      "path": "demo/generated-files/evidence/live/evaluation/cases/add-timezone-name/baseline/codex-trace.jsonl",
+      "sha256": "a3faf2299ab39e3b1742149e46ff590b8d8a088954ddaf03d348ef7b35737bba"
+    },
+    {
+      "path": "demo/generated-files/evidence/live/evaluation/cases/add-timezone-name/baseline/repository.patch",
+      "sha256": "033e1b51d9fbd641562c042922bd429ea65b20704d4c1119fd863502dfb7fb02"
+    },
+    {
+      "path": "demo/generated-files/evidence/live/evaluation/cases/add-timezone-name/baseline/run.json",
+      "sha256": "4bdb6767d821d9f17b66d03389843f23a0a1d7870d75745d14e01ade5cc6b22e"
+    },
+    {
+      "path": "demo/generated-files/evidence/live/evaluation/cases/add-timezone-name/protected/codex-trace.jsonl",
+      "sha256": "3fc47ac3c68d20cff3e02d5b81a5a49da83ed8eba200ef2ce210e83b8bf70d38"
+    },
+    {
+      "path": "demo/generated-files/evidence/live/evaluation/cases/add-timezone-name/protected/repository.patch",
+      "sha256": "5264d626199c8f2e02e37ea9135cef0ac4a40a44e2acfc7aec66682174a6b4ca"
+    },
+    {
+      "path": "demo/generated-files/evidence/live/evaluation/cases/add-timezone-name/protected/run.json",
+      "sha256": "49251b1e0fa68cb843886442d1258f86106af204aba848037f00cf62d10706fe"
+    },
+    {
+      "path": "demo/generated-files/evidence/live/evaluation/controls.json",
+      "sha256": "c4264e9852cc98fe6c467c36ab5dea62846902e1a13622af3662de7b527b8e87"
+    },
+    {
+      "path": "demo/generated-files/evidence/live/evaluation/rubric.json",
+      "sha256": "21bc706740fa0b29d502a4cf69199e0c4b4bbea64fc4615df7d8b9844d100a04"
+    }
+  ]
+}

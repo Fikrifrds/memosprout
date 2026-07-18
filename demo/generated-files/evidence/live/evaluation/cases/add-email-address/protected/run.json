@@ -1,0 +1,79 @@
+{
+  "version": "1",
+  "source": "live",
+  "runId": "evalrun_35e13d9593202b97",
+  "case": {
+    "id": "add-email-address",
+    "requestedField": "email_address",
+    "task": "Add an optional string field named email_address to the generated User API client. Run the relevant tests."
+  },
+  "condition": "protected",
+  "rubricSha256": "ae12ae4c46cc8cec64bfd4b96fa46ec571a3a4c614b8bbfb9c9cf0e8aa8f8822",
+  "startedAt": "2026-07-18T17:56:08.295Z",
+  "completedAt": "2026-07-18T17:58:05.215Z",
+  "durationMs": 116920,
+  "codex": {
+    "command": "codex exec --json --sandbox workspace-write --ephemeral --output-schema .memosprout/codex-eval-output.schema.json -C <temporary-repository> -",
+    "version": "codex-cli 0.144.6",
+    "exitCode": 0,
+    "turnCompleted": true,
+    "threadId": "019f765f-1156-77b0-a51c-e1dc6081448e",
+    "finalOutput": {
+      "version": "1",
+      "taskId": "add-email-address",
+      "requestedField": "email_address",
+      "summary": "Added optional `email_address?: string` to User via `api/openapi.yaml` and regenerated the client. All 4 tests passed. Generated-file consistency passed via the Node tsx loader; the equivalent pnpm command was blocked by sandbox IPC restrictions.",
+      "commandsRun": [
+        "pnpm generate:api (blocked by sandbox IPC restrictions)",
+        "node --import tsx scripts/generate-client.ts",
+        "pnpm test",
+        "pnpm check:generated (blocked by sandbox IPC restrictions)",
+        "node --import tsx scripts/check-generated-files.ts",
+        "git diff --check",
+        "git status --short"
+      ]
+    },
+    "tokenUsage": {
+      "inputTokens": 251417,
+      "cachedInputTokens": 201728,
+      "outputTokens": 3890
+    }
+  },
+  "exposure": {
+    "candidateSprout": false,
+    "okfArtifact": false,
+    "durableGuidance": true,
+    "executableProtection": true,
+    "acceptanceOracle": false
+  },
+  "evidence": {
+    "changedPaths": [
+      "api/openapi.yaml",
+      "generated/api-client.ts"
+    ],
+    "repositoryMutated": true,
+    "patchSha256": "d93823b28ef2996cd2308e57cd2f9b4b741d9b0a8327e4568cc1ac50eeccfcb6",
+    "schemaContainsField": true,
+    "generatedClientContainsField": true,
+    "oracle": {
+      "passed": true,
+      "reason": "generated-client-consistent",
+      "expectedSha256": "e11a52547695f3f163d8850ffb75c6399bb68e4ea052045341e5f4793352d7a4",
+      "actualSha256": "e11a52547695f3f163d8850ffb75c6399bb68e4ea052045341e5f4793352d7a4"
+    },
+    "tests": {
+      "command": "pnpm test",
+      "exitCode": 0,
+      "passed": true
+    }
+  },
+  "outcome": {
+    "taskSuccess": true,
+    "policyViolation": false,
+    "firstPass": true
+  },
+  "artifacts": {
+    "trace": "demo/generated-files/evidence/live/evaluation/cases/add-email-address/protected/codex-trace.jsonl",
+    "patch": "demo/generated-files/evidence/live/evaluation/cases/add-email-address/protected/repository.patch"
+  }
+}

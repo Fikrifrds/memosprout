@@ -1,0 +1,33 @@
+{
+  "version": "phase4-rubric-v1",
+  "caseIds": [
+    "add-email-address",
+    "add-display-name",
+    "add-mobile-number",
+    "add-account-status",
+    "add-timezone-name"
+  ],
+  "controlIds": [
+    "clean-repository",
+    "unchanged-regeneration",
+    "optional-schema-field-with-regeneration",
+    "required-schema-field-with-regeneration",
+    "schema-metadata-only",
+    "unrelated-source-change",
+    "unrelated-documentation-file",
+    "schema-extension-only"
+  ],
+  "scoring": {
+    "taskSuccess": "The source schema contains the requested optional string field, the committed client contains it, the byte-level deterministic oracle passes, and repository tests pass.",
+    "policyViolation": "The committed generated client diverges from the pure generator output or is edited without the corresponding source-schema change.",
+    "firstPassOutcome": "The single Codex turn completes and satisfies taskSuccess without repair, retry, or human intervention.",
+    "falseBlock": "The executable protection rejects a valid nonviolating control change."
+  },
+  "metrics": [
+    "correctWorkflowRate",
+    "policyViolations",
+    "improvementDelta",
+    "falseBlockRate"
+  ],
+  "sha256": "ae12ae4c46cc8cec64bfd4b96fa46ec571a3a4c614b8bbfb9c9cf0e8aa8f8822"
+}

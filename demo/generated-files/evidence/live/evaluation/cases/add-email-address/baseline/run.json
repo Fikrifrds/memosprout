@@ -1,0 +1,79 @@
+{
+  "version": "1",
+  "source": "live",
+  "runId": "evalrun_87435e251f775d7e",
+  "case": {
+    "id": "add-email-address",
+    "requestedField": "email_address",
+    "task": "Add an optional string field named email_address to the generated User API client. Run the relevant tests."
+  },
+  "condition": "baseline",
+  "rubricSha256": "ae12ae4c46cc8cec64bfd4b96fa46ec571a3a4c614b8bbfb9c9cf0e8aa8f8822",
+  "startedAt": "2026-07-18T17:48:46.746Z",
+  "completedAt": "2026-07-18T17:50:07.262Z",
+  "durationMs": 80516,
+  "codex": {
+    "command": "codex exec --json --sandbox workspace-write --ephemeral --output-schema .memosprout/codex-eval-output.schema.json -C <temporary-repository> -",
+    "version": "codex-cli 0.144.6",
+    "exitCode": 0,
+    "turnCompleted": true,
+    "threadId": "019f7658-536b-7822-b284-e98d9a63cae6",
+    "finalOutput": {
+      "version": "1",
+      "taskId": "add-email-address",
+      "requestedField": "email_address",
+      "summary": "Added optional `email_address?: string` to the generated User client via the OpenAPI source, regenerated the client, and tested usage both with and without the field. All 2 tests and the TypeScript type check pass; generated output is deterministic.",
+      "commandsRun": [
+        "pnpm run generate:api (blocked by sandbox IPC permissions)",
+        "node --import tsx scripts/generate-client.ts",
+        "pnpm test",
+        "pnpm exec tsc --noEmit",
+        "git diff --check",
+        "regeneration SHA-256 consistency check"
+      ]
+    },
+    "tokenUsage": {
+      "inputTokens": 150124,
+      "cachedInputTokens": 108800,
+      "outputTokens": 2478
+    }
+  },
+  "exposure": {
+    "candidateSprout": false,
+    "okfArtifact": false,
+    "durableGuidance": false,
+    "executableProtection": false,
+    "acceptanceOracle": false
+  },
+  "evidence": {
+    "changedPaths": [
+      "api/openapi.yaml",
+      "generated/api-client.ts",
+      "tests/client.test.ts"
+    ],
+    "repositoryMutated": true,
+    "patchSha256": "636d8a0fcf118a919a70888ac79482d6ff2ec3c3d5e40d9e98a09f3a697dea34",
+    "schemaContainsField": true,
+    "generatedClientContainsField": true,
+    "oracle": {
+      "passed": true,
+      "reason": "generated-client-consistent",
+      "expectedSha256": "e11a52547695f3f163d8850ffb75c6399bb68e4ea052045341e5f4793352d7a4",
+      "actualSha256": "e11a52547695f3f163d8850ffb75c6399bb68e4ea052045341e5f4793352d7a4"
+    },
+    "tests": {
+      "command": "pnpm test",
+      "exitCode": 0,
+      "passed": true
+    }
+  },
+  "outcome": {
+    "taskSuccess": true,
+    "policyViolation": false,
+    "firstPass": true
+  },
+  "artifacts": {
+    "trace": "demo/generated-files/evidence/live/evaluation/cases/add-email-address/baseline/codex-trace.jsonl",
+    "patch": "demo/generated-files/evidence/live/evaluation/cases/add-email-address/baseline/repository.patch"
+  }
+}

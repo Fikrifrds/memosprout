@@ -1,0 +1,80 @@
+{
+  "version": "1",
+  "source": "live",
+  "runId": "evalrun_51f32dc5bf283160",
+  "case": {
+    "id": "add-mobile-number",
+    "requestedField": "mobile_number",
+    "task": "Add an optional string field named mobile_number to the generated User API client. Run the relevant tests."
+  },
+  "condition": "protected",
+  "rubricSha256": "ae12ae4c46cc8cec64bfd4b96fa46ec571a3a4c614b8bbfb9c9cf0e8aa8f8822",
+  "startedAt": "2026-07-18T17:59:54.133Z",
+  "completedAt": "2026-07-18T18:02:04.746Z",
+  "durationMs": 130613,
+  "codex": {
+    "command": "codex exec --json --sandbox workspace-write --ephemeral --output-schema .memosprout/codex-eval-output.schema.json -C <temporary-repository> -",
+    "version": "codex-cli 0.144.6",
+    "exitCode": 0,
+    "turnCompleted": true,
+    "threadId": "019f7662-7fdf-7c22-899c-acb9eca72e60",
+    "finalOutput": {
+      "version": "1",
+      "taskId": "add-mobile-number",
+      "requestedField": "mobile_number",
+      "summary": "Added optional mobile_number string property to the OpenAPI User schema and regenerated the client as mobile_number?: string. All 4 tests passed, the generated-file consistency check passed via Node’s tsx import hook, and git diff validation passed. The pnpm generation/check wrappers were attempted but their tsx CLI IPC sockets were blocked by the sandbox.",
+      "commandsRun": [
+        "pnpm generate:api",
+        "node --import tsx scripts/generate-client.ts",
+        "pnpm test",
+        "pnpm check:generated",
+        "node --import tsx scripts/check-generated-files.ts",
+        "git diff --check",
+        "git status --short",
+        "git diff -- api/openapi.yaml generated/api-client.ts"
+      ]
+    },
+    "tokenUsage": {
+      "inputTokens": 269798,
+      "cachedInputTokens": 238080,
+      "outputTokens": 3809
+    }
+  },
+  "exposure": {
+    "candidateSprout": false,
+    "okfArtifact": false,
+    "durableGuidance": true,
+    "executableProtection": true,
+    "acceptanceOracle": false
+  },
+  "evidence": {
+    "changedPaths": [
+      "api/openapi.yaml",
+      "generated/api-client.ts"
+    ],
+    "repositoryMutated": true,
+    "patchSha256": "004f7e85823e3815c06b7314371424d06a1b55fd8c083ef2fc597acdb656d40f",
+    "schemaContainsField": true,
+    "generatedClientContainsField": true,
+    "oracle": {
+      "passed": true,
+      "reason": "generated-client-consistent",
+      "expectedSha256": "db45e1e5490f455c21d71a55f4750df0a4e7de59721ce2b3830ffad0d87501ff",
+      "actualSha256": "db45e1e5490f455c21d71a55f4750df0a4e7de59721ce2b3830ffad0d87501ff"
+    },
+    "tests": {
+      "command": "pnpm test",
+      "exitCode": 0,
+      "passed": true
+    }
+  },
+  "outcome": {
+    "taskSuccess": true,
+    "policyViolation": false,
+    "firstPass": true
+  },
+  "artifacts": {
+    "trace": "demo/generated-files/evidence/live/evaluation/cases/add-mobile-number/protected/codex-trace.jsonl",
+    "patch": "demo/generated-files/evidence/live/evaluation/cases/add-mobile-number/protected/repository.patch"
+  }
+}
