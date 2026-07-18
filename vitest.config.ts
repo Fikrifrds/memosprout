@@ -10,6 +10,7 @@ export default defineConfig({
   },
   test: {
     environment: "node",
+    fileParallelism: false,
     include: [
       "tests/**/*.test.ts",
       "demo/generated-files/template/tests/**/*.test.ts",

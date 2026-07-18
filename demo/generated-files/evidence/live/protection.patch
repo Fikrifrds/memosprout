@@ -1,0 +1,107 @@
+diff --git a/AGENTS.md b/AGENTS.md
+new file mode 100644
+index 0000000..a94176f
+--- /dev/null
++++ b/AGENTS.md
+@@ -0,0 +1,7 @@
++# Generated API client policy
++
++Source Candidate Sprout: `sprout_b9fd056e1923a33a`
++
++When adding or changing fields in the generated API client, update `api/openapi.yaml` as the source of truth, run `pnpm generate:api` to regenerate `generated/api-client.ts`, then run `pnpm test` and `pnpm check:generated`.
++
++Do not edit `generated/api-client.ts` directly.
+diff --git a/package.json b/package.json
+index ff9bde0..9eba280 100644
+--- a/package.json
++++ b/package.json
+@@ -10,6 +10,7 @@
+   },
+   "packageManager": "pnpm@11.9.0",
+   "scripts": {
++    "check:generated": "tsx scripts/check-generated-files.ts",
+     "generate:api": "tsx scripts/generate-client.ts",
+     "test": "vitest run"
+   },
+diff --git a/scripts/check-generated-files.ts b/scripts/check-generated-files.ts
+new file mode 100644
+index 0000000..09e1a81
+--- /dev/null
++++ b/scripts/check-generated-files.ts
+@@ -0,0 +1,18 @@
++import { readFile } from "node:fs/promises";
++
++import { renderGeneratedClient } from "./generator-core";
++
++const sourceCandidateSproutId = "sprout_b9fd056e1923a33a";
++const schemaPath = new URL("../api/openapi.yaml", import.meta.url);
++const generatedClientPath = new URL("../generated/api-client.ts", import.meta.url);
++
++const schema = await readFile(schemaPath, "utf8");
++const expectedClient = Buffer.from(renderGeneratedClient(schema), "utf8");
++const committedClient = await readFile(generatedClientPath);
++
++if (!committedClient.equals(expectedClient)) {
++  process.stderr.write(
++    `generated/api-client.ts differs from api/openapi.yaml (source Candidate Sprout: ${sourceCandidateSproutId}). Run pnpm generate:api and commit the result.\n`,
++  );
++  process.exitCode = 1;
++}
+diff --git a/tests/generated-policy.test.ts b/tests/generated-policy.test.ts
+new file mode 100644
+index 0000000..46c6db4
+--- /dev/null
++++ b/tests/generated-policy.test.ts
+@@ -0,0 +1,52 @@
++import { spawnSync } from "node:child_process";
++import { readFile, writeFile } from "node:fs/promises";
++import { fileURLToPath } from "node:url";
++
++import { describe, expect, it } from "vitest";
++
++const sourceCandidateSproutId = "sprout_b9fd056e1923a33a";
++const repositoryRoot = fileURLToPath(new URL("..", import.meta.url));
++const schemaPath = new URL("../api/openapi.yaml", import.meta.url);
++const generatedClientPath = new URL("../generated/api-client.ts", import.meta.url);
++
++function runGeneratedCheck() {
++  return spawnSync(process.execPath, ["--import", "tsx", "scripts/check-generated-files.ts"], {
++    cwd: repositoryRoot,
++    encoding: "utf8",
++  });
++}
++
++describe(`generated-file policy (${sourceCandidateSproutId})`, () => {
++  it("accepts matching output without changing repository inputs", async () => {
++    const schemaBefore = await readFile(schemaPath);
++    const generatedBefore = await readFile(generatedClientPath);
++
++    const result = runGeneratedCheck();
++
++    expect(result.error).toBeUndefined();
++    expect(result.status).toBe(0);
++    expect(await readFile(schemaPath)).toEqual(schemaBefore);
++    expect(await readFile(generatedClientPath)).toEqual(generatedBefore);
++  });
++
++  it("rejects appended bytes without repairing the committed client", async () => {
++    const generatedBefore = await readFile(generatedClientPath);
++    const divergentClient = Buffer.concat([
++      generatedBefore,
++      Buffer.from("// direct generated append\n", "utf8"),
++    ]);
++
++    try {
++      await writeFile(generatedClientPath, divergentClient);
++
++      const result = runGeneratedCheck();
++
++      expect(result.error).toBeUndefined();
++      expect(result.status).not.toBe(0);
++      expect(result.stderr).toContain(sourceCandidateSproutId);
++      expect(await readFile(generatedClientPath)).toEqual(divergentClient);
++    } finally {
++      await writeFile(generatedClientPath, generatedBefore);
++    }
++  });
++});

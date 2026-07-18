@@ -1,0 +1,18 @@
+{
+  "version": "1",
+  "sourceSproutId": "sprout_b9fd056e1923a33a",
+  "guidancePath": "AGENTS.md",
+  "enforcementPath": "scripts/check-generated-files.ts",
+  "testPath": "tests/generated-policy.test.ts",
+  "packageScript": "check:generated",
+  "observational": true,
+  "reusesPureGenerator": true,
+  "comparisonStrategy": "complete_byte_equality",
+  "changedPaths": [
+    "AGENTS.md",
+    "package.json",
+    "scripts/check-generated-files.ts",
+    "tests/generated-policy.test.ts"
+  ],
+  "summary": "Added durable generated-client guidance, a non-mutating full-byte consistency check using the pure renderer, and passing regression tests for matching and appended output."
+}

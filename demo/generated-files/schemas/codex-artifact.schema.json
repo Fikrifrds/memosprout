@@ -1,0 +1,67 @@
+{
+  "type": "object",
+  "description": "Provider-facing structured output for a Codex-generated MemoSprout protection artifact.",
+  "additionalProperties": false,
+  "required": [
+    "version",
+    "sourceSproutId",
+    "guidancePath",
+    "enforcementPath",
+    "testPath",
+    "packageScript",
+    "observational",
+    "reusesPureGenerator",
+    "comparisonStrategy",
+    "changedPaths",
+    "summary"
+  ],
+  "properties": {
+    "version": { "type": "string", "const": "1" },
+    "sourceSproutId": {
+      "type": "string",
+      "description": "Candidate Sprout ID supplied in the artifact prompt."
+    },
+    "guidancePath": { "type": "string", "const": "AGENTS.md" },
+    "enforcementPath": {
+      "type": "string",
+      "const": "scripts/check-generated-files.ts"
+    },
+    "testPath": {
+      "type": "string",
+      "const": "tests/generated-policy.test.ts"
+    },
+    "packageScript": { "type": "string", "const": "check:generated" },
+    "observational": {
+      "type": "boolean",
+      "const": true,
+      "description": "Attests that enforcement observes repository state without mutating it."
+    },
+    "reusesPureGenerator": {
+      "type": "boolean",
+      "const": true,
+      "description": "Attests that enforcement imports the existing pure generator rendering logic."
+    },
+    "comparisonStrategy": {
+      "type": "string",
+      "const": "complete_byte_equality",
+      "description": "Attests that complete expected and committed outputs are compared byte-for-byte."
+    },
+    "changedPaths": {
+      "type": "array",
+      "description": "All repository paths changed by Codex. Application validation enforces exact cardinality and uniqueness.",
+      "items": {
+        "type": "string",
+        "enum": [
+          "AGENTS.md",
+          "package.json",
+          "scripts/check-generated-files.ts",
+          "tests/generated-policy.test.ts"
+        ]
+      }
+    },
+    "summary": {
+      "type": "string",
+      "description": "Concise description of the generated guidance and enforcement."
+    }
+  }
+}

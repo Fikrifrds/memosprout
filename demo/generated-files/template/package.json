@@ -10,6 +10,7 @@
   },
   "packageManager": "pnpm@11.9.0",
   "scripts": {
+    "check:generated": "tsx scripts/check-generated-files.ts",
     "generate:api": "tsx scripts/generate-client.ts",
     "test": "vitest run"
   },

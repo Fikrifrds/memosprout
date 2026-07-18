@@ -11,11 +11,14 @@
   "packageManager": "pnpm@11.9.0",
   "scripts": {
     "build": "next build",
+    "check:generated": "pnpm --dir demo/generated-files/template check:generated",
     "demo": "vitest run tests/scenario demo/generated-files/template/tests --reporter=verbose",
     "dev": "next dev",
     "lint": "eslint .",
     "phase2:live": "tsx --env-file=.env scripts/generate-live-candidate.ts",
     "phase2:verify": "tsx scripts/verify-phase2.ts",
+    "phase3:live": "tsx scripts/generate-protection.ts",
+    "phase3:verify": "tsx scripts/verify-phase3.ts",
     "test": "vitest run",
     "test:watch": "vitest",
     "typecheck": "tsc --noEmit"

@@ -1,0 +1,151 @@
+{
+  "id": "protection_seeded_generated_files_001",
+  "source": "seeded",
+  "scenario": "generated-files",
+  "status": "accepted",
+  "sourceSproutId": "sprout_b9fd056e1923a33a",
+  "provenance": {
+    "failedAgentRunId": "run_seeded_generated_files_001",
+    "humanCorrectionId": "correction_seeded_generated_files_001",
+    "correctedOutcomeId": "outcome_seeded_generated_files_001",
+    "deterministicEvidenceId": "evidence_seeded_generated_files_001",
+    "candidateSproutId": "sprout_b9fd056e1923a33a",
+    "okfSha256": "1ba6c14fc84f67e3abe4a51ac5e72555dd113067499cbdbfbf3e2b2d344257db"
+  },
+  "codex": {
+    "threadId": null,
+    "cliVersion": null,
+    "command": "seeded replay; no Codex execution",
+    "startedAt": "2026-07-18T16:59:00.223Z",
+    "completedAt": "2026-07-18T17:01:46.366Z"
+  },
+  "output": {
+    "version": "1",
+    "sourceSproutId": "sprout_b9fd056e1923a33a",
+    "guidancePath": "AGENTS.md",
+    "enforcementPath": "scripts/check-generated-files.ts",
+    "testPath": "tests/generated-policy.test.ts",
+    "packageScript": "check:generated",
+    "observational": true,
+    "reusesPureGenerator": true,
+    "comparisonStrategy": "complete_byte_equality",
+    "changedPaths": [
+      "AGENTS.md",
+      "package.json",
+      "scripts/check-generated-files.ts",
+      "tests/generated-policy.test.ts"
+    ],
+    "summary": "Added durable generated-client guidance, a non-mutating full-byte consistency check using the pure renderer, and passing regression tests for matching and appended output."
+  },
+  "changedPaths": [
+    "AGENTS.md",
+    "package.json",
+    "scripts/check-generated-files.ts",
+    "tests/generated-policy.test.ts"
+  ],
+  "patchSha256": "b56df9bdbcc654f8b3ac4f6b0cdd43a66c7048bd755fdf1d8f1e9d16b748c08d",
+  "artifactHashes": {
+    "AGENTS.md": "76b6ad3f618ef7645660a4fcf18a7953642b32a119905b620eee1a6078d63b66",
+    "package.json": "d4838d1fcd1b83552f4448430443338eaee3090e3b17bfc30e03c28a329d4451",
+    "scripts/check-generated-files.ts": "d9731d1247b325fc216096a5467388f31415878028d9d6867e905bd603dc1988",
+    "tests/generated-policy.test.ts": "81337526b6e12bae12d8bc0ed01fa27375dd15b53aaa2ae6b7b7ac5a0a9ecdd6"
+  },
+  "acceptance": {
+    "invalid": [
+      {
+        "id": "direct-generated-append",
+        "expected": "reject",
+        "observed": "reject",
+        "exitCode": 1,
+        "repositoryUnchanged": true
+      },
+      {
+        "id": "direct-generated-rewrite",
+        "expected": "reject",
+        "observed": "reject",
+        "exitCode": 1,
+        "repositoryUnchanged": true
+      },
+      {
+        "id": "truncated-generated-client",
+        "expected": "reject",
+        "observed": "reject",
+        "exitCode": 1,
+        "repositoryUnchanged": true
+      },
+      {
+        "id": "schema-change-without-regeneration",
+        "expected": "reject",
+        "observed": "reject",
+        "exitCode": 1,
+        "repositoryUnchanged": true
+      },
+      {
+        "id": "missing-generated-client",
+        "expected": "reject",
+        "observed": "reject",
+        "exitCode": 1,
+        "repositoryUnchanged": true
+      }
+    ],
+    "valid": [
+      {
+        "id": "clean-repository",
+        "expected": "allow",
+        "observed": "allow",
+        "exitCode": 0,
+        "repositoryUnchanged": true
+      },
+      {
+        "id": "unchanged-regeneration",
+        "expected": "allow",
+        "observed": "allow",
+        "exitCode": 0,
+        "repositoryUnchanged": true
+      },
+      {
+        "id": "optional-schema-field-with-regeneration",
+        "expected": "allow",
+        "observed": "allow",
+        "exitCode": 0,
+        "repositoryUnchanged": true
+      },
+      {
+        "id": "required-schema-field-with-regeneration",
+        "expected": "allow",
+        "observed": "allow",
+        "exitCode": 0,
+        "repositoryUnchanged": true
+      },
+      {
+        "id": "schema-metadata-only",
+        "expected": "allow",
+        "observed": "allow",
+        "exitCode": 0,
+        "repositoryUnchanged": true
+      },
+      {
+        "id": "unrelated-source-change",
+        "expected": "allow",
+        "observed": "allow",
+        "exitCode": 0,
+        "repositoryUnchanged": true
+      },
+      {
+        "id": "unrelated-documentation-file",
+        "expected": "allow",
+        "observed": "allow",
+        "exitCode": 0,
+        "repositoryUnchanged": true
+      },
+      {
+        "id": "schema-extension-only",
+        "expected": "allow",
+        "observed": "allow",
+        "exitCode": 0,
+        "repositoryUnchanged": true
+      }
+    ]
+  },
+  "liveSourceRunId": "protection_019f762a_c13f_7781_96cd_1b65a8ae4267"
+}

@@ -150,6 +150,46 @@ Evidence:
 - frozen installation, linting, type checking, the full test suite, the deterministic demo suite, Phase 2 artifact verification, and whitespace validation all pass under the standardized runtime;
 - the existing successful live GPT-5.6 evidence remains valid because runtime standardization did not change OpenAI integration behavior.
 
+### Phase 3 — Codex-Generated Executable Protection
+
+Added:
+
+- a non-interactive Codex execution adapter with JSONL parsing, thread capture, a ten-minute timeout, dynamic executable resolution, a preserved Node.js 24 environment, and sanitized failure diagnostics;
+- a recursive provider-schema compatibility preflight that rejects unsupported structured-output keywords before Codex is spawned;
+- strict Zod contracts for Codex output, exact changed-path uniqueness, observational enforcement, pure-renderer reuse, complete byte equality, live provenance, seeded replay provenance, artifact hashes, and acceptance results;
+- an isolated temporary Git-repository runner with an exact four-path allowlist and package-script-only validation;
+- an independent acceptance suite covering five invalid generated-file mutations and eight valid controls, with repository content and metadata snapshots proving enforcement is non-mutating;
+- sanitized live Codex JSONL, patch, structured output, and protection-run evidence plus an explicitly labeled seeded replay record;
+- tests for JSONL success/failure/partial streams, sanitization, provider-schema compatibility, artifact compiler requirements, path allowlisting, Zod uniqueness, repository non-mutation, provenance, and behavioral acceptance.
+
+Codex-generated and promoted:
+
+- `demo/generated-files/template/AGENTS.md` as durable repository guidance;
+- `demo/generated-files/template/scripts/check-generated-files.ts` as observational executable enforcement;
+- `demo/generated-files/template/tests/generated-policy.test.ts` as repository-owned regression coverage;
+- `check:generated` in the demo package scripts.
+
+Changed:
+
+- incorporated rejected Candidate Protection feedback into artifact compiler prompt v2 without exposing the independent acceptance implementation;
+- required the generated check to import the existing pure renderer, compute expected output in memory, read the committed output unchanged, and compare complete Buffers byte-for-byte;
+- kept durable guidance, executable enforcement, and enforcement tests as separate artifacts;
+- serialized Vitest files because the repository-owned regression test intentionally mutates and restores a fixture, preventing cross-file fixture races without changing application behavior;
+- marked Phase 3 complete in the implementation plan and stopped before Phase 4.
+
+Evidence:
+
+- live Codex CLI `0.144.6` thread `019f762a-c13f-7781-96cd-1b65a8ae4267` completed with Zod-valid structured output and exactly four allowlisted changed paths;
+- all five invalid mutations were rejected with non-zero exits;
+- all eight valid controls were allowed with zero exits;
+- every invalid and valid case left repository files and metadata unchanged;
+- `pnpm phase3:verify` validated the sanitized trace thread ID, patch hash, artifact hashes, live/seeded separation, and repeatable acceptance results;
+- `pnpm lint` and `pnpm typecheck` completed with zero errors;
+- `pnpm test` passed 14 test files and 53 tests;
+- `pnpm demo` passed 4 test files and 9 tests;
+- the promoted `pnpm check:generated` command exited zero on the clean repository;
+- no Phase 4 or UI implementation was started.
+
 ## Entry Format for Future Work
 
 Future entries must use the date the change was completed and include only applicable sections:
