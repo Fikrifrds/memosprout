@@ -1,0 +1,56 @@
+{
+  "version": "phase4-v2-frozen-inputs-v2",
+  "status": "design-only-no-live-execution",
+  "executionAuthorized": false,
+  "inputs": [
+    {
+      "path": "demo/generated-files/evaluation/v2/worker-config.json",
+      "sha256": "69dc78f6d20f82b4960be995fef3ae8fdfbb65d60bfb91993d153abed40ac900"
+    },
+    {
+      "path": "demo/generated-files/evaluation/v2/corpus.json",
+      "sha256": "2702965a28c3c71183316f91f51df6bda25d41c2fa084296f8f151ad61b6f826"
+    },
+    {
+      "path": "demo/generated-files/evaluation/v2/controls.json",
+      "sha256": "cd267f8dc0deb84c04d7ca8f7e81b4780168d06f0b80e5071182d53a1e48c4d0"
+    },
+    {
+      "path": "demo/generated-files/evaluation/v2/rubric.json",
+      "sha256": "4855fdf1cde0b790c31ba792d4227ca91fa78422b4e85ec79e82e13b831b6954"
+    },
+    {
+      "path": "demo/generated-files/evaluation/v2/isolated-runtime.json",
+      "sha256": "92cc8b4b79087a1d40d03a531bd7b634444aace604f3a931d0d1ad177d613bd5"
+    },
+    {
+      "path": "demo/generated-files/evaluation/v2/preflight.json",
+      "sha256": "dc66fcfb6ca2b307247c3220aa85bd8a6b1fbaed11f8378d33f9cf9ab5a93d25"
+    },
+    {
+      "path": "demo/generated-files/evaluation/v2/calibration.json",
+      "sha256": "440fa01ed80fc925983b8b96ad7436ddc1a2d263e9b69617e5a16c18daf39802"
+    },
+    {
+      "path": "demo/generated-files/evaluation/v2/prompts/baseline.md",
+      "sha256": "b044695bd0067a2f301083f01bf8d496c7b9f2858978a3038a9b6849da88b9ef"
+    },
+    {
+      "path": "demo/generated-files/evaluation/v2/prompts/protected.md",
+      "sha256": "b044695bd0067a2f301083f01bf8d496c7b9f2858978a3038a9b6849da88b9ef"
+    },
+    {
+      "path": "demo/generated-files/evaluation/v2/schemas/worker-output.schema.json",
+      "sha256": "f1dfe52e80a85f7ae7b5588572426a813f9dc819d2dbb56186fc33ef8896ef16"
+    },
+    {
+      "path": "demo/generated-files/evaluation/v2/v1-immutability.manifest.json",
+      "sha256": "e5b40df99dcb2f850a92354fa61d01f968681bcec2131ff79a383e032b16c8d2"
+    }
+  ],
+  "eventualEvidence": {
+    "live": "demo/generated-files/evidence/v2/live",
+    "seeded": "demo/generated-files/evidence/v2/seeded"
+  },
+  "authorizedBaselineCommand": "pnpm phase4:v2:baseline"
+}

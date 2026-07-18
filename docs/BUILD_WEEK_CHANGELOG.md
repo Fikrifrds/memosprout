@@ -232,6 +232,56 @@ Deferred:
 
 - Phase 5 and all UI work remain unstarted because measured protected improvement is a core-proof gate.
 
+### Phase 4 v2 — Design Frozen for Human Review
+
+Added:
+
+- a separately versioned v2 worker contract pinned to Codex CLI `0.144.6`, `gpt-5.4-mini`, low reasoning, workspace-write isolation, disabled external search and multi-agent execution, a three-minute per-run timeout, and zero model-outcome retries;
+- six generated-files tasks derived from the pre-existing failure taxonomy, with three independent trials per task and condition for a proposed total of 36 scored live runs;
+- a frozen safe-first-pass rubric, eight valid controls, a provider-compatible structured-output schema, strict Zod run/report contracts, and an independently enforced outcome gate;
+- separate v2 contract and eventual-evidence paths that do not overlap Phase 4 v1;
+- a v1 immutable-tree manifest and a v2 frozen-input manifest with exact SHA-256 hashes;
+- deterministic design tests for v1 immutability, prompt comparability, treatment-neutral repository equality, artifact isolation, model/config equality, trial uniqueness, rubric hashing, evidence validation, baseline-before-protected ordering, and verification/gate separation;
+- `pnpm phase4:v2:design:verify` as a model-free human-review command.
+
+Evidence:
+
+- the design verifier confirms 18 unique scored trials, eight controls, byte-identical prompts, a compatible provider schema, all frozen hashes, and identical treatment-neutral repository hashes;
+- synthetic positive evidence passes both integrity verification and the frozen v2 gate;
+- synthetic zero-delta evidence passes integrity verification but fails the outcome gate;
+- corrupted configuration evidence and duplicate trial evidence are rejected deterministically;
+- no baseline, protected, control, or other live model run was launched, and no v2 live or seeded evidence was created.
+
+Deferred:
+
+- the proposed `pnpm phase4:v2:baseline` command is not implemented or authorized in this design-only change;
+- Phase 4 v2 execution, Phase 5, and UI work remain unstarted pending human review.
+
+### Phase 4 v2 — Reviewed Contract Corrections and Re-freeze
+
+Changed:
+
+- omitted `--ignore-rules` after installed CLI help proved only execpolicy `.rules` suppression, not preservation of repository `AGENTS.md` discovery;
+- replaced inherited Codex state with a per-trial temporary `CODEX_HOME` that dynamically copies only the minimum authentication file or uses the minimum environment credential fallback, while excluding global instructions, config, plugins, skills, MCP state, unrelated environment values, credentials, and local paths from evidence;
+- strengthened deterministic repository isolation to require independent temporary Git roots outside the parent repository, complete baseline exclusion, and exact protected materialization against accepted Phase 3 artifact hashes;
+- replaced literal `pnpm generate:api` scoring with semantic detection from successful sanitized Codex command events, covering the repository package script, wrappers, and direct pure-generator execution while rejecting failed, masked, unrelated, manual-only, self-reported-only, or evaluator-run commands;
+- bound generator evidence to a sanitized trace event index and command hash, and required application-level task/trial identity to match the launched run exactly;
+- changed `gpt-5.4-mini` with low reasoning from permanently selected to provisional pending a separately authorized entitlement preflight and disjoint non-scored calibration;
+- anchored Phase 4 v1 immutability to tag `build-week-phase-4-v1-verified-ceiling` at commit `60b0ce95cd87399c345af8a1e431c394e087712b`, independent of the current working tree;
+- bumped corrected contracts to worker v2, isolation v2, rubric v2, worker output/run/report 2.1, v1 immutability v2, and frozen-input manifest v2, then regenerated all affected hashes.
+
+Added:
+
+- deterministic tests for isolated authentication-only runtime materialization, exclusion of global and parent instructions, independent Git roots, exact treatment hashes, semantic generator invocation, trace-versus-self-report separation, exact run binding, empty self-report rejection, tag-derived v1 immutability, prompt byte equality, and absence of v2 evidence;
+- frozen but unauthorized future contracts for `pnpm phase4:v2:worker:preflight` and `pnpm phase4:v2:worker:calibrate`;
+- a calibration rule accepting the provisional worker only when disjoint calibration produces a safe-first-pass rate from `0.25` through `0.75`; the installed bundled catalog contains no approved smaller fallback, GPT-4.1 nano is prohibited as the default, and any worker change requires a complete versioned re-freeze.
+
+Evidence:
+
+- `pnpm phase4:v2:design:verify` validates 18 scored trial contracts, eight controls, all eleven frozen hashes, a tag-derived v1 snapshot, prompt equality, treatment-neutral repository equality, exact Phase 3 artifact exposure, and absent v2 evidence without calling a model;
+- no worker preflight, calibration, baseline, protected, control, or other model run was launched;
+- Phase 4 remains unpassed, `executionAuthorized` remains false, and Phase 5 and UI work remain prohibited.
+
 ## Entry Format for Future Work
 
 Future entries must use the date the change was completed and include only applicable sections:

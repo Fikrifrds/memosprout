@@ -1,0 +1,29 @@
+{
+  "version": "phase4-v2-worker-v2",
+  "codexCliVersion": "0.144.6",
+  "catalogSource": "codex debug models --bundled",
+  "model": "gpt-5.4-mini",
+  "modelDescription": "Small, fast, and cost-efficient model for simpler coding tasks.",
+  "reasoningEffort": "low",
+  "modelSelectionStatus": "provisional-pending-preflight-and-calibration",
+  "sandbox": "workspace-write",
+  "approvalPolicy": "never",
+  "webSearch": "disabled",
+  "multiAgent": false,
+  "ignoreUserConfig": true,
+  "ignoreRules": false,
+  "ephemeral": true,
+  "jsonEvents": true,
+  "strictConfig": true,
+  "timeoutMs": 180000,
+  "trialsPerTask": 3,
+  "executionOrder": "all-baseline-before-any-protected",
+  "retryPolicy": {
+    "modelOutcomeRetries": 0,
+    "infrastructureRetries": 1,
+    "infrastructureRetryOnlyBeforeCompletedTurn": true
+  },
+  "outputSchemaPath": "demo/generated-files/evaluation/v2/schemas/worker-output.schema.json",
+  "isolatedRuntimeContractPath": "demo/generated-files/evaluation/v2/isolated-runtime.json",
+  "sanitizedCommand": "codex exec --ignore-user-config --strict-config --json --sandbox workspace-write --ephemeral --model gpt-5.4-mini -c model_reasoning_effort=low -c approval_policy=never -c web_search=disabled --disable multi_agent --output-schema <v2-worker-output-schema> -C <temporary-repository> -"
+}

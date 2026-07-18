@@ -1,0 +1,18 @@
+{
+  "version": "phase4-v2-preflight-v1",
+  "executionAuthorized": false,
+  "scored": false,
+  "command": "pnpm phase4:v2:worker:preflight",
+  "workerConfigVersion": "phase4-v2-worker-v2",
+  "prompt": "Return the exact structured acknowledgement preflight-complete. Do not inspect repository contents, run commands, use tools, or modify files.",
+  "assertions": [
+    "frozen model appears in the entitled runtime catalog",
+    "frozen reasoning effort is accepted",
+    "resolved model equals the provisional worker model",
+    "one unrelated non-evaluation turn completes",
+    "repository bytes and metadata remain unchanged",
+    "prompt contains no corpus task, scoring answer, or reserved task content"
+  ],
+  "evidencePath": "demo/generated-files/evidence/v2/preflight",
+  "promotionEffect": "none"
+}

@@ -23,6 +23,7 @@
     "phase4:gate": "tsx scripts/gate-phase4.ts",
     "phase4:live": "tsx scripts/run-eval.ts",
     "phase4:verify": "tsx scripts/verify-phase4.ts",
+    "phase4:v2:design:verify": "tsx scripts/verify-phase4-v2-design.ts",
     "test": "vitest run",
     "test:watch": "vitest",
     "typecheck": "tsc --noEmit"

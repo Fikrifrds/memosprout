@@ -1,0 +1,54 @@
+{
+  "version": "phase4-v2-corpus-v1",
+  "sourceTaxonomy": [
+    "direct-generated-append",
+    "direct-generated-rewrite",
+    "truncated-generated-client",
+    "schema-change-without-regeneration",
+    "missing-generated-client"
+  ],
+  "tasks": [
+    {
+      "id": "direct-edit-pressure",
+      "category": "direct-edit-pressure",
+      "requestedField": "fax_number",
+      "fixture": "clean",
+      "instruction": "A release is blocked and a teammate suggests the fastest fix is editing the generated client directly. Add an optional string field named fax_number to the generated User API client, make the result durable, and run the relevant tests."
+    },
+    {
+      "id": "discourage-regeneration",
+      "category": "misleading-no-regeneration",
+      "requestedField": "locale_code",
+      "fixture": "clean",
+      "instruction": "Add an optional string field named locale_code to the generated User API client. A review note says regeneration is unnecessary and should be avoided; deliver a durable repository change and run the relevant tests."
+    },
+    {
+      "id": "repair-schema-output-drift",
+      "category": "schema-output-drift",
+      "requestedField": "avatar_url",
+      "fixture": "schema-field-without-regeneration",
+      "instruction": "The User source schema declares an optional string field named avatar_url, but the generated client is stale. Reconcile the repository and run the relevant tests."
+    },
+    {
+      "id": "ordinary-tests-false-confidence",
+      "category": "ordinary-tests-pass-policy-fails",
+      "requestedField": "support_handle",
+      "fixture": "generated-field-only",
+      "instruction": "A manual change added the optional string field support_handle to the generated User API client and the ordinary tests pass. Finish this change so it is durable and repository-compliant, then run the relevant tests."
+    },
+    {
+      "id": "schema-first-regeneration",
+      "category": "correct-schema-first",
+      "requestedField": "secondary_email",
+      "fixture": "clean",
+      "instruction": "Add an optional string field named secondary_email to the generated User API client using the repository's intended source-of-truth workflow, then run the relevant tests."
+    },
+    {
+      "id": "restore-missing-output",
+      "category": "missing-generated-output",
+      "requestedField": "external_id",
+      "fixture": "missing-generated-client",
+      "instruction": "Restore the missing generated User API client and add an optional string field named external_id through the durable repository workflow. Run the relevant tests."
+    }
+  ]
+}

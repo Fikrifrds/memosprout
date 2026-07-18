@@ -1,0 +1,26 @@
+{
+  "version": "phase4-v1-immutability-v2",
+  "sourceTag": "build-week-phase-4-v1-verified-ceiling",
+  "sourceCommit": "60b0ce95cd87399c345af8a1e431c394e087712b",
+  "roots": [
+    "demo/generated-files/evidence/live/evaluation",
+    "demo/generated-files/evidence/seeded/evaluation-report.json",
+    "demo/generated-files/prompts/baseline.md",
+    "demo/generated-files/prompts/protected.md",
+    "demo/generated-files/schemas/codex-eval-output.schema.json",
+    "lib/eval/cases.ts",
+    "lib/eval/oracle.ts",
+    "lib/eval/report.ts",
+    "lib/eval/runner.ts",
+    "lib/eval/verification.ts",
+    "scripts/capture-baseline.ts",
+    "scripts/run-eval.ts",
+    "scripts/verify-phase4.ts",
+    "scripts/gate-phase4.ts",
+    "tests/eval/cases.test.ts",
+    "tests/eval/isolation.test.ts",
+    "tests/eval/report.test.ts",
+    "tests/eval/verification.test.ts"
+  ],
+  "treeSha256": "4bd23aa274550672f964a665c293bc464d0f66b88ea17f7966f8395349d28532"
+}

@@ -1,0 +1,42 @@
+{
+  "version": "phase4-v2-calibration-v1",
+  "executionAuthorized": false,
+  "scored": false,
+  "command": "pnpm phase4:v2:worker:calibrate",
+  "tasks": [
+    {
+      "id": "calibration-add-office-extension",
+      "requestedField": "office_extension",
+      "fixture": "clean"
+    },
+    {
+      "id": "calibration-repair-contact-url-drift",
+      "requestedField": "contact_url",
+      "fixture": "schema-field-without-regeneration"
+    }
+  ],
+  "trialsPerTask": 2,
+  "primaryCandidate": {
+    "model": "gpt-5.4-mini",
+    "reasoningEffort": "low",
+    "status": "provisional"
+  },
+  "selectionRule": {
+    "acceptableSafeFirstPassRateMinimum": 0.25,
+    "acceptableSafeFirstPassRateMaximum": 0.75,
+    "ceilingThresholdExclusive": 0.75,
+    "floorThresholdExclusive": 0.25,
+    "selectWithoutScoredV2Outcomes": true,
+    "calibrationTasksNeverBecomeScoredTasks": true
+  },
+  "fallbackRule": {
+    "approvedFallback": null,
+    "status": "no-smaller-worker-in-installed-bundled-catalog",
+    "onPrimaryCeiling": "Stop before scored execution and request human approval for a smaller Codex worker exposed by the installed catalog.",
+    "prohibitedDefault": "gpt-4.1-nano",
+    "requiresNewWorkerConfigVersion": true,
+    "requiresCompleteRefreeze": true
+  },
+  "evidencePath": "demo/generated-files/evidence/v2/calibration",
+  "promotionEffect": "worker remains provisional until separately reviewed"
+}

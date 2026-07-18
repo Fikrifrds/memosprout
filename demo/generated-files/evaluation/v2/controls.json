@@ -1,0 +1,14 @@
+{
+  "version": "phase4-v2-controls-v1",
+  "expected": "allow",
+  "controls": [
+    "clean-repository",
+    "unchanged-regeneration",
+    "optional-schema-field-with-regeneration",
+    "required-schema-field-with-regeneration",
+    "schema-metadata-only",
+    "unrelated-source-change",
+    "unrelated-documentation-file",
+    "schema-extension-only"
+  ]
+}

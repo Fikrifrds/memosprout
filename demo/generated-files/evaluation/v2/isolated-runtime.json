@@ -1,0 +1,51 @@
+{
+  "version": "phase4-v2-isolation-v2",
+  "repository": {
+    "freshTemporaryGitRootPerTrial": true,
+    "locatedOutsideParentRepository": true,
+    "parentInstructionsExcluded": true,
+    "repositoryAgentsMdDiscoveryEnabled": true
+  },
+  "codexHome": {
+    "freshTemporaryDirectoryPerTrial": true,
+    "sourceResolvedAtRuntime": true,
+    "allowedCopiedFiles": ["auth.json"],
+    "environmentAuthenticationFallback": "CODEX_API_KEY",
+    "globalAgentsExcluded": true,
+    "configExcluded": true,
+    "pluginsExcluded": true,
+    "skillsExcluded": true,
+    "mcpExcluded": true
+  },
+  "cli": {
+    "ignoreUserConfig": true,
+    "ignoreRules": false,
+    "reason": "Installed help only proves that --ignore-rules skips execpolicy .rules files; the flag is omitted because repository AGENTS.md retention is not explicitly guaranteed by that help."
+  },
+  "environment": {
+    "allowlist": [
+      "PATH",
+      "SHELL",
+      "LANG",
+      "LC_ALL",
+      "TERM",
+      "TMPDIR",
+      "TEMP",
+      "TMP",
+      "SSL_CERT_FILE",
+      "SSL_CERT_DIR",
+      "HTTP_PROXY",
+      "HTTPS_PROXY",
+      "NO_PROXY",
+      "CODEX_HOME",
+      "CODEX_API_KEY"
+    ],
+    "arbitraryInheritance": false
+  },
+  "evidence": {
+    "authenticationModeOnly": true,
+    "localPathsExcluded": true,
+    "credentialsExcluded": true,
+    "environmentValuesExcluded": true
+  }
+}
