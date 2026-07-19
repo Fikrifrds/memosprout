@@ -41,7 +41,7 @@ Recorded in decision BW-021. The Build Week generated-files scenario produced a 
 
 **Phase C — decision gate.** If the convergence gate (`sproutLift >= 0.5`, `cheapProtectedRate >= 0.8`, `falseBlockRate = 0`) passes on the scored run, document the evidence and proceed to the wedge roadmap below; otherwise learn and adjust the scenario or thesis.
 
-**Wedge roadmap toward the Full PRD** (each wedge gated on the previous validation; heavy infrastructure deferred): (0) convergence experiment — **complete** (gate passed); (1) reusable Validation Engine / Eval Lab — **complete** (`lib/eval/engine/`, proven on idempotency and soft-delete, BW-024); (2) Experience Compiler + OKF; (3) Artifact Compiler; (4) dynamic delivery via MCP `get_task_context` plus a non-Codex adapter for portability; (5) Outcome Ledger; (6) Cost–Intelligence Router; (7) Team Control Plane and governance. Deferred: Runtime Reflex Gate, multi-domain expansion, billing.
+**Wedge roadmap toward the Full PRD** (each wedge gated on the previous validation; heavy infrastructure deferred): (0) convergence experiment — **complete** (gate passed); (1) reusable Validation Engine / Eval Lab — **complete** (`lib/eval/engine/`, proven on idempotency and soft-delete, BW-024); (2) Experience Compiler + OKF — **complete** (scenario-agnostic compiler, guidance compiler, scenario-aware OKF, BW-025); (3) Artifact Compiler; (4) dynamic delivery via MCP `get_task_context` plus a non-Codex adapter for portability; (5) Outcome Ledger; (6) Cost–Intelligence Router; (7) Team Control Plane and governance. Deferred: Runtime Reflex Gate, multi-domain expansion, billing.
 
 ## 1. Feasibility Verdict
 

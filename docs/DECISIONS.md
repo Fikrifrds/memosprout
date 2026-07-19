@@ -33,6 +33,7 @@ This log records decisions for the Build Week implementation. [`BUILD_WEEK_PRD.m
 | BW-022 | Run the convergence experiment on the OpenAI API (both conditions) | Accepted |
 | BW-023 | Adopt the reliability framing and reframe the convergence gate on probe evidence | Accepted |
 | BW-024 | Extract a reusable Validation Engine parameterized by scenario | Accepted |
+| BW-025 | Generalize the Experience Compiler and OKF export across scenarios | Accepted |
 
 ## Detailed Decisions
 
@@ -235,6 +236,14 @@ This log records decisions for the Build Week implementation. [`BUILD_WEEK_PRD.m
 **Reason:** The convergence harness was hardcoded to the idempotency scenario, but the core intellectual property is the verification methodology itself — materializing baseline/protected repositories, scoring against a held-out acceptance oracle, measuring false blocks, and enforcing protection isolation. That methodology must work for any scenario or sprout, not one. Reusability is demonstrated by validating two structurally different scenarios (idempotency and soft-delete) through the same engine with no engine changes, only different `ScenarioDefinition` instances.
 
 **Consequence:** `lib/eval/engine/{scenario,oracle,runner}.ts` is the reusable core (`ScenarioDefinition`, `AcceptanceSuiteOracle`/`createScenarioOracle`, `prepareScenarioRepository`/`evaluateScenarioControl`/`assertScenarioIsolation`). The convergence experiment (`lib/eval/v3/`) consumes the engine. Adding a new scenario now requires only a deterministic template plus a `ScenarioDefinition`; the engine, oracle, isolation, and false-block control evaluation are reused unchanged.
+
+### BW-025 — Generalize the Experience Compiler and OKF Export Across Scenarios
+
+**Decision:** Generalize the Experience Compiler and OKF export so they are not tied to the generated-files scenario, and add a guidance compiler that bridges a Candidate Sprout to the Validation Engine. The Experience Compiler (`lib/compiler/experience-compiler.ts`) extracts a `CandidateSproutContent` from scenario-agnostic evidence (scenario, task, failed-run summary, human correction) through a scenario-parameterized prompt and an injectable transport. The guidance compiler (`lib/compiler/compile-guidance.ts`) renders a Candidate Sprout into the `AGENTS.md`-style guidance the Validation Engine injects for the protected condition. OKF export gains a scenario-aware `renderExperienceOkf` and `experienceOkfFilename`.
+
+**Reason:** The Phase 2 Experience Compiler, prompt, and OKF rendering were hardcoded to generated-files (specific evidence bundle, prompt instructions, description, and filename). Supporting the Validation Engine's multiple scenarios (idempotency, soft-delete, and future ones) requires extraction from generic evidence, scenario-aware OKF, and a sprout-to-guidance path so an extracted sprout can be validated by the engine. The generic `CandidateSproutContent` schema is reused unchanged; only the generated-files-specific evidence bundle and provenance literals are bypassed by the new path.
+
+**Consequence:** `lib/compiler/{experience-compiler,compile-guidance}.ts` and `renderExperienceOkf`/`experienceOkfFilename` in `lib/okf/render.ts` form the generalized path, demonstrated model-free for both the idempotency and soft-delete scenarios. The existing generated-files Experience Compiler and `renderCandidateOkf` remain unchanged for the Phase 2 flow.
 
 ## Deferred or Conditional Decisions
 

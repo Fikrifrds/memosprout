@@ -644,6 +644,28 @@ Deferred:
 
 - wedge 2 and beyond (Experience Compiler/OKF, Artifact Compiler, MCP delivery, Outcome Ledger, Cost–Intelligence Router, Team Control Plane).
 
+### Experience Compiler and OKF — Scenario-Agnostic Generalization (Wedge 2)
+
+Added:
+
+- a generalized Experience Compiler (`lib/compiler/experience-compiler.ts`): a scenario-agnostic evidence schema (scenario, task, failed-run summary, human correction), a scenario-parameterized system prompt, an injectable transport with a live OpenAI Responses API implementation, typed error classification, and `compileExperience` producing a `CandidateSproutContent`;
+- a guidance compiler (`lib/compiler/compile-guidance.ts`) that renders a Candidate Sprout into `AGENTS.md`-style guidance, bridging the Experience Compiler output to the Validation Engine's protected-condition sprout;
+- a scenario-aware OKF export (`renderExperienceOkf` and `experienceOkfFilename` in `lib/okf/render.ts`) that validates against the existing OKF schema;
+- model-free tests for the compiler (mock transport across the idempotency and soft-delete scenarios, plus refusal and malformed-output handling), the guidance compiler, and the scenario-aware OKF render.
+
+Changed:
+
+- reused the generic `CandidateSproutContent` schema unchanged; the generated-files-specific Experience Compiler and `renderCandidateOkf` remain intact for the Phase 2 flow.
+
+Evidence:
+
+- the compiler, guidance compiler, and OKF export are demonstrated model-free for both the idempotency and soft-delete scenarios;
+- `pnpm lint` and `pnpm typecheck` completed with zero errors and zero warnings; `pnpm test` passed 45 test files and 255 tests.
+
+Deferred:
+
+- wedge 3 and beyond (Artifact Compiler, MCP delivery, Outcome Ledger, Cost–Intelligence Router, Team Control Plane).
+
 ## Entry Format for Future Work
 
 Future entries must use the date the change was completed and include only applicable sections:

@@ -1,8 +1,10 @@
 import { stringify } from "yaml";
 
 import {
+  candidateSproutContentSchema,
   candidateSproutSchema,
   type CandidateSprout,
+  type CandidateSproutContent,
 } from "@/lib/domain/schemas";
 
 export const okfDownloadFilename = "generated-files-agent-experience.md";
@@ -84,6 +86,80 @@ export function renderCandidateOkf(
     `- Human Correction: \`${candidate.evidence.humanCorrectionId}\``,
     `- Corrected outcome: \`${candidate.evidence.correctedOutcomeId}\``,
     `- Deterministic evidence: \`${candidate.evidence.deterministicEvidenceId}\``,
+    "",
+    "## Uncertainties",
+    "",
+    ...bulletList(candidate.uncertainties, "No unresolved uncertainty recorded."),
+    "",
+    "## Recommended Artifact",
+    "",
+    `\`${candidate.recommendedArtifact}\``,
+  ].join("\n");
+
+  return renderOkfDocument({ frontmatter, body });
+}
+
+export interface ExperienceOkfOptions {
+  scenario: string;
+  sproutId: string;
+  source: "live" | "seeded";
+  promptVersion: string;
+  modelRequested: string;
+  modelReturned: string | null;
+  responseId: string | null;
+  generatedAt: string;
+  evidenceIds: Record<string, string>;
+}
+
+export function experienceOkfFilename(scenario: string): string {
+  return `${scenario}-agent-experience.md`;
+}
+
+export function renderExperienceOkf(
+  input: CandidateSproutContent,
+  options: ExperienceOkfOptions,
+): string {
+  const candidate = candidateSproutContentSchema.parse(input);
+  const frontmatter: Record<string, unknown> = {
+    type: candidate.type,
+    title: inline(candidate.title),
+    description: `A Candidate Sprout derived from ${options.scenario} evidence and Human Correction.`,
+    version: "0.1",
+    created_at: options.generatedAt,
+    memosprout: {
+      sprout_id: options.sproutId,
+      status: "candidate",
+      source: options.source,
+      prompt_version: options.promptVersion,
+      model_requested: options.modelRequested,
+      model_returned: options.modelReturned,
+      response_id: options.responseId,
+      scenario: options.scenario,
+      evidence_ids: options.evidenceIds,
+    },
+  };
+  const body = [
+    `# ${inline(candidate.title)}`,
+    "",
+    "## Trigger",
+    "",
+    inline(candidate.trigger),
+    "",
+    "## Validated Procedure",
+    "",
+    ...candidate.procedure.map((procedure, index) => `${index + 1}. ${inline(procedure)}`),
+    "",
+    "## Prohibited Action",
+    "",
+    ...bulletList(candidate.prohibitedActions, "No prohibited action recorded."),
+    "",
+    "## Scope",
+    "",
+    ...candidate.scope.paths.map((path) => `- \`${path.replaceAll("`", "\\`")}\``),
+    "",
+    "## Evidence",
+    "",
+    ...Object.entries(options.evidenceIds).map(([key, value]) => `- ${key}: \`${value}\``),
     "",
     "## Uncertainties",
     "",
