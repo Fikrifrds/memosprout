@@ -141,14 +141,16 @@ describe("Phase 4 v2 calibration v2 frozen design", () => {
     ]);
   });
 
-  it("keeps execution unauthorized and the live command uninstalled", async () => {
+  it("keeps execution unauthorized while the installed command is only the guarded runner", async () => {
     const contract = await loadContract();
     expect(contract.executionAuthorized).toBe(false);
     expect(contract.futureCommandInstalled).toBe(false);
     const packageJson = JSON.parse(await readFile("package.json", "utf8")) as {
       scripts: Record<string, string>;
     };
-    expect(packageJson.scripts["phase4:v2:worker:calibrate-v2"]).toBeUndefined();
+    expect(packageJson.scripts["phase4:v2:worker:calibrate-v2"]).toBe(
+      "tsx scripts/run-phase4-v2-calibration-v2.ts",
+    );
   });
 
   it("passes complete design verification with zero model calls", async () => {

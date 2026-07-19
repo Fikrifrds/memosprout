@@ -500,6 +500,29 @@ Deferred:
 - `executionAuthorized` is false and `pnpm phase4:v2:worker:calibrate-v2` is an identifier only, deliberately absent from `package.json`, pending separate human authorization;
 - the worker remains provisional `gpt-5.4-mini` with low reasoning; scored evaluation, Phase 5, and UI work remain unauthorized.
 
+### Phase 4 v2 — Guarded Calibration-v2 Runner and Evidence Verifier
+
+Added:
+
+- installed `pnpm phase4:v2:worker:calibrate-v2` pointing only at a dedicated guarded runner, mirroring the recovery precedent while the frozen contract stays byte-identical with `executionAuthorized: false`;
+- runtime-only consent: the expected identifier is derived deterministically from the frozen calibration-v2 contract and frozen-input manifest and supplied only via `MEMOSPROUT_CALIBRATION_V2_AUTHORIZATION_ID`, which the runner consumes and deletes before queue derivation; missing or incorrect consent exits locally with code `2`, derives no queue, spawns no Codex process, and creates no evidence;
+- a four-trial queue derived only from the frozen `trialOrder`, with verified completion markers permanently preventing reruns and versioned schemas structurally rejecting all historical runtime-v1 identifiers;
+- a live trial executor that reuses the proven isolated runtime (Node.js 24, fresh temporary Git root, authentication-only `CODEX_HOME`, offline dependencies, `workspace-write` sandbox, frozen Codex CLI version, `gpt-5.4-mini` low reasoning, zero model retries, one pre-completion infrastructure retry) and explicitly selects `phase4-v2-generator-runtime-v2` for every materialized repository;
+- a thirteen-stage durable evidence transaction (raw local-only trace first, sanitized public evidence, snapshots, run record, hashes, manifest entry, completion marker, sanitation, committed-evidence verification, cleanup last) reusing the frozen recovery durability machinery, with raw evidence confined to the Git-ignored `.memosprout-local/calibration-v2/v1`;
+- deterministic four-outcome classification (`0/4` floor, `1–3` headroom, `4/4` ceiling) with scoring from real command-trace evidence, never self-reported `commandsRun`;
+- `pnpm phase4:v2:calibration-v2:verify` plus eleven deterministic runner tests covering unauthorized zero-spawn exits, the injected execution boundary, frozen queue order, historical-identifier rejection, explicit runtime-v2 selection, completed-marker rerun prevention, threshold classification, public/local evidence separation, and prompt non-exposure.
+
+Evidence:
+
+- no model call, Codex process, calibration execution, baseline, protected trial, control run, Phase 5, or UI work occurred;
+- the unauthorized command was demonstrated locally: exit code `2`, zero spawns, no evidence created;
+- all historical calibration, recovery, diagnostic, and runtime-correction evidence remains byte-identical.
+
+Deferred:
+
+- live calibration-v2 execution requires separate human authorization through the runtime-only consent identifier;
+- scored baseline, protected trials, controls, Phase 5, and UI work remain unauthorized and unstarted.
+
 ## Entry Format for Future Work
 
 Future entries must use the date the change was completed and include only applicable sections:

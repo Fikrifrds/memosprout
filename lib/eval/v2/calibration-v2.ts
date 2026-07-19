@@ -193,7 +193,10 @@ async function pathExists(path: string): Promise<boolean> {
   );
 }
 
-export async function verifyCalibrationV2Design(root = process.cwd()): Promise<{
+export async function verifyCalibrationV2Design(
+  root = process.cwd(),
+  options: { allowExistingEvidence?: boolean } = {},
+): Promise<{
   contract: CalibrationV2Contract;
   contractSha256: string;
   frozenInputs: z.infer<typeof calibrationV2FrozenInputsSchema>;
@@ -312,7 +315,7 @@ export async function verifyCalibrationV2Design(root = process.cwd()): Promise<{
 
   await loadAndAssertCodexOutputSchema(join(root, calibrationV2Paths.workerOutputSchema));
 
-  if (await pathExists(join(root, contract.evidencePath))) {
+  if (!options.allowExistingEvidence && (await pathExists(join(root, contract.evidencePath)))) {
     throw new Error("Calibration v2 evidence exists before authorized execution.");
   }
   for (const namespace of contract.historicalEvidenceNamespaces) {
@@ -328,8 +331,13 @@ export async function verifyCalibrationV2Design(root = process.cwd()): Promise<{
   const packageJson = JSON.parse(await readFile(join(root, "package.json"), "utf8")) as {
     scripts?: Record<string, string>;
   };
-  if (packageJson.scripts?.["phase4:v2:worker:calibrate-v2"] !== undefined) {
-    throw new Error("Calibration v2 live command is installed before authorization.");
+  if (
+    packageJson.scripts?.["phase4:v2:worker:calibrate-v2"] !==
+    "tsx scripts/run-phase4-v2-calibration-v2.ts"
+  ) {
+    throw new Error(
+      "The calibration-v2 command must point only at the guarded runtime-consent runner.",
+    );
   }
 
   await Promise.all([
