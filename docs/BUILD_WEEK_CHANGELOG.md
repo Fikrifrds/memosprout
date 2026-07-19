@@ -351,6 +351,38 @@ Deferred:
 - recovery execution and its three remaining non-scored trials require separate authorization;
 - baseline execution is not authorized and Phase 4 remains unpassed.
 
+### Phase 4 v2 — Guarded Calibration-Recovery Runner Implemented
+
+Added:
+
+- the installed but unauthorized `pnpm phase4:v2:worker:calibrate:recover-v1` command, whose frozen authorization guard exits locally before queue execution or any Codex spawn;
+- a durable-evidence-derived recovery queue that permanently excludes the fixed unsafe first outcome, preserves the exact three-trial order, rejects operator overrides, skips verified completions, and converts completed-turn interruptions into evidence-only resume work;
+- atomic fsync-and-rename persistence for the thirteen frozen stages, strict run, resume, manifest-entry, completion-marker, and interruption validation, and cleanup guarded by successful sanitation plus committed-evidence verification;
+- `pnpm phase4:v2:calibration-recovery:verify` and deterministic runner tests using synthetic evidence and injected spawn, scan, and cleanup boundaries.
+
+Preserved:
+
+- raw traces and stderr remain only under the Git-ignored local recovery root and never enter public manifest hashes;
+- scanner or verifier failure retains raw and sanitized evidence, the temporary repository, stable path-free resume state, and a public interruption record without making the completed outcome eligible for a model rerun;
+- every frozen recovery contract, schema, version, hash, task, threshold, worker setting, and existing evidence artifact remains unchanged.
+
+Clarified:
+
+- execution authorization is a runtime-only identifier deterministically bound to the frozen recovery contract and frozen-input manifest; the committed contract permanently remains `executionAuthorized: false`;
+- the identifier is accepted only from the process environment, consumed and deleted before the execution boundary, and excluded from diagnostics, public output, traces, manifests, errors, and evidence;
+- absent or incorrect authorization maps to the same local exit code `2` with zero boundary calls, while the correct in-memory identifier can reach only the frozen queue's injected execution boundary.
+
+Evidence:
+
+- direct invocation exited `2` with the explicit unauthorized diagnostic and reached the injected Codex spawn boundary zero times;
+- the implementation verifier derived exactly the three frozen unstarted trials and confirmed that no recovery evidence directory was created;
+- no model call, calibration trial, baseline, protected run, control, Phase 5 task, or UI work occurred.
+
+Deferred:
+
+- recovery execution remains subject to separate authorization; the fixed contract still declares `executionAuthorized: false`;
+- Phase 4 remains unpassed and scored evaluation remains prohibited.
+
 ## Entry Format for Future Work
 
 Future entries must use the date the change was completed and include only applicable sections:

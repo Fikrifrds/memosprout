@@ -260,8 +260,10 @@ describe("Phase 4 v2 calibration-recovery design", () => {
     await expect(assertRecoveryFrozenInputs()).resolves.toBeDefined();
   });
 
-  it("does not install the unauthorized future recovery command", async () => {
+  it("installs the future command behind the frozen authorization guard", async () => {
     const packageJson = JSON.parse(await readFile(join(process.cwd(), "package.json"), "utf8"));
-    expect(packageJson.scripts["phase4:v2:worker:calibrate:recover-v1"]).toBeUndefined();
+    expect(packageJson.scripts["phase4:v2:worker:calibrate:recover-v1"]).toBe(
+      "tsx scripts/run-phase4-v2-calibration-recovery.ts",
+    );
   });
 });

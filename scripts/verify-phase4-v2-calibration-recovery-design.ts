@@ -92,8 +92,11 @@ if (isSensitiveRecoveryEnvironmentKey("SHELL", recovery.scanner)) {
 const packageJson = JSON.parse(await readFile(join(root, "package.json"), "utf8")) as {
   scripts?: Record<string, string>;
 };
-if (packageJson.scripts?.["phase4:v2:worker:calibrate:recover-v1"] !== undefined) {
-  throw new Error("The unauthorized future recovery command is executable.");
+if (
+  packageJson.scripts?.["phase4:v2:worker:calibrate:recover-v1"] !==
+  "tsx scripts/run-phase4-v2-calibration-recovery.ts"
+) {
+  throw new Error("The guarded future recovery command is not installed correctly.");
 }
 
 const modelFacingSchema = await readFile(join(root, recoveryPaths.workerOutputSchema), "utf8");

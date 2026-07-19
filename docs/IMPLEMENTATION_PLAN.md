@@ -575,7 +575,17 @@ The scanner policy treats generic allowlisted runtime keys such as `SHELL` and `
 
 The v1 recovery contract, eligibility set, thirteen-stage durability order, scanner policy, public/local evidence manifest, provider-compatible worker-output schema, completion-marker schema, derived final-report schema, original-interruption immutability manifest, and nine-input SHA-256 manifest are frozen. `pnpm phase4:v2:calibration-recovery:design:verify` checks this design without a model call.
 
-Execution authorization remains false. `pnpm phase4:v2:worker:calibrate:recover-v1` is only the future command identifier; it is deliberately absent from `package.json` and no recovery runner has been implemented. The recovery calibration, remaining trials, baseline, protected runs, controls, Phase 5, and UI require separate authorization.
+At the design freeze, execution authorization was false and `pnpm phase4:v2:worker:calibrate:recover-v1` was an identifier only, deliberately absent from `package.json`. The recovery calibration, remaining trials, baseline, protected runs, controls, Phase 5, and UI required separate authorization.
+
+**Implemented guarded runner — no execution**
+
+- The frozen future identifier is now installed as `pnpm phase4:v2:worker:calibrate:recover-v1`, pointing to a dedicated recovery runner. The immutable design contract and its permanent `executionAuthorized: false` value remain byte-identical. Runtime authorization is a separate exact identifier derived from the frozen contract and frozen-input manifest, supplied only through the `MEMOSPROUT_RECOVERY_AUTHORIZATION_ID` process environment entry.
+- The runner consumes and deletes that environment entry before queue derivation or the injected execution boundary. It never prints, persists, logs, traces, or includes the value in evidence. Absence or mismatch produces the same non-revealing diagnostic and local exit code `2`, with zero boundary calls. A correct identifier changes no contract: it only permits the already-frozen three-entry queue to reach the injected execution boundary.
+- The runner accepts no task or trial arguments. It reconstructs the frozen queue from the eligibility contract, valid public completion markers, and Git-ignored durable resume states. The immutable first result never enters the queue. Verified completed trials are skipped, while scanner/verifier interruptions become evidence-only resume actions rather than model retries.
+- The evidence transaction uses same-directory atomic writes with file synchronization and rename. It enforces the frozen thirteen-stage prefix, records raw trace and stderr only below `.memosprout-local`, and includes only sanitized trace, repository patch, and validated run evidence in each public manifest entry.
+- Scanner failure preserves local raw evidence, sanitized public evidence, the temporary repository, stable path-free resume identity, and a typed public interruption record. Successful scanning and completion-marker/hash verification must both precede the structurally guarded temporary-repository cleanup callback.
+- `pnpm phase4:v2:calibration-recovery:verify` validates the unchanged contracts and source evidence, exact three-entry queue, installed guarded command, absent recovery evidence, exit code `2` plus zero boundary calls for absent and incorrect authorization, and exactly one injected boundary call for the correct in-memory identifier. Tests exercise the authorization, persistence, and resume engines with synthetic data only.
+- No model call or calibration execution occurred. The three recovery trials, scored baseline, protected runs, controls, Phase 5, and UI remain unauthorized.
 
 ### Phase 5 — Held-Out Fresh Codex Proof
 
