@@ -778,6 +778,23 @@ Evidence:
 - the control plane lifecycle, guards, audit trail, and persistence are demonstrated model-free;
 - `pnpm lint` and `pnpm typecheck` completed with zero errors and zero warnings; `pnpm test` passed 50 test files and 302 tests.
 
+### Runtime Reflex Gate — Block Tool Calls That Violate Sprout Protections (Wedge 8)
+
+Added:
+
+- a Runtime Reflex Gate under `lib/reflex/`: `ReflexRule`/`ToolCall`/`ReflexDecision` schemas (`schema.ts`) and a `ReflexGate` (`gate.ts`) with `compileReflexRule` (derives a rule from a scenario's guarded paths) and `evaluate` (allow/block/warn for a file-edit tool call against protected paths);
+- a `reflex` id prefix in `lib/domain/ids.ts`;
+- model-free tests for compiling a rule, blocking edits to guarded and enforcement files, allowing non-guarded edits and non-file-edit tools, and a warn mode.
+
+Changed:
+
+- enforcement is now before-the-fact (the gate blocks tampering at the tool-call boundary) in addition to the Validation Engine's after-the-fact scoring.
+
+Evidence:
+
+- the reflex gate is demonstrated model-free;
+- `pnpm lint` and `pnpm typecheck` completed with zero errors and zero warnings; `pnpm test` passed 51 test files and 308 tests.
+
 ## Entry Format for Future Work
 
 Future entries must use the date the change was completed and include only applicable sections:

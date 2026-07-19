@@ -7,6 +7,7 @@ export const idPrefixes = {
   deterministicEvidence: "evidence",
   candidateSprout: "sprout",
   auditEntry: "audit",
+  reflexRule: "reflex",
 } as const;
 
 export type IdPrefix = (typeof idPrefixes)[keyof typeof idPrefixes];

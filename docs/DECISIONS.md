@@ -39,6 +39,7 @@ This log records decisions for the Build Week implementation. [`BUILD_WEEK_PRD.m
 | BW-028 | Add an Outcome Ledger that records and aggregates sprout outcomes | Accepted |
 | BW-029 | Add a Cost–Intelligence Router that routes tasks to the cheapest reliable model | Accepted |
 | BW-030 | Add a Team Control Plane governing the sprout release lifecycle | Accepted |
+| BW-031 | Add a Runtime Reflex Gate that blocks tool calls violating sprout protections | Accepted |
 
 ## Detailed Decisions
 
@@ -289,6 +290,14 @@ This log records decisions for the Build Week implementation. [`BUILD_WEEK_PRD.m
 **Reason:** Enterprise governance requires managing validated sprouts safely and auditablely: a sprout should not reach agents until it is validated and released, releases should support partial (canary) rollout and rollback, and every lifecycle change must leave an audit trail (who did what, when). This is the governance layer that makes the rest of the loop safe to operate in a team.
 
 **Consequence:** `lib/control-plane/{schema,control-plane}.ts` provide `SproutRelease`/`AuditEntry` schemas and a `ControlPlane` with `register`/`markValidated`/`release`/`rollback`/`deprecate`, transition guards, an ordered audit trail, and `loadControlPlane`/`saveControlPlane`, demonstrated model-free (full lifecycle, canary, guards, rollback, audit ordering, and persistence round-trip). This completes the wedge roadmap (0–7).
+
+### BW-031 — Add a Runtime Reflex Gate That Blocks Tool Calls Violating Sprout Protections
+
+**Decision:** Add a Runtime Reflex Gate (`lib/reflex/`) that intercepts an agent's file-edit tool calls and blocks (or warns on) edits to a sprout's guarded paths — the provided primitives and the held-out enforcement artifacts — before the tool call executes. `compileReflexRule` derives a `ReflexRule` from a scenario's guarded paths, and `ReflexGate.evaluate` returns an allow/block/warn decision for a `ToolCall`.
+
+**Reason:** The Validation Engine scores an implementation after the fact; the Reflex Gate adds before-the-fact prevention. An agent should not be able to tamper with the guarded provided files or the held-out acceptance suite to force a pass; the gate stops such edits at the tool-call boundary, making the protection enforceable at runtime rather than merely detectable later.
+
+**Consequence:** `lib/reflex/{schema,gate}.ts` provide `ReflexRule`/`ToolCall`/`ReflexDecision` schemas, `compileReflexRule`, and `ReflexGate`, demonstrated model-free (blocking edits to guarded and enforcement files, allowing non-guarded edits and non-file-edit tools, and a warn mode). A `reflex` id prefix was added.
 
 ## Deferred or Conditional Decisions
 
