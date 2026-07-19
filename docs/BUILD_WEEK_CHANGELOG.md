@@ -686,6 +686,27 @@ Deferred:
 
 - wedge 4 and beyond (MCP delivery, Outcome Ledger, Cost–Intelligence Router, Team Control Plane).
 
+### Delivery — get_task_context and Cross-Agent Adapters (Wedge 4)
+
+Added:
+
+- dynamic delivery under `lib/delivery/`: a `SproutRegistry` of validated sprouts (`registry.ts`); scope-path matching, a `getTaskContext` handler, and a `get_task_context` MCP tool definition (`get-task-context.ts`); and delivery adapters (`adapters.ts`) — `AgentsMdAdapter` (AGENTS.md) and `ClaudeCodeAdapter` (CLAUDE.md) — that render the same validated sprouts into agent-specific files;
+- model-free tests for the registry, path matching, `getTaskContext` (including the MCP tool definition), and both adapters.
+
+Changed:
+
+- delivery is a pull (the agent calls `get_task_context` with the files it touches) rather than only static AGENTS.md materialization; the same sprouts render to multiple agent formats to demonstrate portability beyond Codex.
+
+Evidence:
+
+- the registry, matcher, `get_task_context`, and both adapters are demonstrated model-free; the MCP tool definition is named `get_task_context` and requires `filePaths`;
+- `pnpm lint` and `pnpm typecheck` completed with zero errors and zero warnings; `pnpm test` passed 47 test files and 275 tests.
+
+Deferred:
+
+- the MCP stdio server transport (for example `@modelcontextprotocol/sdk`) that wraps `getTaskContext`;
+- wedge 5 and beyond (Outcome Ledger, Cost–Intelligence Router, Team Control Plane).
+
 ## Entry Format for Future Work
 
 Future entries must use the date the change was completed and include only applicable sections:

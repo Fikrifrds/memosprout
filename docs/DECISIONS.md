@@ -35,6 +35,7 @@ This log records decisions for the Build Week implementation. [`BUILD_WEEK_PRD.m
 | BW-024 | Extract a reusable Validation Engine parameterized by scenario | Accepted |
 | BW-025 | Generalize the Experience Compiler and OKF export across scenarios | Accepted |
 | BW-026 | Add an Artifact Compiler that turns a sprout into an enforcement artifact spec | Accepted |
+| BW-027 | Deliver validated sprouts dynamically via get_task_context and cross-agent adapters | Accepted |
 
 ## Detailed Decisions
 
@@ -253,6 +254,14 @@ This log records decisions for the Build Week implementation. [`BUILD_WEEK_PRD.m
 **Reason:** The MemoSprout loop is correction → sprout → guidance + enforcement artifact → validation. Wedge 2 produced the guidance; the enforcement artifact (the executable test/check/hook that catches violations) is the other half. Phase 3 generated that artifact for generated-files via Codex; the generalized loop needs a deterministic, scenario-agnostic description of the artifact (what it enforces and verifies) and a portable, hash-verified manifest, independent of how the executable artifact is produced.
 
 **Consequence:** `compileArtifactSpec` maps a `CandidateSproutContent` to an `ArtifactSpec` (reusing the sprout's `recommendedArtifact` enum: `ci_and_hook`/`ci_check`/`pre_tool_hook`), and `renderArtifactManifest`/`parseArtifactManifest` provide a `specSha256`-verified manifest. The executable artifact generation (LLM-based, Phase 3 style) remains the live path; the spec and manifest are the deterministic, model-free core, demonstrated for both scenarios.
+
+### BW-027 — Deliver Validated Sprouts Dynamically via get_task_context and Cross-Agent Adapters
+
+**Decision:** Add dynamic delivery under `lib/delivery/`: a `SproutRegistry` of validated sprouts, a `getTaskContext` handler (and `get_task_context` MCP tool definition) that returns the guidance whose scope paths overlap the files a task touches, and delivery adapters (`AgentsMdAdapter`, `ClaudeCodeAdapter`) that render the same validated sprouts into agent-specific files.
+
+**Reason:** A validated sprout only helps if it reaches the agent at the right moment. Static `AGENTS.md` materialization is a push; dynamic delivery is a pull — the agent calls `get_task_context` with the files it is about to edit and receives the applicable validated experience. "Improve every agent" also requires portability beyond Codex, so the same sprouts render to more than one agent format (AGENTS.md and Claude Code's CLAUDE.md), proving the knowledge is agent-independent.
+
+**Consequence:** `lib/delivery/{registry,get-task-context,adapters}.ts` provide the registry, scope-path matching, the `get_task_context` tool definition, and two adapters, all demonstrated model-free. The actual MCP stdio server transport (for example `@modelcontextprotocol/sdk`) is a thin integration step that wraps `getTaskContext` and is deferred; the tool definition and handler are the testable core.
 
 ## Deferred or Conditional Decisions
 
