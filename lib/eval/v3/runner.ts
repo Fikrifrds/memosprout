@@ -1,48 +1,22 @@
 import { spawn } from "node:child_process";
 import { createHash } from "node:crypto";
-import {
-  cp,
-  mkdir,
-  mkdtemp,
-  readFile,
-  rm,
-  stat,
-  symlink,
-  writeFile,
-} from "node:fs/promises";
-import { tmpdir } from "node:os";
+import { mkdir, readFile, rm, writeFile } from "node:fs/promises";
 import { join, relative } from "node:path";
 
 import { sanitizeCodexText } from "@/lib/codex/sanitize";
+import { createScenarioOracle, type TestRunner } from "@/lib/eval/engine/oracle";
+import { prepareScenarioRepository } from "@/lib/eval/engine/runner";
+import type { ScenarioDefinition } from "@/lib/eval/engine/scenario";
 import {
   type ConvergenceCase,
   type ConvergenceCondition,
   frozenConvergenceRubricSha256,
   renderConvergencePrompt,
 } from "@/lib/eval/v3/cases";
-import { IdempotencyOracle, type TestRunner } from "@/lib/eval/v3/oracle";
 import { convergenceRunSchema, type ConvergenceRun } from "@/lib/eval/v3/report";
 import type { WorkerAdapter } from "@/lib/eval/v3/worker";
-import {
-  idempotencyGuardedPaths,
-  idempotencyProtectedOnlyPaths,
-  idempotencyScenarioPaths,
-  idempotencyTemplateRoot,
-  readHeldOutAcceptanceTest,
-} from "@/lib/scenario/idempotency";
 
 const root = process.cwd();
-const outputSchemaSource = join(
-  root,
-  "demo",
-  "idempotency",
-  "schemas",
-  "convergence-worker-output.schema.json",
-);
-
-export const convergenceOrdinaryTestCommand = "pnpm exec vitest run tests/handler.test.ts";
-export const convergenceAcceptanceTestCommand =
-  "pnpm exec vitest run tests/idempotency.acceptance.test.ts";
 
 interface CommandResult {
   command: string;
@@ -60,7 +34,7 @@ function runCommand(
   args: string[],
   options: { cwd?: string; environment?: NodeJS.ProcessEnv } = {},
 ): Promise<CommandResult> {
-  return new Promise((resolve, reject) => {
+  return new Promise((resolvePromise, reject) => {
     const child = spawn(executable, args, {
       cwd: options.cwd ?? root,
       env: options.environment ?? process.env,
@@ -72,83 +46,14 @@ function runCommand(
     child.stderr.on("data", (chunk: Buffer) => (stderr += chunk.toString("utf8")));
     child.on("error", reject);
     child.on("close", (code) =>
-      resolve({ command: [executable, ...args].join(" "), exitCode: code ?? -1, stdout, stderr }),
+      resolvePromise({
+        command: [executable, ...args].join(" "),
+        exitCode: code ?? -1,
+        stdout,
+        stderr,
+      }),
     );
   });
-}
-
-async function pathExists(path: string): Promise<boolean> {
-  try {
-    await stat(path);
-    return true;
-  } catch {
-    return false;
-  }
-}
-
-export async function prepareConvergenceRepository(
-  condition: ConvergenceCondition,
-): Promise<string> {
-  const repositoryRoot = await mkdtemp(join(tmpdir(), `memosprout-convergence-${condition}-`));
-  await cp(idempotencyTemplateRoot(root), repositoryRoot, {
-    recursive: true,
-    filter: (source) => !source.endsWith("/node_modules"),
-  });
-
-  const exposesProtection = condition === "cheap-protected";
-  if (!exposesProtection) {
-    for (const path of idempotencyProtectedOnlyPaths) {
-      await rm(join(repositoryRoot, path), { force: true });
-    }
-  }
-
-  await mkdir(join(repositoryRoot, ".memosprout"), { recursive: true });
-  await cp(
-    outputSchemaSource,
-    join(repositoryRoot, ".memosprout", "convergence-worker-output.schema.json"),
-  );
-  await writeFile(join(repositoryRoot, ".gitignore"), "node_modules\n.memosprout\n", "utf8");
-  await symlink(join(root, "node_modules"), join(repositoryRoot, "node_modules"));
-
-  const gitEnvironment = {
-    ...process.env,
-    GIT_AUTHOR_NAME: "MemoSprout Convergence Evaluation",
-    GIT_AUTHOR_EMAIL: "evaluation@example.invalid",
-    GIT_COMMITTER_NAME: "MemoSprout Convergence Evaluation",
-    GIT_COMMITTER_EMAIL: "evaluation@example.invalid",
-  };
-  for (const args of [["init", "-q"], ["add", "."], ["commit", "-q", "-m", "convergence fixture"]]) {
-    const result = await runCommand("git", args, {
-      cwd: repositoryRoot,
-      environment: gitEnvironment,
-    });
-    if (result.exitCode !== 0) {
-      throw new Error(`Convergence repository setup failed: ${result.stderr}`);
-    }
-  }
-  return repositoryRoot;
-}
-
-export async function assertConvergenceRepositoryIsolation(): Promise<void> {
-  for (const condition of ["cheap-baseline", "cheap-protected", "frontier-baseline"] as const) {
-    const repositoryRoot = await prepareConvergenceRepository(condition);
-    try {
-      const artifactPresence = await Promise.all(
-        idempotencyProtectedOnlyPaths.map((path) => pathExists(join(repositoryRoot, path))),
-      );
-      const shouldExposeProtection = condition === "cheap-protected";
-      if (artifactPresence.some((present) => present !== shouldExposeProtection)) {
-        throw new Error(`${condition} repository materialization violates protection isolation.`);
-      }
-      for (const forbiddenDirectory of ["knowledge", "evidence"]) {
-        if (await pathExists(join(repositoryRoot, forbiddenDirectory))) {
-          throw new Error(`${condition} repository exposes non-promoted evaluation knowledge.`);
-        }
-      }
-    } finally {
-      await rm(repositoryRoot, { recursive: true, force: true });
-    }
-  }
 }
 
 async function getChangedPaths(repositoryRoot: string): Promise<string[]> {
@@ -156,7 +61,7 @@ async function getChangedPaths(repositoryRoot: string): Promise<string[]> {
     cwd: repositoryRoot,
   });
   if (status.exitCode !== 0) {
-    throw new Error("Could not inspect convergence repository status.");
+    throw new Error("Could not inspect scenario repository status.");
   }
   return status.stdout
     .split("\n")
@@ -172,12 +77,13 @@ async function getPatch(repositoryRoot: string): Promise<string> {
     cwd: repositoryRoot,
   });
   if (result.exitCode !== 0) {
-    throw new Error("Could not capture convergence patch.");
+    throw new Error("Could not capture scenario patch.");
   }
   return result.stdout;
 }
 
 export async function runConvergenceTrial(options: {
+  scenario: ScenarioDefinition;
   testCase: ConvergenceCase;
   trialId: string;
   condition: ConvergenceCondition;
@@ -189,23 +95,20 @@ export async function runConvergenceTrial(options: {
   root?: string;
 }): Promise<ConvergenceRun> {
   const effectiveRoot = options.root ?? root;
-  const repositoryRoot = await prepareConvergenceRepository(options.condition);
+  const { scenario } = options;
+  const { repositoryRoot, outputSchemaPath } = await prepareScenarioRepository({
+    scenario,
+    exposeProtection: options.condition === "cheap-protected",
+    root: effectiveRoot,
+  });
   const started = new Date();
   const renderedTask = renderConvergencePrompt(options.promptTemplate, options.testCase);
   let prompt = renderedTask;
   if (options.condition === "cheap-protected") {
-    const sprout = await readFile(
-      join(repositoryRoot, idempotencyScenarioPaths.guidance),
-      "utf8",
-    );
+    const sprout = await readFile(join(repositoryRoot, scenario.sproutPath), "utf8");
     prompt = `Project guidance (AGENTS.md):\n\n${sprout}\n\n${renderedTask}`;
   }
   prompt += `\n\nFor the final structured response, use taskId ${options.testCase.id} and version 1.`;
-  const outputSchemaPath = join(
-    repositoryRoot,
-    ".memosprout",
-    "convergence-worker-output.schema.json",
-  );
 
   try {
     const turn = await options.worker.runTurn({
@@ -220,12 +123,13 @@ export async function runConvergenceTrial(options: {
       options.runOrdinaryTests(repositoryRoot),
     ]);
 
-    const guarded = new Set<string>(idempotencyGuardedPaths);
+    const guarded = new Set<string>(scenario.guardedPaths);
     const policyViolation = changedPaths.some((path) => guarded.has(path));
 
-    const oracle = new IdempotencyOracle({
-      acceptanceTestSource: await readHeldOutAcceptanceTest(effectiveRoot),
+    const oracle = await createScenarioOracle({
+      scenario,
       runAcceptanceTests: options.runAcceptanceTests,
+      root: effectiveRoot,
     });
     const oracleResult = await oracle.evaluate(repositoryRoot);
 
@@ -286,7 +190,7 @@ export async function runConvergenceTrial(options: {
         patchSha256: hash(sanitizedPatch),
         oracle: oracleResult,
         ordinaryTests: {
-          command: convergenceOrdinaryTestCommand,
+          command: scenario.ordinaryTestCommand,
           exitCode: ordinary.exitCode,
           passed: ordinaryTestsPassed,
         },
@@ -301,39 +205,6 @@ export async function runConvergenceTrial(options: {
     });
     await writeFile(join(runDirectory, "run.json"), `${JSON.stringify(run, null, 2)}\n`, "utf8");
     return run;
-  } finally {
-    await rm(repositoryRoot, { recursive: true, force: true });
-  }
-}
-
-export interface ConvergenceControlResult {
-  id: string;
-  expected: "allow";
-  observed: "allow" | "reject";
-  passed: boolean;
-}
-
-export async function evaluateConvergenceControl(options: {
-  controlId: string;
-  correctHandlerSource: string;
-  runAcceptanceTests: TestRunner;
-  root?: string;
-}): Promise<ConvergenceControlResult> {
-  const effectiveRoot = options.root ?? root;
-  const repositoryRoot = await prepareConvergenceRepository("cheap-baseline");
-  try {
-    await writeFile(
-      join(repositoryRoot, idempotencyScenarioPaths.handler),
-      options.correctHandlerSource,
-      "utf8",
-    );
-    const oracle = new IdempotencyOracle({
-      acceptanceTestSource: await readHeldOutAcceptanceTest(effectiveRoot),
-      runAcceptanceTests: options.runAcceptanceTests,
-    });
-    const result = await oracle.evaluate(repositoryRoot);
-    const observed: "allow" | "reject" = result.passed ? "allow" : "reject";
-    return { id: options.controlId, expected: "allow", observed, passed: observed === "allow" };
   } finally {
     await rm(repositoryRoot, { recursive: true, force: true });
   }

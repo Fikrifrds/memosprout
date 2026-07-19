@@ -7,9 +7,9 @@ import {
   convergenceCases,
   renderConvergencePrompt,
 } from "@/lib/eval/v3/cases";
+import { prepareScenarioRepository } from "@/lib/eval/engine/runner";
 import { FrontierApiWorkerAdapter } from "@/lib/eval/v3/frontier-worker";
-import { prepareConvergenceRepository } from "@/lib/eval/v3/runner";
-import { idempotencyScenarioPaths } from "@/lib/scenario/idempotency";
+import { idempotencyScenario, idempotencyScenarioPaths } from "@/lib/scenario/idempotency";
 
 const root = process.cwd();
 
@@ -46,7 +46,10 @@ async function main(): Promise<void> {
     "cheap-protected") as ConvergenceCondition;
   console.log(`Convergence smoke test: model=${model} condition=${condition}`);
 
-  const repositoryRoot = await prepareConvergenceRepository(condition);
+  const { repositoryRoot, outputSchemaPath } = await prepareScenarioRepository({
+    scenario: idempotencyScenario,
+    exposeProtection: condition === "cheap-protected",
+  });
   try {
     const taskTemplate = await readFile(
       join(root, "demo", "idempotency", "evaluation", "prompts", "task.md"),
@@ -66,11 +69,7 @@ async function main(): Promise<void> {
     const turn = await worker.runTurn({
       repositoryRoot,
       prompt,
-      outputSchemaPath: join(
-        repositoryRoot,
-        ".memosprout",
-        "convergence-worker-output.schema.json",
-      ),
+      outputSchemaPath,
     });
     console.log(`turnCompleted: ${turn.turnCompleted}`);
     console.log(`finalOutput: ${JSON.stringify(turn.finalOutput)}`);

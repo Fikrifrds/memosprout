@@ -4,6 +4,10 @@ import { mkdir, readFile, rm, writeFile } from "node:fs/promises";
 import { join, relative } from "node:path";
 
 import {
+  type ScenarioControlResult,
+  evaluateScenarioControl,
+} from "@/lib/eval/engine/runner";
+import {
   type ConvergenceCondition,
   convergenceCases,
   convergenceControlIds,
@@ -17,11 +21,8 @@ import {
   buildConvergenceReport,
   type ConvergenceRun,
 } from "@/lib/eval/v3/report";
-import {
-  type ConvergenceControlResult,
-  evaluateConvergenceControl,
-  runConvergenceTrial,
-} from "@/lib/eval/v3/runner";
+import { runConvergenceTrial } from "@/lib/eval/v3/runner";
+import { idempotencyScenario, idempotencyScenarioPaths } from "@/lib/scenario/idempotency";
 
 const root = process.cwd();
 const evidenceRoot = join(root, "demo", "idempotency", "evidence", "convergence", "live");
@@ -159,6 +160,7 @@ async function main(): Promise<void> {
         const trialId = `trial-${trial.toString().padStart(2, "0")}`;
         const worker = new FrontierApiWorkerAdapter({ model, apiKey });
         const run = await runConvergenceTrial({
+          scenario: idempotencyScenario,
           testCase,
           trialId,
           condition,
@@ -177,13 +179,15 @@ async function main(): Promise<void> {
     }
   }
 
-  const controls: ConvergenceControlResult[] = [];
+  const controls: ScenarioControlResult[] = [];
   for (const controlId of convergenceControlIds) {
     const handlerSource = controlHandlers[controlId];
     if (!handlerSource) throw new Error(`No reference handler for control ${controlId}.`);
-    const control = await evaluateConvergenceControl({
+    const control = await evaluateScenarioControl({
+      scenario: idempotencyScenario,
       controlId,
-      correctHandlerSource: handlerSource,
+      implementationPath: idempotencyScenarioPaths.handler,
+      correctSource: handlerSource,
       runAcceptanceTests,
     });
     console.log(`control ${control.id}: observed=${control.observed} passed=${control.passed}`);

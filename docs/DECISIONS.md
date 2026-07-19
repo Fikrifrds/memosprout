@@ -32,6 +32,7 @@ This log records decisions for the Build Week implementation. [`BUILD_WEEK_PRD.m
 | BW-021 | Pivot to the Knowledge-Trap Convergence Experiment | Accepted |
 | BW-022 | Run the convergence experiment on the OpenAI API (both conditions) | Accepted |
 | BW-023 | Adopt the reliability framing and reframe the convergence gate on probe evidence | Accepted |
+| BW-024 | Extract a reusable Validation Engine parameterized by scenario | Accepted |
 
 ## Detailed Decisions
 
@@ -226,6 +227,14 @@ This log records decisions for the Build Week implementation. [`BUILD_WEEK_PRD.m
 **Reason:** The sprout lifts the cheap model from `0/3` to `3/3` (`sproutLift = 1.0`), a clean decisive result. However, the frontier model also fails the de-hinted task without the sprout (`gapDelta = 0`), so the original "cheap+sprout approaches frontier" framing and its `gapDelta >= 0.3` gate are not the right lens: the idempotency requirement is project/domain knowledge that models of either tier do not reliably apply from a bare task. The honest thesis, matching the Full PRD, is that MemoSprout improves *system* intelligence: the sprout encodes knowledge that makes a cheap model reliably correct, regardless of model tier. The earlier ceiling observed with the hinting task was an artifact of the task description revealing the requirement. The economic claim becomes "cheap + sprout delivers correct results at low cost," not "a cheap model becomes a frontier model."
 
 **Consequence:** The convergence gate is `sproutLift >= 0.5`, `cheapProtectedRate >= 0.8`, and `falseBlockRate = 0`; `gapDelta` and `convergenceDelta` remain computed as context but are not gated. The frozen rubric is bumped to `convergence-rubric-v2` and the configuration regenerated. The frontier worker's command allowlist was broadened to ordinary test invocations (for example `pnpm test --silent`), tool failures are returned to the model as recoverable tool results rather than terminating the turn, and the smoke test injects the canonical held-out acceptance suite before scoring every condition.
+
+### BW-024 — Extract a Reusable Validation Engine Parameterized by Scenario
+
+**Decision:** Extract the scenario-agnostic verification logic into a reusable Validation Engine under `lib/eval/engine/`, parameterized by a `ScenarioDefinition` (template root, protected-only paths, guarded paths, sprout path, held-out acceptance test, worker-output schema, and test commands). The idempotency harness is refactored onto this engine, and a second scenario (user soft-delete) is added to prove the engine generalizes.
+
+**Reason:** The convergence harness was hardcoded to the idempotency scenario, but the core intellectual property is the verification methodology itself — materializing baseline/protected repositories, scoring against a held-out acceptance oracle, measuring false blocks, and enforcing protection isolation. That methodology must work for any scenario or sprout, not one. Reusability is demonstrated by validating two structurally different scenarios (idempotency and soft-delete) through the same engine with no engine changes, only different `ScenarioDefinition` instances.
+
+**Consequence:** `lib/eval/engine/{scenario,oracle,runner}.ts` is the reusable core (`ScenarioDefinition`, `AcceptanceSuiteOracle`/`createScenarioOracle`, `prepareScenarioRepository`/`evaluateScenarioControl`/`assertScenarioIsolation`). The convergence experiment (`lib/eval/v3/`) consumes the engine. Adding a new scenario now requires only a deterministic template plus a `ScenarioDefinition`; the engine, oracle, isolation, and false-block control evaluation are reused unchanged.
 
 ## Deferred or Conditional Decisions
 

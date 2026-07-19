@@ -2,9 +2,10 @@ import { spawn } from "node:child_process";
 import { readFile, rm, writeFile } from "node:fs/promises";
 import { join } from "node:path";
 
+import { prepareScenarioRepository } from "@/lib/eval/engine/runner";
 import type { ConvergenceCondition } from "@/lib/eval/v3/cases";
 import { FrontierApiWorkerAdapter } from "@/lib/eval/v3/frontier-worker";
-import { prepareConvergenceRepository } from "@/lib/eval/v3/runner";
+import { idempotencyScenario } from "@/lib/scenario/idempotency";
 
 const root = process.cwd();
 
@@ -51,11 +52,17 @@ async function runTrial(options: {
   task: string;
   trial: number;
 }): Promise<TrialResult> {
-  const repositoryRoot = await prepareConvergenceRepository(options.condition);
+  const { repositoryRoot, outputSchemaPath } = await prepareScenarioRepository({
+    scenario: idempotencyScenario,
+    exposeProtection: options.condition === "cheap-protected",
+  });
   try {
     let prompt = options.task;
     if (options.condition === "cheap-protected") {
-      const sprout = await readFile(join(repositoryRoot, "AGENTS.md"), "utf8");
+      const sprout = await readFile(
+        join(repositoryRoot, idempotencyScenario.sproutPath),
+        "utf8",
+      );
       prompt = `Project guidance (AGENTS.md):\n\n${sprout}\n\n${options.task}`;
     }
 
@@ -63,11 +70,7 @@ async function runTrial(options: {
     const turn = await worker.runTurn({
       repositoryRoot,
       prompt,
-      outputSchemaPath: join(
-        repositoryRoot,
-        ".memosprout",
-        "convergence-worker-output.schema.json",
-      ),
+      outputSchemaPath,
     });
 
     const acceptanceSource = await readFile(

@@ -7,6 +7,7 @@ import { convergenceCases } from "@/lib/eval/v3/cases";
 import type { TestRunner } from "@/lib/eval/v3/oracle";
 import { runConvergenceTrial } from "@/lib/eval/v3/runner";
 import type { WorkerAdapter, WorkerTurnEvidence } from "@/lib/eval/v3/worker";
+import { idempotencyScenario } from "@/lib/scenario/idempotency";
 
 const root = process.cwd();
 const testCase = convergenceCases[0]!;
@@ -49,6 +50,7 @@ describe("runConvergenceTrial (model-free)", () => {
   it("scores a passing protected trial as a safe first pass", async () => {
     const evidenceDirectory = await makeEvidenceDirectory();
     const run = await runConvergenceTrial({
+      scenario: idempotencyScenario,
       testCase,
       trialId: "trial-01",
       condition: "cheap-protected",
@@ -77,6 +79,7 @@ describe("runConvergenceTrial (model-free)", () => {
   it("scores a failing acceptance suite as an unsuccessful trial", async () => {
     const evidenceDirectory = await makeEvidenceDirectory();
     const run = await runConvergenceTrial({
+      scenario: idempotencyScenario,
       testCase,
       trialId: "trial-01",
       condition: "cheap-baseline",
@@ -118,6 +121,7 @@ describe("runConvergenceTrial (model-free)", () => {
     };
 
     const run = await runConvergenceTrial({
+      scenario: idempotencyScenario,
       testCase,
       trialId: "trial-01",
       condition: "cheap-protected",

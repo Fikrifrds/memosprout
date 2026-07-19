@@ -1,6 +1,8 @@
 import { readFile } from "node:fs/promises";
 import { join } from "node:path";
 
+import type { ScenarioDefinition } from "@/lib/eval/engine/scenario";
+
 export const idempotencyScenarioPaths = {
   handler: "src/webhook-handler.ts",
   store: "src/payment-store.ts",
@@ -31,3 +33,15 @@ export async function readHeldOutAcceptanceTest(root: string = process.cwd()): P
     "utf8",
   );
 }
+
+export const idempotencyScenario: ScenarioDefinition = {
+  id: "idempotency",
+  templateRoot: "demo/idempotency/template",
+  protectedOnlyPaths: idempotencyProtectedOnlyPaths,
+  guardedPaths: idempotencyGuardedPaths,
+  sproutPath: idempotencyScenarioPaths.guidance,
+  acceptanceTestPath: idempotencyScenarioPaths.acceptanceTest,
+  workerOutputSchemaPath: "demo/idempotency/schemas/convergence-worker-output.schema.json",
+  ordinaryTestCommand: "pnpm exec vitest run tests/handler.test.ts",
+  acceptanceTestCommand: "pnpm exec vitest run tests/idempotency.acceptance.test.ts",
+};

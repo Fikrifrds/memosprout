@@ -4,7 +4,7 @@ import { join } from "node:path";
 
 import { afterEach, describe, expect, it } from "vitest";
 
-import { IdempotencyOracle, type TestRunner } from "@/lib/eval/v3/oracle";
+import { AcceptanceSuiteOracle, type TestRunner } from "@/lib/eval/v3/oracle";
 import { idempotencyScenarioPaths } from "@/lib/scenario/idempotency";
 
 const acceptanceSource = "// held-out acceptance suite placeholder\n";
@@ -16,18 +16,23 @@ async function makeTempRepo(): Promise<string> {
   return dir;
 }
 
+function makeOracle(runAcceptanceTests: TestRunner): AcceptanceSuiteOracle {
+  return new AcceptanceSuiteOracle({
+    acceptanceTestPath: idempotencyScenarioPaths.acceptanceTest,
+    acceptanceTestSource: acceptanceSource,
+    runAcceptanceTests,
+  });
+}
+
 afterEach(async () => {
   await Promise.all(tempDirs.splice(0).map((dir) => rm(dir, { recursive: true, force: true })));
 });
 
-describe("IdempotencyOracle", () => {
+describe("AcceptanceSuiteOracle", () => {
   it("maps a passing acceptance run to a passing result", async () => {
     const repositoryRoot = await makeTempRepo();
     const runner: TestRunner = async () => ({ exitCode: 0, stdout: "", stderr: "" });
-    const oracle = new IdempotencyOracle({
-      acceptanceTestSource: acceptanceSource,
-      runAcceptanceTests: runner,
-    });
+    const oracle = makeOracle(runner);
 
     const result = await oracle.evaluate(repositoryRoot);
     expect(result).toEqual({
@@ -40,10 +45,7 @@ describe("IdempotencyOracle", () => {
   it("maps a failing acceptance run to a failing result", async () => {
     const repositoryRoot = await makeTempRepo();
     const runner: TestRunner = async () => ({ exitCode: 1, stdout: "", stderr: "assertion failed" });
-    const oracle = new IdempotencyOracle({
-      acceptanceTestSource: acceptanceSource,
-      runAcceptanceTests: runner,
-    });
+    const oracle = makeOracle(runner);
 
     const result = await oracle.evaluate(repositoryRoot);
     expect(result.passed).toBe(false);
@@ -54,10 +56,7 @@ describe("IdempotencyOracle", () => {
   it("injects the held-out acceptance suite when it is missing", async () => {
     const repositoryRoot = await makeTempRepo();
     const runner: TestRunner = async () => ({ exitCode: 0, stdout: "", stderr: "" });
-    const oracle = new IdempotencyOracle({
-      acceptanceTestSource: acceptanceSource,
-      runAcceptanceTests: runner,
-    });
+    const oracle = makeOracle(runner);
 
     await oracle.evaluate(repositoryRoot);
 
@@ -78,10 +77,7 @@ describe("IdempotencyOracle", () => {
       "utf8",
     );
     const runner: TestRunner = async () => ({ exitCode: 0, stdout: "", stderr: "" });
-    const oracle = new IdempotencyOracle({
-      acceptanceTestSource: acceptanceSource,
-      runAcceptanceTests: runner,
-    });
+    const oracle = makeOracle(runner);
 
     await oracle.evaluate(repositoryRoot);
 

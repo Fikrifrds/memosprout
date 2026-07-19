@@ -622,6 +622,28 @@ Deferred:
 
 - the convergence thesis is validated; the next work stream is the wedge roadmap toward the Full PRD (reusable Validation Engine, Experience Compiler/OKF, Artifact Compiler, MCP delivery, Outcome Ledger, Cost–Intelligence Router, Team Control Plane).
 
+### Validation Engine — Reusable Engine Extraction and Second Scenario (Wedge 1)
+
+Added:
+
+- a reusable Validation Engine under `lib/eval/engine/`: `ScenarioDefinition` (`scenario.ts`), `AcceptanceSuiteOracle` and `createScenarioOracle` (`oracle.ts`), and `prepareScenarioRepository`, `evaluateScenarioControl`, and `assertScenarioIsolation` (`runner.ts`);
+- a second scenario, user soft-delete (`demo/soft-delete/template/` and `lib/scenario/soft-delete.ts`), whose naive committed service hard-deletes records while the sprout instructs soft-delete;
+- engine reusability tests (`tests/eval/engine/engine.test.ts`) that validate both scenarios through the same engine, including real acceptance-suite control evaluations, plus a soft-delete knowledge-trap test (`tests/scenario/soft-delete.test.ts`).
+
+Changed:
+
+- refactored the convergence harness (`lib/eval/v3/`) onto the engine: `runConvergenceTrial` now takes a `ScenarioDefinition`, the idempotency-specific materialization/oracle/control logic moved to the engine, and `lib/eval/v3/oracle.ts` re-exports the engine oracle;
+- `idempotencyScenario` is now a `ScenarioDefinition` instance; the scored runner, smoke test, and probe use the engine API (`prepareScenarioRepository`, `evaluateScenarioControl`).
+
+Evidence:
+
+- the engine validates two structurally different scenarios (idempotency and soft-delete) with no engine changes, only different `ScenarioDefinition` instances; both correct implementations are accepted by the held-out acceptance suites through `evaluateScenarioControl`;
+- `pnpm lint` and `pnpm typecheck` completed with zero errors and zero warnings; `pnpm test` passed 42 test files and 243 tests.
+
+Deferred:
+
+- wedge 2 and beyond (Experience Compiler/OKF, Artifact Compiler, MCP delivery, Outcome Ledger, Cost–Intelligence Router, Team Control Plane).
+
 ## Entry Format for Future Work
 
 Future entries must use the date the change was completed and include only applicable sections:
