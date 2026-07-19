@@ -36,6 +36,7 @@ This log records decisions for the Build Week implementation. [`BUILD_WEEK_PRD.m
 | BW-025 | Generalize the Experience Compiler and OKF export across scenarios | Accepted |
 | BW-026 | Add an Artifact Compiler that turns a sprout into an enforcement artifact spec | Accepted |
 | BW-027 | Deliver validated sprouts dynamically via get_task_context and cross-agent adapters | Accepted |
+| BW-028 | Add an Outcome Ledger that records and aggregates sprout outcomes | Accepted |
 
 ## Detailed Decisions
 
@@ -262,6 +263,14 @@ This log records decisions for the Build Week implementation. [`BUILD_WEEK_PRD.m
 **Reason:** A validated sprout only helps if it reaches the agent at the right moment. Static `AGENTS.md` materialization is a push; dynamic delivery is a pull — the agent calls `get_task_context` with the files it is about to edit and receives the applicable validated experience. "Improve every agent" also requires portability beyond Codex, so the same sprouts render to more than one agent format (AGENTS.md and Claude Code's CLAUDE.md), proving the knowledge is agent-independent.
 
 **Consequence:** `lib/delivery/{registry,get-task-context,adapters}.ts` provide the registry, scope-path matching, the `get_task_context` tool definition, and two adapters, all demonstrated model-free. The actual MCP stdio server transport (for example `@modelcontextprotocol/sdk`) is a thin integration step that wraps `getTaskContext` and is deferred; the tool definition and handler are the testable core.
+
+### BW-028 — Add an Outcome Ledger That Records and Aggregates Sprout Outcomes
+
+**Decision:** Add an Outcome Ledger (`lib/ledger/`) that records `OutcomeRecord`s (scenario, task, model, applied sprout ids, baseline/protected condition, success, timestamp) and aggregates them: `successRate` (with filters), `sproutImpact` (baseline vs protected lift per scenario), and `summarizeByScenario`, with local-first file persistence (`loadOutcomeLedger`/`saveOutcomeLedger`).
+
+**Reason:** The Outcome Ledger is the compounding data asset (the data moat): it links which sprouts were applied to which tasks, with which models, and what the outcome was — the Agent Outcome Graph in summary form. The `sproutImpact` aggregation mirrors the convergence thesis (sprout lift) and is the feedback signal that tells the system which sprouts actually help, enabling continuous improvement.
+
+**Consequence:** `lib/ledger/{schema,ledger}.ts` provide the record schema and the ledger with query/aggregation/persistence, demonstrated model-free (including a `0 → 1` lift that matches the convergence result). It is the foundation for the Cost–Intelligence Router (wedge 6), which uses these outcomes to route tasks to the cheapest model that stays reliable.
 
 ## Deferred or Conditional Decisions
 

@@ -707,6 +707,26 @@ Deferred:
 - the MCP stdio server transport (for example `@modelcontextprotocol/sdk`) that wraps `getTaskContext`;
 - wedge 5 and beyond (Outcome Ledger, Cost–Intelligence Router, Team Control Plane).
 
+### Outcome Ledger — Record and Aggregate Sprout Outcomes (Wedge 5)
+
+Added:
+
+- an Outcome Ledger under `lib/ledger/`: an `OutcomeRecord` schema (`schema.ts`) capturing scenario, task, model, applied sprout ids, baseline/protected condition, success, and timestamp; and an `OutcomeLedger` (`ledger.ts`) with `query`, `successRate`, `sproutImpact` (baseline-vs-protected lift per scenario), `summarizeByScenario`, and local-first file persistence (`loadOutcomeLedger`/`saveOutcomeLedger`);
+- model-free tests for append/query, the success-rate and sprout-impact aggregations (including a `0 → 1` lift matching the convergence result), the per-scenario summary, file round-trip, and schema validation.
+
+Changed:
+
+- the ledger is the compounding data asset (Agent Outcome Graph in summary form) and the feedback signal for which sprouts help; it is the foundation for the Cost–Intelligence Router.
+
+Evidence:
+
+- the ledger and its aggregations are demonstrated model-free, with persistence round-tripping records;
+- `pnpm lint` and `pnpm typecheck` completed with zero errors and zero warnings; `pnpm test` passed 48 test files and 283 tests.
+
+Deferred:
+
+- wedge 6 and beyond (Cost–Intelligence Router, Team Control Plane).
+
 ## Entry Format for Future Work
 
 Future entries must use the date the change was completed and include only applicable sections:
