@@ -1,0 +1,15 @@
+{
+  "version": "phase4-v2-preflight-manifest-v1",
+  "source": "live",
+  "scored": false,
+  "files": [
+    {
+      "path": "demo/generated-files/evidence/v2/preflight/preflight-run.json",
+      "sha256": "adaacff3c4e7c5a43352ee3219f50d5a03513a33f51fbd8a3676378c2f6cf00e"
+    },
+    {
+      "path": "demo/generated-files/evidence/v2/preflight/attempt-01.trace.jsonl",
+      "sha256": "c481db2a7fc4dddda8ce2d5d453f283fa2950d7efc326e53fc8d958627d962c2"
+    }
+  ]
+}

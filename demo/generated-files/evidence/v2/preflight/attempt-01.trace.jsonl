@@ -1,0 +1,4 @@
+{"type":"thread.started","thread_id":"019f778b-4aff-7e52-9102-485845af1f00"}
+{"type":"turn.started"}
+{"type":"item.completed","item":{"id":"item_0","type":"agent_message","text":"{\"acknowledgement\":\"preflight-complete\"}"}}
+{"type":"turn.completed","usage":{"input_tokens":7909,"cached_input_tokens":0,"output_tokens":40,"reasoning_output_tokens":17}}

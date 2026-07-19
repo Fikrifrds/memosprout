@@ -282,6 +282,28 @@ Evidence:
 - no worker preflight, calibration, baseline, protected, control, or other model run was launched;
 - Phase 4 remains unpassed, `executionAuthorized` remains false, and Phase 5 and UI work remain prohibited.
 
+### Phase 4 v2 — Non-Scored Worker Preflight
+
+Added:
+
+- a narrowly scoped `pnpm phase4:v2:worker:preflight` runner using the frozen isolated-runtime, model, reasoning, prompt, timeout, and retry contracts;
+- a provider-compatible acknowledgement-only output schema, strict Zod evidence contracts, worktree byte/mode snapshots, Git-status validation, tool-event rejection, frozen-contract hash binding, and a separately stored live preflight manifest;
+- `pnpm phase4:v2:preflight:verify` and deterministic tests for acknowledgement-schema compatibility, completed-turn retry rejection, tool-event detection, and created/changed/deleted-file detection.
+
+Evidence:
+
+- Codex CLI `0.144.6` resolved `gpt-5.4-mini` with low reasoning and completed exactly one unrelated non-evaluation turn on the first attempt;
+- the model returned only the exact structured `preflight-complete` acknowledgement, with zero command or repository tool events;
+- authentication used the categorical `auth-file` path in a fresh temporary `CODEX_HOME`; no credential or authentication path entered evidence;
+- initial and final repository snapshots were byte-identical, Git status stayed clean, and zero files were created, changed, or deleted;
+- the sensitive-data scan found zero credentials, machine paths, or environment values in committed evidence;
+- no calibration, baseline, protected, control, scored, seeded, Phase 5, or UI execution occurred.
+
+Deferred:
+
+- `pnpm phase4:v2:worker:calibrate` remains the next separately authorized command;
+- the worker remains provisional, and Phase 4 remains unpassed until calibration and the separately authorized scored evaluation satisfy their frozen gates.
+
 ## Entry Format for Future Work
 
 Future entries must use the date the change was completed and include only applicable sections:

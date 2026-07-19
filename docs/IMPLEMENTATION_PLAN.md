@@ -1,6 +1,6 @@
 # MemoSprout Build Week Implementation Plan
 
-Status: Phase 4 v1 evidence valid; reviewed Phase 4 v2 contracts corrected and re-frozen with execution unauthorized
+Status: Phase 4 v1 evidence valid; Phase 4 v2 non-scored worker preflight passed; calibration and scored execution unauthorized
 
 Date: 2026-07-19
 
@@ -527,12 +527,21 @@ demo/generated-files/evidence/v2/
 
 **Future preflight and calibration**
 
-- `pnpm phase4:v2:worker:preflight` is the frozen future non-scored command. After separate authorization it will verify model entitlement and resolution, low-reasoning acceptance, exact resolved-model identity, one unrelated structured turn, repository non-mutation, and absence of corpus, scoring, or reserved content. Its prompt forbids repository inspection and tool use.
+- `pnpm phase4:v2:worker:preflight` is the frozen non-scored command. Its separately authorized execution verifies model entitlement and resolution, low-reasoning acceptance, exact resolved-model identity, one unrelated structured turn, repository non-mutation, and absence of corpus, scoring, or reserved content. Its prompt forbids repository inspection and tool use.
 - `pnpm phase4:v2:worker:calibrate` is the frozen future non-scored command. It uses two disjoint fields (`office_extension` and `contact_url`) for two trials each. The primary candidate is acceptable only for a safe-first-pass rate from `0.25` through `0.75`, avoiding both a floor and a ceiling.
 - The installed bundled catalog exposes no approved smaller fallback. If the primary candidate shows a calibration ceiling, execution stops for human approval of a smaller Codex worker exposed by the installed catalog. GPT-4.1 nano is not an authorized default. Any model or reasoning change requires a new worker-config version and a complete re-freeze before scored execution.
 - `pnpm phase4:v2:baseline` remains the frozen future launch command. It is not implemented or authorized, and all baseline trials must finish before any protected trial.
 
-V1 immutability is anchored to tag `build-week-phase-4-v1-verified-ceiling` at commit `60b0ce95cd87399c345af8a1e431c394e087712b`; validation derives the immutable tree from that tag rather than the current working tree. The corrected manifest versions are `phase4-v1-immutability-v2`, `phase4-v2-worker-v2`, `phase4-v2-isolation-v2`, `phase4-v2-rubric-v2`, worker output/run/report `2.1`, `phase4-v2-preflight-v1`, `phase4-v2-calibration-v1`, and `phase4-v2-frozen-inputs-v2`. Execution remains unauthorized and both v2 evidence directories must remain absent.
+V1 immutability is anchored to tag `build-week-phase-4-v1-verified-ceiling` at commit `60b0ce95cd87399c345af8a1e431c394e087712b`; validation derives the immutable tree from that tag rather than the current working tree. The corrected manifest versions are `phase4-v1-immutability-v2`, `phase4-v2-worker-v2`, `phase4-v2-isolation-v2`, `phase4-v2-rubric-v2`, worker output/run/report `2.1`, `phase4-v2-preflight-v1`, `phase4-v2-calibration-v1`, and `phase4-v2-frozen-inputs-v2`. Calibration and scored execution remain unauthorized, and both v2 live-scored and seeded evidence directories must remain absent.
+
+**Observed non-scored worker preflight**
+
+- A separately authorized `pnpm phase4:v2:worker:preflight` completed on its first attempt using Codex CLI `0.144.6`, explicit model `gpt-5.4-mini`, low reasoning, an authentication-only temporary `CODEX_HOME`, and a fresh temporary Git root.
+- The bundled catalog exposed the frozen model and low reasoning, and the explicit-model turn completed with the exact structured acknowledgement. This establishes current entitlement and resolution without permanently selecting the worker before calibration.
+- Exactly one turn completed, no command or repository tool event occurred, no retry occurred, and the worktree content/mode snapshot plus Git status remained unchanged with zero created, changed, or deleted files.
+- Sanitized live preflight evidence is stored only under `demo/generated-files/evidence/v2/preflight`; no calibration, baseline, protected, control, live-scored, or seeded evidence was created.
+- `pnpm phase4:v2:preflight:verify` validates evidence hashes, frozen-contract binding, exactly one completed turn, zero tool events, repository non-mutation, retry limits, and the sensitive-data scan.
+- Calibration remains the next separately authorized command. Phase 4 remains unpassed, and Phase 5 and UI work remain prohibited.
 
 ### Phase 5 — Held-Out Fresh Codex Proof
 

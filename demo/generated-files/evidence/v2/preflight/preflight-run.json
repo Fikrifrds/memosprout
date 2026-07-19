@@ -1,0 +1,71 @@
+{
+  "version": "phase4-v2-preflight-evidence-v1",
+  "source": "live",
+  "scored": false,
+  "status": "passed",
+  "preflightContractSha256": "dc66fcfb6ca2b307247c3220aa85bd8a6b1fbaed11f8378d33f9cf9ab5a93d25",
+  "workerConfigSha256": "69dc78f6d20f82b4960be995fef3ae8fdfbb65d60bfb91993d153abed40ac900",
+  "isolatedRuntimeContractSha256": "92cc8b4b79087a1d40d03a531bd7b634444aace604f3a931d0d1ad177d613bd5",
+  "cli": {
+    "executable": "codex",
+    "version": "codex-cli 0.144.6",
+    "command": "codex exec --ignore-user-config --strict-config --json --sandbox workspace-write --ephemeral --model gpt-5.4-mini -c model_reasoning_effort=low -c approval_policy=never -c web_search=disabled --disable multi_agent --output-schema <preflight-output-schema> -C <temporary-repository> -"
+  },
+  "worker": {
+    "requestedModel": "gpt-5.4-mini",
+    "resolvedModel": "gpt-5.4-mini",
+    "modelResolutionEvidence": "bundled-catalog-match-and-successful-explicit-model-turn",
+    "reasoningEffort": "low",
+    "reasoningAccepted": true
+  },
+  "authenticationCategory": "auth-file",
+  "attempts": [
+    {
+      "attempt": 1,
+      "exitCode": 0,
+      "turnCompleted": true,
+      "tracePath": "demo/generated-files/evidence/v2/preflight/attempt-01.trace.jsonl",
+      "traceSha256": "c481db2a7fc4dddda8ce2d5d453f283fa2950d7efc326e53fc8d958627d962c2"
+    }
+  ],
+  "completedAttempt": 1,
+  "modelOutcomeRetries": 0,
+  "infrastructureRetries": 0,
+  "turn": {
+    "completed": true,
+    "completedTurnCount": 1,
+    "threadId": "019f778b-4aff-7e52-9102-485845af1f00",
+    "toolEventCount": 0,
+    "output": {
+      "acknowledgement": "preflight-complete"
+    },
+    "tokenUsage": {
+      "inputTokens": 7909,
+      "cachedInputTokens": 0,
+      "outputTokens": 40
+    }
+  },
+  "exposure": {
+    "promptSha256": "d3ed21b15f5fa44323b0c2e1b55d2566d8253d7e096f55bfe36f39f43b8da42b",
+    "repositoryInspectionRequested": false,
+    "evaluationTaskContentExposed": false,
+    "calibrationTaskContentExposed": false,
+    "scoringAnswersExposed": false,
+    "reservedTaskContentExposed": false
+  },
+  "repository": {
+    "initialSnapshotSha256": "f562f267dbe1e049dca17edde1811d7a3f35dc1079bd4b9975b2446f7a0c0f6e",
+    "finalSnapshotSha256": "f562f267dbe1e049dca17edde1811d7a3f35dc1079bd4b9975b2446f7a0c0f6e",
+    "byteIdentical": true,
+    "filesCreated": 0,
+    "filesChanged": 0,
+    "filesDeleted": 0,
+    "gitStatusClean": true
+  },
+  "sensitiveDataScan": {
+    "passed": true,
+    "credentialsFound": 0,
+    "machinePathsFound": 0,
+    "environmentValuesRecorded": 0
+  }
+}
