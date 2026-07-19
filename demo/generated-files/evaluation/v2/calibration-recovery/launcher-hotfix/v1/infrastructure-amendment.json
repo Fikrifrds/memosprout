@@ -1,0 +1,49 @@
+{
+  "version": "phase4-v2-calibration-recovery-launcher-amendment-v1",
+  "sourceTag": "build-week-phase-4-v2-calibration-recovery-runner",
+  "sourceCommit": "177074eac9b7bd4e7714c27a40b63f242e793ad9",
+  "scope": "infrastructure-only-before-queue-execution",
+  "launches": [
+    {
+      "sequence": 1,
+      "nodeVersion": "23.3.0",
+      "failureCode": "node-sqlite-unavailable",
+      "queueReached": false,
+      "codexProcessStarted": false,
+      "completedCodexTurns": 0,
+      "modelOutcomesObserved": 0,
+      "calibrationEvidenceCreated": false
+    },
+    {
+      "sequence": 2,
+      "nodeVersion": "24.14.0",
+      "failureCode": "inline-tsx-cjs-top-level-await",
+      "queueReached": false,
+      "codexProcessStarted": false,
+      "completedCodexTurns": 0,
+      "modelOutcomesObserved": 0,
+      "calibrationEvidenceCreated": false
+    }
+  ],
+  "aggregate": {
+    "infrastructureLaunchCount": 2,
+    "queueExecutionCount": 0,
+    "codexProcessCount": 0,
+    "completedCodexTurnCount": 0,
+    "modelOutcomeCount": 0,
+    "calibrationEvidenceFileCount": 0
+  },
+  "retryAccounting": {
+    "originalInfrastructureRetryAllowanceExhausted": true,
+    "originalCalibrationRetryPolicyReinterpreted": false,
+    "futureCorrectedLaunchAuthorized": false,
+    "separateHumanAuthorizationRequired": true,
+    "futureCorrectedLaunchMaximum": 1
+  },
+  "immutability": {
+    "frozenContractsChanged": false,
+    "frozenHashesRegenerated": false,
+    "existingEvidenceChanged": false,
+    "executionAuthorizedFlagRemainsFalse": true
+  }
+}

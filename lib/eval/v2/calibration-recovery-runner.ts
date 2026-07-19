@@ -4,11 +4,13 @@ import { dirname, join, relative } from "node:path";
 
 import { z } from "zod";
 
+import { assertSanitizedEvidence } from "@/lib/codex/sanitize";
 import {
   advanceRecoveryDurability,
   assertOriginalCalibrationImmutable,
   assertRecoveryFrozenInputs,
   canCleanupRecovery,
+  classifyRecoveredCalibration,
   createRecoveryDurabilityState,
   createRecoveryLedger,
   deriveRecoveryEligibility,
@@ -18,6 +20,7 @@ import {
   recoveryCompletionMarkerSchema,
   recoveryDurabilityStages,
   recoveryPaths,
+  recoveryReportSchema,
   recoveryTrialKey,
   type RecoveryLedger,
 } from "@/lib/eval/v2/calibration-recovery";
@@ -62,14 +65,14 @@ export async function deriveRecoveryRuntimeAuthorizationId(
 }
 
 export function consumeRecoveryRuntimeAuthorization(
-  environment: NodeJS.ProcessEnv,
+  environment: Record<string, string | undefined>,
 ): string | undefined {
   const authorization = environment[recoveryRuntimeAuthorizationEnvironmentKey];
   delete environment[recoveryRuntimeAuthorizationEnvironmentKey];
   return authorization;
 }
 
-async function assertRecoveryRuntimeAuthorization(options: {
+export async function assertRecoveryRuntimeAuthorization(options: {
   root: string;
   provided: string | undefined;
 }): Promise<void> {
@@ -102,6 +105,19 @@ export const recoveryManifestEntrySchema = z
   })
   .strict();
 
+export const recoveryPublicManifestSchema = z
+  .object({
+    version: z.literal("phase4-v2-calibration-recovery-public-manifest-v1"),
+    source: z.literal("live"),
+    scored: z.literal(false),
+    files: z
+      .array(publicEvidenceFileSchema)
+      .min(16)
+      .max(19)
+      .refine((files) => new Set(files.map((file) => file.path)).size === files.length),
+  })
+  .strict();
+
 export const recoveryRunRecordSchema = z
   .object({
     version: z.literal("phase4-v2-calibration-recovery-run-v1"),
@@ -120,7 +136,12 @@ export const recoveryRunRecordSchema = z
     infrastructureRetries: z.number().int().min(0).max(1),
     safeFirstPass: z.boolean(),
     snapshots: z
-      .object({ beforeSha256: sha256Schema, afterSha256: sha256Schema })
+      .object({
+        beforeSha256: sha256Schema,
+        afterSha256: sha256Schema,
+        postEvaluationSha256: sha256Schema,
+        evaluatorUnchanged: z.boolean(),
+      })
       .strict(),
     files: z
       .object({
@@ -206,6 +227,8 @@ export const recoveryResumeStateSchema = z
         repositoryPatch: z.string(),
         beforeSnapshotSha256: sha256Schema,
         afterSnapshotSha256: sha256Schema,
+        postEvaluationSnapshotSha256: sha256Schema,
+        evaluatorUnchanged: z.boolean(),
         files: z
           .object({
             created: z.array(z.string()),
@@ -240,11 +263,21 @@ export interface RecoveryTrialCapture {
   repositoryPatch: string;
   beforeSnapshotSha256: string;
   afterSnapshotSha256: string;
+  postEvaluationSnapshotSha256: string;
+  evaluatorUnchanged: boolean;
   files: { created: string[]; changed: string[]; deleted: string[] };
   safeFirstPass: boolean;
   infrastructureRetries: 0 | 1;
   temporaryRepositoryLocalPath: string;
   cleanupTemporaryRepository: () => Promise<void>;
+}
+
+export interface RecoveryTrialHooks {
+  persistCompletedTurnRaw: (options: {
+    rawTrace: string;
+    rawStderr: string;
+    temporaryRepositoryLocalPath: string;
+  }) => Promise<void>;
 }
 
 async function pathExists(path: string): Promise<boolean> {
@@ -463,7 +496,7 @@ export class RecoveryEvidenceTransaction {
     rawTrace: string;
     rawStderr: string;
     temporaryRepositoryLocalPath: string;
-    pendingEvidence: NonNullable<RecoveryResumeState["pendingEvidence"]>;
+    pendingEvidence: RecoveryResumeState["pendingEvidence"];
   }): Promise<void> {
     if (this.state.durability.completedStages.length !== 0) {
       throw new Error("Raw recovery evidence was already persisted.");
@@ -474,6 +507,19 @@ export class RecoveryEvidenceTransaction {
     this.state.temporaryRepositoryLocalPath = options.temporaryRepositoryLocalPath;
     this.state.pendingEvidence = options.pendingEvidence;
     await this.advance("raw-trace-local-persisted");
+  }
+
+  async attachPendingEvidence(
+    pendingEvidence: NonNullable<RecoveryResumeState["pendingEvidence"]>,
+  ): Promise<void> {
+    if (
+      this.state.durability.completedStages.length !== 1 ||
+      this.state.pendingEvidence !== null
+    ) {
+      throw new Error("Recovery pending evidence can only attach after raw persistence.");
+    }
+    this.state.pendingEvidence = pendingEvidence;
+    await this.commitState();
   }
 
   async persistSanitizedTrace(content: string): Promise<void> {
@@ -508,6 +554,8 @@ export class RecoveryEvidenceTransaction {
   async persistRunRecord(options: {
     safeFirstPass: boolean;
     infrastructureRetries: 0 | 1;
+    postEvaluationSnapshotSha256: string;
+    evaluatorUnchanged: boolean;
   }): Promise<void> {
     if (!this.state.beforeSnapshotSha256 || !this.state.afterSnapshotSha256 || !this.state.fileSets) {
       throw new Error("Recovery snapshots and file sets must precede the run record.");
@@ -529,6 +577,8 @@ export class RecoveryEvidenceTransaction {
       snapshots: {
         beforeSha256: this.state.beforeSnapshotSha256,
         afterSha256: this.state.afterSnapshotSha256,
+        postEvaluationSha256: sha256Schema.parse(options.postEvaluationSnapshotSha256),
+        evaluatorUnchanged: options.evaluatorUnchanged,
       },
       files: this.state.fileSets,
       exposure: {
@@ -679,6 +729,8 @@ export async function resumeCompletedRecoveryEvidence(options: {
     await transaction.persistRunRecord({
       safeFirstPass: pending.safeFirstPass,
       infrastructureRetries: pending.infrastructureRetries,
+      postEvaluationSnapshotSha256: pending.postEvaluationSnapshotSha256,
+      evaluatorUnchanged: pending.evaluatorUnchanged,
     });
   }
   if (currentStage() === 7) await transaction.persistEvidenceHashes();
@@ -732,29 +784,37 @@ export async function persistCompletedRecoveryTrial(options: {
     recovery,
     options.trial,
   );
-  await transaction.persistRawTrace({
-    rawTrace: options.capture.rawTrace,
-    rawStderr: options.capture.rawStderr,
-    temporaryRepositoryLocalPath: options.capture.temporaryRepositoryLocalPath,
-    pendingEvidence: {
-      sanitizedTrace: options.capture.sanitizedTrace,
-      repositoryPatch: options.capture.repositoryPatch,
-      beforeSnapshotSha256: options.capture.beforeSnapshotSha256,
-      afterSnapshotSha256: options.capture.afterSnapshotSha256,
-      files: options.capture.files,
-      safeFirstPass: options.capture.safeFirstPass,
-      infrastructureRetries: options.capture.infrastructureRetries,
-    },
-  });
-  await transaction.persistSanitizedTrace(options.capture.sanitizedTrace);
-  await transaction.persistRepositoryPatch(options.capture.repositoryPatch);
-  await transaction.persistBeforeSnapshot(options.capture.beforeSnapshotSha256);
-  await transaction.persistAfterSnapshot(options.capture.afterSnapshotSha256);
-  await transaction.persistFileSets(options.capture.files);
-  await transaction.persistRunRecord(options.capture);
-  await transaction.persistEvidenceHashes();
-  await transaction.persistManifestEntry();
-  await transaction.persistCompletionMarker();
+  const pendingEvidence: NonNullable<RecoveryResumeState["pendingEvidence"]> = {
+    sanitizedTrace: options.capture.sanitizedTrace,
+    repositoryPatch: options.capture.repositoryPatch,
+    beforeSnapshotSha256: options.capture.beforeSnapshotSha256,
+    afterSnapshotSha256: options.capture.afterSnapshotSha256,
+    postEvaluationSnapshotSha256: options.capture.postEvaluationSnapshotSha256,
+    evaluatorUnchanged: options.capture.evaluatorUnchanged,
+    files: options.capture.files,
+    safeFirstPass: options.capture.safeFirstPass,
+    infrastructureRetries: options.capture.infrastructureRetries,
+  };
+  const currentStage = () => transaction.snapshot().durability.completedStages.length;
+  if (currentStage() === 0) {
+    await transaction.persistRawTrace({
+      rawTrace: options.capture.rawTrace,
+      rawStderr: options.capture.rawStderr,
+      temporaryRepositoryLocalPath: options.capture.temporaryRepositoryLocalPath,
+      pendingEvidence,
+    });
+  } else if (currentStage() === 1 && transaction.snapshot().pendingEvidence === null) {
+    await transaction.attachPendingEvidence(pendingEvidence);
+  }
+  if (currentStage() === 1) await transaction.persistSanitizedTrace(options.capture.sanitizedTrace);
+  if (currentStage() === 2) await transaction.persistRepositoryPatch(options.capture.repositoryPatch);
+  if (currentStage() === 3) await transaction.persistBeforeSnapshot(options.capture.beforeSnapshotSha256);
+  if (currentStage() === 4) await transaction.persistAfterSnapshot(options.capture.afterSnapshotSha256);
+  if (currentStage() === 5) await transaction.persistFileSets(options.capture.files);
+  if (currentStage() === 6) await transaction.persistRunRecord(options.capture);
+  if (currentStage() === 7) await transaction.persistEvidenceHashes();
+  if (currentStage() === 8) await transaction.persistManifestEntry();
+  if (currentStage() === 9) await transaction.persistCompletionMarker();
   try {
     await options.scanPublicEvidence(transaction.publicDirectory);
     await transaction.markSanitationPassed();
@@ -777,7 +837,10 @@ export async function runRecoveryCommand(options: {
   root?: string;
   argv?: string[];
   runtimeAuthorization: string | undefined;
-  spawnTrial: (trial: RecoveryQueueEntry) => Promise<RecoveryTrialCapture>;
+  spawnTrial: (
+    trial: RecoveryQueueEntry,
+    hooks: RecoveryTrialHooks,
+  ) => Promise<RecoveryTrialCapture>;
   scanPublicEvidence: (publicDirectory: string) => Promise<void>;
   cleanupPreservedRepository: (temporaryRepositoryLocalPath: string) => Promise<void>;
 }): Promise<void> {
@@ -807,7 +870,15 @@ export async function runRecoveryCommand(options: {
       });
       continue;
     }
-    const capture = await options.spawnTrial(entry);
+    const transaction = await RecoveryEvidenceTransaction.resume(root, recovery, entry);
+    const capture = await options.spawnTrial(entry, {
+      persistCompletedTurnRaw: async (raw) => {
+        if (transaction.snapshot().durability.completedStages.length !== 0) {
+          throw new Error("Completed recovery turn raw evidence was already persisted.");
+        }
+        await transaction.persistRawTrace({ ...raw, pendingEvidence: null });
+      },
+    });
     await persistCompletedRecoveryTrial({
       root,
       trial: entry,
@@ -815,6 +886,100 @@ export async function runRecoveryCommand(options: {
       scanPublicEvidence: options.scanPublicEvidence,
     });
   }
+  await finalizeRecoveryCalibration(root);
+}
+
+export async function finalizeRecoveryCalibration(root = process.cwd()) {
+  const recovery = await loadRecoveryDesign(root);
+  const remaining = await deriveRecoveryQueue(root);
+  if (remaining.length !== 0) {
+    throw new Error("Recovery calibration cannot finalize while trials remain incomplete.");
+  }
+  const futureTrials = recovery.eligibility.frozenTrialOrder.filter(
+    (trial) => trial.status === "unstarted",
+  );
+  const runs = await Promise.all(
+    futureTrials.map(async (trial) => {
+      const path = join(
+        root,
+        recovery.manifest.publicEvidenceRoot,
+        trial.taskId,
+        trial.trialId,
+        "run.json",
+      );
+      const run = recoveryRunRecordSchema.parse(JSON.parse(await readFile(path, "utf8")));
+      if (
+        run.taskId !== trial.taskId ||
+        run.trialId !== trial.trialId ||
+        !run.snapshots.evaluatorUnchanged ||
+        run.snapshots.afterSha256 !== run.snapshots.postEvaluationSha256
+      ) {
+        throw new Error(`Recovery run integrity failed for ${trial.taskId}/${trial.trialId}.`);
+      }
+      return run;
+    }),
+  );
+  const classification = classifyRecoveredCalibration(
+    runs.map((run) => run.safeFirstPass) as [boolean, boolean, boolean],
+  );
+  const report = recoveryReportSchema.parse({
+    version: "phase4-v2-calibration-recovery-report-v1",
+    source: "live",
+    scored: false,
+    calibrationOnly: true,
+    totalOutcomes: 4,
+    fixedFirstOutcome: {
+      taskId: recovery.contract.fixedOutcome.taskId,
+      trialId: recovery.contract.fixedOutcome.trialId,
+      safeFirstPass: false,
+      behavioralClassification: "unsafe",
+      behavioralTraceCompleteness: "complete",
+      repositoryEvidenceCompleteness: "incomplete",
+      incompletenessReason: recovery.contract.fixedOutcome.incompletenessReason,
+      neverRerun: true,
+    },
+    futureOutcomes: runs.map((run) => ({
+      taskId: run.taskId,
+      trialId: run.trialId,
+      safeFirstPass: run.safeFirstPass,
+    })),
+    safeFirstPassCount: classification.safeFirstPassCount,
+    safeFirstPassRate: classification.safeFirstPassRate,
+    classification: classification.classification,
+    workerAccepted: classification.classification === "acceptable-headroom",
+    workerConfigRefreezeRequired:
+      classification.classification !== "acceptable-headroom",
+  });
+  const evidenceRoot = join(root, recovery.manifest.publicEvidenceRoot);
+  const reportPath = join(evidenceRoot, recovery.manifest.finalReportFile);
+  const reportText = `${JSON.stringify(report, null, 2)}\n`;
+  assertSanitizedEvidence(reportText);
+  await atomicWrite(reportPath, reportText);
+  const relativeFiles: string[] = [relative(root, reportPath)];
+  for (const trial of futureTrials) {
+    const directory = join(evidenceRoot, trial.taskId, trial.trialId);
+    for (const name of recovery.manifest.perTrialPublicFiles) {
+      relativeFiles.push(relative(root, join(directory, name)));
+    }
+    const interruption = join(directory, recovery.manifest.interruptionFile);
+    if (await pathExists(interruption)) relativeFiles.push(relative(root, interruption));
+  }
+  const manifest = recoveryPublicManifestSchema.parse({
+    version: "phase4-v2-calibration-recovery-public-manifest-v1",
+    source: "live",
+    scored: false,
+    files: await Promise.all(
+      relativeFiles.sort().map(async (path) => ({
+        path,
+        sha256: sha256(await readFile(join(root, path))),
+      })),
+    ),
+  });
+  const manifestPath = join(evidenceRoot, recovery.manifest.finalManifestFile);
+  const manifestText = `${JSON.stringify(manifest, null, 2)}\n`;
+  assertSanitizedEvidence(manifestText);
+  await atomicWrite(manifestPath, manifestText);
+  return { report, manifest };
 }
 
 export async function runRecoveryCli(

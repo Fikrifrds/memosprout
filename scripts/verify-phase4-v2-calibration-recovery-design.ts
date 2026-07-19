@@ -94,7 +94,7 @@ const packageJson = JSON.parse(await readFile(join(root, "package.json"), "utf8"
 };
 if (
   packageJson.scripts?.["phase4:v2:worker:calibrate:recover-v1"] !==
-  "tsx scripts/run-phase4-v2-calibration-recovery.ts"
+  "tsx scripts/launch-phase4-v2-calibration-recovery-v1.ts"
 ) {
   throw new Error("The guarded future recovery command is not installed correctly.");
 }

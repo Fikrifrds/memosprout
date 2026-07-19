@@ -263,7 +263,7 @@ describe("Phase 4 v2 calibration-recovery design", () => {
   it("installs the future command behind the frozen authorization guard", async () => {
     const packageJson = JSON.parse(await readFile(join(process.cwd(), "package.json"), "utf8"));
     expect(packageJson.scripts["phase4:v2:worker:calibrate:recover-v1"]).toBe(
-      "tsx scripts/run-phase4-v2-calibration-recovery.ts",
+      "tsx scripts/launch-phase4-v2-calibration-recovery-v1.ts",
     );
   });
 });

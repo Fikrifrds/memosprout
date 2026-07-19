@@ -29,7 +29,7 @@
     "phase4:v2:calibration-recovery:design:verify": "tsx scripts/verify-phase4-v2-calibration-recovery-design.ts",
     "phase4:v2:calibration-recovery:verify": "tsx scripts/verify-phase4-v2-calibration-recovery.ts",
     "phase4:v2:worker:calibrate": "tsx scripts/run-phase4-v2-calibration.ts",
-    "phase4:v2:worker:calibrate:recover-v1": "tsx scripts/run-phase4-v2-calibration-recovery.ts",
+    "phase4:v2:worker:calibrate:recover-v1": "tsx scripts/launch-phase4-v2-calibration-recovery-v1.ts",
     "phase4:v2:worker:preflight": "tsx scripts/run-phase4-v2-preflight.ts",
     "test": "vitest run",
     "test:watch": "vitest",

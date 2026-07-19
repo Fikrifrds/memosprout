@@ -1,0 +1,9 @@
+{
+  "version": "phase4-v2-calibration-recovery-launcher-manifest-v1",
+  "files": [
+    {
+      "path": "demo/generated-files/evaluation/v2/calibration-recovery/launcher-hotfix/v1/infrastructure-amendment.json",
+      "sha256": "f772a0d165be2b8ff85829ba342243be984979cca7e71815f0f06be43f503541"
+    }
+  ]
+}

@@ -1,6 +1,6 @@
 # MemoSprout Build Week Implementation Plan
 
-Status: Phase 4 v1 evidence valid; Phase 4 v2 preflight passed; calibration incomplete after evidence-capture failure; scored execution unauthorized
+Status: Phase 4 v1 evidence valid; Phase 4 v2 preflight passed; calibration recovery launcher hotfix frozen and unauthorized; scored execution unauthorized
 
 Date: 2026-07-19
 
@@ -586,6 +586,16 @@ At the design freeze, execution authorization was false and `pnpm phase4:v2:work
 - Scanner failure preserves local raw evidence, sanitized public evidence, the temporary repository, stable path-free resume identity, and a typed public interruption record. Successful scanning and completion-marker/hash verification must both precede the structurally guarded temporary-repository cleanup callback.
 - `pnpm phase4:v2:calibration-recovery:verify` validates the unchanged contracts and source evidence, exact three-entry queue, installed guarded command, absent recovery evidence, exit code `2` plus zero boundary calls for absent and incorrect authorization, and exactly one injected boundary call for the correct in-memory identifier. Tests exercise the authorization, persistence, and resume engines with synthetic data only.
 - No model call or calibration execution occurred. The three recovery trials, scored baseline, protected runs, controls, Phase 5, and UI remain unauthorized.
+
+#### Phase 4 v2 Calibration-Recovery Launcher Hotfix v1 — Frozen, No Execution
+
+The recovery execution entry point is now the dedicated `scripts/launch-phase4-v2-calibration-recovery-v1.ts` module. It uses an explicit `async function main(): Promise<void>` and a sanitized `main().catch(...)` handler. Recovery execution no longer uses inline `tsx -e`, eval-based launching, or top-level await.
+
+Before runtime authorization is consumed or the recovery queue is derived, the launcher verifies that `process.versions.node` has major version 24. A future live adapter reuses the validated `process.execPath` runtime by placing its directory first in the isolated subprocess environment; no user-specific runtime path is hard-coded or written to evidence. After authorization succeeds, the model-free preflight verifies the unchanged frozen contracts and hashes, the false committed `executionAuthorized` flag, absent unexpected recovery evidence, the exact ordered three-trial queue, exclusion of the immutable first trial, Codex executable resolution, and minimum isolated authentication availability.
+
+The versioned infrastructure amendment at `demo/generated-files/evaluation/v2/calibration-recovery/launcher-hotfix/v1` records two infrastructure launches. Both stopped before queue execution, started zero Codex processes, completed zero Codex turns, observed zero model outcomes, and created no calibration evidence. The original infrastructure retry allowance is exhausted. The amendment does not reinterpret the frozen retry policy and keeps one corrected future launch unauthorized until separate human authorization.
+
+Deterministic launcher tests and `pnpm phase4:v2:calibration-recovery:verify` exercise Node 23 rejection, Node 24 acceptance, absent/mismatched/correct runtime consent, exact queue derivation, frozen-input integrity, amendment hashing, and a single injected execution boundary. These checks start no Codex process and create no recovery evidence. The next possible command remains `pnpm phase4:v2:worker:calibrate:recover-v1`, but it must not be invoked with valid runtime consent until a separate human authorization permits the one corrected launch.
 
 ### Phase 5 — Held-Out Fresh Codex Proof
 

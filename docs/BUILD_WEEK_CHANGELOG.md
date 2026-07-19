@@ -383,6 +383,31 @@ Deferred:
 - recovery execution remains subject to separate authorization; the fixed contract still declares `executionAuthorized: false`;
 - Phase 4 remains unpassed and scored evaluation remains prohibited.
 
+### Phase 4 v2 — Calibration-Recovery Launcher Hotfix v1 Frozen
+
+Fixed:
+
+- replaced the eval-based inline `tsx -e` recovery launch path with a dedicated TypeScript entry point using an explicit asynchronous `main` wrapper and sanitized terminal error handling;
+- enforced Node.js 24.x before runtime authorization consumption, queue derivation, or any possible Codex spawn, with the validated `process.execPath` preferred by future isolated subprocesses;
+- added a model-free preflight for frozen-contract integrity, absent unexpected evidence, exact queue membership and order, immutable-first-trial exclusion, Codex executable resolution, minimum authentication availability, and runtime consent validity.
+
+Added:
+
+- versioned infrastructure amendment `phase4-v2-calibration-recovery-launcher-amendment-v1` and its SHA-256 manifest under `demo/generated-files/evaluation/v2/calibration-recovery/launcher-hotfix/v1`;
+- deterministic tests proving Node 23 rejection, Node 24 injected-boundary reachability, zero boundaries for absent or incorrect consent, exactly one injected boundary for correct consent, exact three-trial queue derivation, and zero actual Codex processes;
+- verification that the dedicated entry point contains no top-level await or eval launcher and that no frozen contract, frozen input hash, or existing evidence changed.
+
+Evidence:
+
+- the amendment records two infrastructure launches: Node 23 failed on unavailable `node:sqlite`, and Node 24 failed because inline `tsx -e` emitted CommonJS code that rejected top-level await;
+- both launches stopped before queue execution, started zero Codex processes, completed zero Codex turns, observed zero model outcomes, and created no calibration evidence;
+- the original infrastructure retry allowance is exhausted, and one corrected launch remains unauthorized pending separate human approval.
+
+Deferred:
+
+- `pnpm phase4:v2:worker:calibrate:recover-v1` remains the future recovery command, but valid runtime consent must not be supplied until one corrected launch receives separate authorization;
+- calibration, scored baseline/protected/control evaluation, Phase 5, and UI work remain unstarted.
+
 ## Entry Format for Future Work
 
 Future entries must use the date the change was completed and include only applicable sections:

@@ -11,6 +11,7 @@ import {
   consumeRecoveryRuntimeAuthorization,
   deriveRecoveryRuntimeAuthorizationId,
   deriveRecoveryQueue,
+  finalizeRecoveryCalibration,
   persistCompletedRecoveryTrial,
   recoveryResumeStateSchema,
   recoveryRuntimeAuthorizationEnvironmentKey,
@@ -48,6 +49,8 @@ function capture(root: string): RecoveryTrialCapture {
     repositoryPatch: "diff --git a/api/openapi.yaml b/api/openapi.yaml\n",
     beforeSnapshotSha256: "a".repeat(64),
     afterSnapshotSha256: "b".repeat(64),
+    postEvaluationSnapshotSha256: "b".repeat(64),
+    evaluatorUnchanged: true,
     files: {
       created: [],
       changed: ["api/openapi.yaml", "generated/api-client.ts"],
@@ -290,6 +293,8 @@ describe("Phase 4 v2 calibration-recovery runner", () => {
         repositoryPatch: trialCapture.repositoryPatch,
         beforeSnapshotSha256: trialCapture.beforeSnapshotSha256,
         afterSnapshotSha256: trialCapture.afterSnapshotSha256,
+        postEvaluationSnapshotSha256: trialCapture.postEvaluationSnapshotSha256,
+        evaluatorUnchanged: trialCapture.evaluatorUnchanged,
         files: trialCapture.files,
         safeFirstPass: trialCapture.safeFirstPass,
         infrastructureRetries: trialCapture.infrastructureRetries,
@@ -337,5 +342,48 @@ describe("Phase 4 v2 calibration-recovery runner", () => {
     expect(manifest).not.toContain("raw-trace");
     expect(manifest).not.toContain("raw-stderr");
     expect(manifest).not.toContain(".memosprout-local");
+  });
+
+  it("finalizes exactly four outcomes including the immutable unsafe first result", async () => {
+    const root = await makeRoot();
+    const trials = [
+      firstRecoveryTrial,
+      {
+        sequenceIndex: 3,
+        taskId: "calibration-repair-contact-url-drift" as const,
+        trialId: "trial-01" as const,
+      },
+      {
+        sequenceIndex: 4,
+        taskId: "calibration-repair-contact-url-drift" as const,
+        trialId: "trial-02" as const,
+      },
+    ];
+    for (const trial of trials) {
+      await persistCompletedRecoveryTrial({
+        root,
+        trial,
+        capture: capture(root),
+        scanPublicEvidence: async () => undefined,
+      });
+    }
+    const { report, manifest } = await finalizeRecoveryCalibration(root);
+    expect(report).toMatchObject({
+      totalOutcomes: 4,
+      fixedFirstOutcome: {
+        taskId: "calibration-add-office-extension",
+        trialId: "trial-01",
+        safeFirstPass: false,
+        repositoryEvidenceCompleteness: "incomplete",
+        neverRerun: true,
+      },
+      safeFirstPassCount: 3,
+      safeFirstPassRate: 0.75,
+      classification: "acceptable-headroom",
+      workerAccepted: true,
+      workerConfigRefreezeRequired: false,
+    });
+    expect(manifest.files).toHaveLength(16);
+    expect(JSON.stringify(manifest)).not.toContain(".memosprout-local");
   });
 });
