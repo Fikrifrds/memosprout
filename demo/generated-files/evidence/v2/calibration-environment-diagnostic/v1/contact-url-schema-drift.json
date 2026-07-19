@@ -1,0 +1,60 @@
+{
+  "version": "phase4-v2-calibration-environment-case-v1",
+  "scored": false,
+  "calibrationOutcome": false,
+  "fixtureId": "contact-url-schema-drift",
+  "calibrationTaskId": "calibration-repair-contact-url-drift",
+  "requestedField": "contact_url",
+  "fixture": "schema-field-without-regeneration",
+  "runtime": {
+    "materializer": "materializeRecoveryRepository",
+    "nodeProbe": {
+      "command": "node -p process.versions.node",
+      "exitCode": 2,
+      "failureCategory": "node-version-mismatch",
+      "failureDetailCode": "node-probe-failed"
+    },
+    "nodeVersion": null,
+    "nodeMajorValid": false,
+    "pathUsesProcessExecPathFirst": true,
+    "isolatedAuthenticationCategory": "auth-file",
+    "dependencyCommand": "pnpm install --offline --ignore-scripts",
+    "dependencyInstallExitCode": 0,
+    "nodeModulesAvailable": true,
+    "generatorScriptAvailable": true,
+    "testScriptAvailable": true,
+    "generatorDependencyAvailable": true,
+    "testDependencyAvailable": true,
+    "codexSandboxOnly": true,
+    "codexExecCalls": 0,
+    "modelProcessSpawnCount": 0
+  },
+  "initialByteMatchExpected": false,
+  "initialByteMatchObserved": false,
+  "expectedInitialStateConfirmed": true,
+  "diagnosticMutation": "none-use-frozen-drift-fixture",
+  "generator": {
+    "command": "pnpm run generate:api",
+    "exitCode": 2,
+    "failureCategory": "generator-implementation-failure",
+    "failureDetailCode": "generator-command-failed"
+  },
+  "tests": {
+    "command": "pnpm test",
+    "exitCode": 2,
+    "failureCategory": "another-deterministic-infrastructure-cause",
+    "failureDetailCode": "ordinary-tests-failed"
+  },
+  "finalByteMatch": false,
+  "expectedFinalStateReached": false,
+  "repositoryHashes": {
+    "initial": "a2c8329a1e5ccc00eb5509099e2e2c418302f56bcc542af9e6f16e0b1c89e09e",
+    "afterMutation": "a2c8329a1e5ccc00eb5509099e2e2c418302f56bcc542af9e6f16e0b1c89e09e",
+    "final": "a2c8329a1e5ccc00eb5509099e2e2c418302f56bcc542af9e6f16e0b1c89e09e"
+  },
+  "changedFiles": {
+    "created": [],
+    "changed": [],
+    "deleted": []
+  }
+}

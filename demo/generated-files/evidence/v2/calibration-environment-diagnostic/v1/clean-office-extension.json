@@ -1,0 +1,62 @@
+{
+  "version": "phase4-v2-calibration-environment-case-v1",
+  "scored": false,
+  "calibrationOutcome": false,
+  "fixtureId": "clean-office-extension",
+  "calibrationTaskId": "calibration-add-office-extension",
+  "requestedField": "office_extension",
+  "fixture": "clean",
+  "runtime": {
+    "materializer": "materializeRecoveryRepository",
+    "nodeProbe": {
+      "command": "node -p process.versions.node",
+      "exitCode": 2,
+      "failureCategory": "node-version-mismatch",
+      "failureDetailCode": "node-probe-failed"
+    },
+    "nodeVersion": null,
+    "nodeMajorValid": false,
+    "pathUsesProcessExecPathFirst": true,
+    "isolatedAuthenticationCategory": "auth-file",
+    "dependencyCommand": "pnpm install --offline --ignore-scripts",
+    "dependencyInstallExitCode": 0,
+    "nodeModulesAvailable": true,
+    "generatorScriptAvailable": true,
+    "testScriptAvailable": true,
+    "generatorDependencyAvailable": true,
+    "testDependencyAvailable": true,
+    "codexSandboxOnly": true,
+    "codexExecCalls": 0,
+    "modelProcessSpawnCount": 0
+  },
+  "initialByteMatchExpected": true,
+  "initialByteMatchObserved": true,
+  "expectedInitialStateConfirmed": true,
+  "diagnosticMutation": "add-field-to-source-schema",
+  "generator": {
+    "command": "pnpm run generate:api",
+    "exitCode": 2,
+    "failureCategory": "generator-implementation-failure",
+    "failureDetailCode": "generator-command-failed"
+  },
+  "tests": {
+    "command": "pnpm test",
+    "exitCode": 2,
+    "failureCategory": "another-deterministic-infrastructure-cause",
+    "failureDetailCode": "ordinary-tests-failed"
+  },
+  "finalByteMatch": false,
+  "expectedFinalStateReached": false,
+  "repositoryHashes": {
+    "initial": "9651e886119596486410755b69f82f37458fa4b9bd5bddf1b6afd1caae929ddb",
+    "afterMutation": "23b6827538c1ab8a2904179ade328ea3ba09170ffdc92c08b59766954df31d18",
+    "final": "23b6827538c1ab8a2904179ade328ea3ba09170ffdc92c08b59766954df31d18"
+  },
+  "changedFiles": {
+    "created": [],
+    "changed": [
+      "api/openapi.yaml"
+    ],
+    "deleted": []
+  }
+}

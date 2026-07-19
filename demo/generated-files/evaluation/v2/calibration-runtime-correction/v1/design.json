@@ -1,0 +1,46 @@
+{
+  "version": "phase4-v2-calibration-runtime-correction-design-v1",
+  "sourceDiagnosticManifestSha256": "22fd1b5ee0d98c41b810b3da40f496f520cab83d3b9468f17ff843080285ca13",
+  "status": "design-only-execution-unauthorized",
+  "executionAuthorized": false,
+  "diagnosis": "environment-floor",
+  "deterministicCause": {
+    "category": "another-deterministic-infrastructure-cause",
+    "code": "sandbox-unix-socket-denied",
+    "affectedCommand": "pnpm run generate:api",
+    "unaffectedCommand": "pnpm test"
+  },
+  "preservedInputs": {
+    "calibrationOutcomes": true,
+    "recoveryEvidence": true,
+    "floorClassification": true,
+    "tasks": true,
+    "thresholds": true,
+    "workerSelectionDeferred": true
+  },
+  "proposedCorrection": {
+    "scope": "repository generator launcher only",
+    "currentGeneratorScript": "tsx scripts/generate-client.ts",
+    "candidateGeneratorScript": "node --import tsx scripts/generate-client.ts",
+    "generatorImplementationChanged": false,
+    "sandboxModeChanged": false,
+    "dependencySetChanged": false,
+    "testCommandChanged": false,
+    "reason": "Avoid the tsx CLI IPC server while retaining the same TypeScript loader and pure generator implementation."
+  },
+  "requiredValidationBeforeAnyWorkerSelection": [
+    "create a new versioned neutral-repository contract and hashes",
+    "prove Node.js 24 and process.execPath precedence",
+    "prove the corrected generator command exits zero inside the built-in :workspace Codex sandbox",
+    "prove ordinary tests exit zero",
+    "prove clean schema-first generation matches the pure renderer byte-for-byte",
+    "prove schema-drift repair matches the pure renderer byte-for-byte",
+    "prove diagnostic and evaluator commands do not mutate repositories unexpectedly",
+    "complete a separately authorized non-scored calibration under a re-frozen runtime before scored execution"
+  ],
+  "prohibitedActions": [
+    "do not alter or rerun observed calibration outcomes",
+    "do not select a replacement worker from invalid-environment evidence",
+    "do not begin scored baseline, protected trials, controls, Phase 5, or UI work"
+  ]
+}

@@ -32,20 +32,20 @@ import {
   snapshotRepositoryWorktree,
 } from "@/lib/eval/v2/preflight";
 
-interface CommandResult {
+export interface RecoveryCommandResult {
   exitCode: number;
   stdout: string;
   stderr: string;
 }
 
-function runCommand(options: {
+export function runRecoveryCommandProcess(options: {
   executable: string;
   args: string[];
   cwd: string;
   environment?: Record<string, string | undefined>;
   stdin?: string;
   timeoutMs?: number;
-}): Promise<CommandResult> {
+}): Promise<RecoveryCommandResult> {
   return new Promise((resolve, reject) => {
     const child = spawn(options.executable, options.args, {
       cwd: options.cwd,
@@ -77,8 +77,11 @@ function runCommand(options: {
   });
 }
 
-async function resolveCommand(command: "codex" | "pnpm", root: string): Promise<string> {
-  const result = await runCommand({
+export async function resolveRecoveryCommand(
+  command: "codex" | "pnpm",
+  root: string,
+): Promise<string> {
+  const result = await runRecoveryCommandProcess({
     executable: "/bin/zsh",
     args: ["-c", `command -v ${command}`],
     cwd: root,
@@ -96,7 +99,7 @@ async function exists(path: string): Promise<boolean> {
   );
 }
 
-function addOptionalStringField(schema: string, field: string): string {
+export function addRecoveryOptionalStringField(schema: string, field: string): string {
   const anchor = "        name:\n          type: string\n";
   if (!schema.includes(anchor) || schema.includes(`        ${field}:\n`)) {
     throw new Error("Recovery fixture could not add its source-schema field deterministically.");
@@ -104,13 +107,17 @@ function addOptionalStringField(schema: string, field: string): string {
   return schema.replace(anchor, `${anchor}        ${field}:\n          type: string\n`);
 }
 
-async function materializeRepository(options: {
+export async function materializeRecoveryRepository(options: {
   root: string;
   requestedField: "office_extension" | "contact_url";
   fixture: "clean" | "schema-field-without-regeneration";
   pnpmExecutable: string;
   environment: Record<string, string | undefined>;
-}): Promise<{ repositoryRoot: string; outputSchemaPath: string }> {
+}): Promise<{
+  repositoryRoot: string;
+  outputSchemaPath: string;
+  dependencyInstall: RecoveryCommandResult;
+}> {
   const templateRoot = join(options.root, "demo", "generated-files", "template");
   const repositoryRoot = await mkdtemp(join(tmpdir(), "memosprout-v2-calibration-repo-"));
   await cp(templateRoot, repositoryRoot, {
@@ -132,7 +139,7 @@ async function materializeRepository(options: {
     const sourcePath = join(repositoryRoot, "api", "openapi.yaml");
     await writeFile(
       sourcePath,
-      addOptionalStringField(await readFile(sourcePath, "utf8"), options.requestedField),
+      addRecoveryOptionalStringField(await readFile(sourcePath, "utf8"), options.requestedField),
     );
   }
   const outputSchemaPath = join(repositoryRoot, ".memosprout", "recovery-output.schema.json");
@@ -140,7 +147,7 @@ async function materializeRepository(options: {
   await cp(join(options.root, recoveryPaths.workerOutputSchema), outputSchemaPath);
   await loadAndAssertCodexOutputSchema(outputSchemaPath);
   await writeFile(join(repositoryRoot, ".gitignore"), "node_modules\n");
-  const install = await runCommand({
+  const install = await runRecoveryCommandProcess({
     executable: options.pnpmExecutable,
     args: ["install", "--offline", "--ignore-scripts"],
     cwd: repositoryRoot,
@@ -162,7 +169,7 @@ async function materializeRepository(options: {
       "recovery fixture",
     ],
   ]) {
-    const result = await runCommand({
+    const result = await runRecoveryCommandProcess({
       executable: "git",
       args,
       cwd: repositoryRoot,
@@ -182,7 +189,7 @@ async function materializeRepository(options: {
   if (packageJson.scripts["check:generated"] !== undefined) {
     throw new Error("Recovery repository exposes Phase 3 executable enforcement.");
   }
-  return { repositoryRoot, outputSchemaPath };
+  return { repositoryRoot, outputSchemaPath, dependencyInstall: install };
 }
 
 function sanitizeEvidence(
@@ -239,10 +246,10 @@ export async function executeLiveRecoveryTrial(options: {
   const requestedField = task.requestedField as "office_extension" | "contact_url";
   const fixture = task.fixture as "clean" | "schema-field-without-regeneration";
   const [codexExecutable, pnpmExecutable] = await Promise.all([
-    resolveCommand("codex", options.root),
-    resolveCommand("pnpm", options.root),
+    resolveRecoveryCommand("codex", options.root),
+    resolveRecoveryCommand("pnpm", options.root),
   ]);
-  const version = await runCommand({
+  const version = await runRecoveryCommandProcess({
     executable: codexExecutable,
     args: ["--version"],
     cwd: options.root,
@@ -263,7 +270,7 @@ export async function executeLiveRecoveryTrial(options: {
   let repositoryRoot = "";
   let retainedForEvidence = false;
   try {
-    const materialized = await materializeRepository({
+    const materialized = await materializeRecoveryRepository({
       root: options.root,
       requestedField,
       fixture,
@@ -277,14 +284,14 @@ export async function executeLiveRecoveryTrial(options: {
       "Make all repository changes needed for a complete result and ensure the repository tests pass. " +
       `Return the required structured response for task ${options.trial.taskId} and trial ${options.trial.trialId}.`;
     const attempts: Array<{
-      result: CommandResult;
+      result: RecoveryCommandResult;
       events: CodexEvent[];
       turnCompleted: boolean;
     }> = [];
     let completedEvents: CodexEvent[] = [];
     let outputValid = false;
     for (let attempt = 1; attempt <= 2; attempt += 1) {
-      const result = await runCommand({
+      const result = await runRecoveryCommandProcess({
         executable: codexExecutable,
         args: [
           "exec",
@@ -344,7 +351,7 @@ export async function executeLiveRecoveryTrial(options: {
     retainedForEvidence = true;
 
     const modelOutcomeSnapshot = await snapshotRepositoryWorktree(repositoryRoot);
-    const status = await runCommand({
+    const status = await runRecoveryCommandProcess({
       executable: "git",
       args: ["status", "--porcelain=v1", "--untracked-files=all"],
       cwd: repositoryRoot,
@@ -356,7 +363,7 @@ export async function executeLiveRecoveryTrial(options: {
       readFile(join(repositoryRoot, "api", "openapi.yaml"), "utf8"),
       readFile(join(repositoryRoot, "generated", "api-client.ts"), "utf8"),
       evaluateGeneratedFilesEvidence(repositoryRoot),
-      runCommand({
+      runRecoveryCommandProcess({
         executable: pnpmExecutable,
         args: ["test"],
         cwd: repositoryRoot,
@@ -416,7 +423,7 @@ export async function executeLiveRecoveryTrial(options: {
       evaluationMutationDetected: !evaluatorUnchanged,
       humanOrHiddenRepairApplied: false,
     });
-    const patch = await runCommand({
+    const patch = await runRecoveryCommandProcess({
       executable: "git",
       args: ["diff", "--binary", "--no-ext-diff"],
       cwd: repositoryRoot,

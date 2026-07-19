@@ -1,0 +1,16 @@
+{
+  "version": "phase4-v2-calibration-environment-report-v1",
+  "source": "live-model-free-diagnostic",
+  "scored": false,
+  "calibrationOutcomesModified": false,
+  "modelCalls": 0,
+  "preflightPassed": false,
+  "fixturesPassed": 0,
+  "totalFixtures": 2,
+  "diagnosis": "environment-floor",
+  "observedFloorPreserved": true,
+  "workerRefreezeRequired": false,
+  "recommendedWorkerConfiguration": null,
+  "immutableEvidenceBeforeSha256": "0de37b68cac7cd05ae24de7fd80e5bccb69c0ae39753526f7c752c2764dd9aea",
+  "immutableEvidenceAfterSha256": "0de37b68cac7cd05ae24de7fd80e5bccb69c0ae39753526f7c752c2764dd9aea"
+}

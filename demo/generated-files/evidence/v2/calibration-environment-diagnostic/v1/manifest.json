@@ -1,0 +1,21 @@
+{
+  "version": "phase4-v2-calibration-environment-manifest-v1",
+  "files": [
+    {
+      "path": "demo/generated-files/evidence/v2/calibration-environment-diagnostic/v1/command-preflight.json",
+      "sha256": "02cff398497c37ee7a86a7dcc582f01fb945d59fde780c7413947a16d9364a34"
+    },
+    {
+      "path": "demo/generated-files/evidence/v2/calibration-environment-diagnostic/v1/clean-office-extension.json",
+      "sha256": "5b47f8fbc3990ad3fef17e227335723068e0a475fca5235f0d6ac367c856b1d9"
+    },
+    {
+      "path": "demo/generated-files/evidence/v2/calibration-environment-diagnostic/v1/contact-url-schema-drift.json",
+      "sha256": "96ae8c0c117f6c8dc71d159dea8277f6895ded34c0db4277d4eb37ec96fe7d55"
+    },
+    {
+      "path": "demo/generated-files/evidence/v2/calibration-environment-diagnostic/v1/report.json",
+      "sha256": "9770a1e7c8600d9af97a6998f8728289350229fe00885983ee1a558db6b18194"
+    }
+  ]
+}

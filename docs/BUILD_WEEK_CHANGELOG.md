@@ -428,6 +428,34 @@ Deferred:
 - the provisional `gpt-5.4-mini` low-reasoning worker is rejected by the frozen floor threshold and requires a separately reviewed worker-config re-freeze;
 - scored baseline, protected trials, controls, Phase 5, and UI work remain unauthorized and unstarted.
 
+### Phase 4 v2 — Model-Free Calibration-Environment Diagnostic
+
+Added:
+
+- separate versioned diagnostic contracts and evidence paths that never count as calibration or scored evidence and preserve the completed `0/4` floor result unchanged;
+- a diagnostic runner that imports the exact calibration repository materializer, uses Node.js 24 and the isolated runtime PATH, installs dependencies offline, and executes repository commands only through the no-model Codex `:workspace` sandbox helper;
+- strict Zod evidence for command availability, dependency availability, Node version, generator and test exit codes, byte-level pure-renderer comparison, expected fixture transitions, immutable-evidence hashes, failure categories, and diagnosis;
+- an execution-unauthorized runtime-correction design bound to the diagnostic v2 manifest.
+
+Evidence:
+
+- diagnostic v1 is retained with its original hashes and labeled inconclusive because the first no-model sandbox invocation omitted the newly required permission profile and stopped before Node or repository commands;
+- diagnostic v2 confirmed Node.js `24.14.0`, offline dependency installation, `node_modules`, generator/test scripts, `tsx`, and `vitest` were available in the exact calibration materialization;
+- the untouched preflight and both fixture categories ran with zero model calls; ordinary tests exited zero in all three repositories;
+- the existing generator command exited one in all three repositories because the `tsx` CLI Unix IPC socket was denied inside the worker-equivalent sandbox;
+- the clean office-extension fixture and contact-URL drift fixture both failed the required byte-level final comparison, producing `0/2` passing fixtures and an `environment-floor` diagnosis;
+- calibration and recovery evidence hashes were identical before and after the diagnostic.
+
+Changed:
+
+- worker selection is deferred: the preserved `0/4` result remains a valid record of observed outcomes but is not valid worker-comparison evidence under the defective generator runtime;
+- the next design step is a separately reviewed runtime re-freeze using a generator launcher that does not require the denied `tsx` CLI IPC socket.
+
+Deferred:
+
+- no replacement worker is recommended, selected, or frozen while the environment is invalid;
+- runtime-correction execution, any new calibration, scored baseline/protected/control evaluation, Phase 5, and UI work remain unauthorized.
+
 ## Entry Format for Future Work
 
 Future entries must use the date the change was completed and include only applicable sections:

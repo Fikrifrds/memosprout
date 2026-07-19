@@ -1,6 +1,6 @@
 # MemoSprout Build Week Implementation Plan
 
-Status: Phase 4 v1 evidence valid; Phase 4 v2 calibration completed with a verified floor result; worker re-freezing required; scored execution unauthorized
+Status: Phase 4 v1 evidence valid; Phase 4 v2 calibration floor preserved; model-free diagnostic found an invalid generator runtime; runtime correction required before worker selection; scored execution unauthorized
 
 Date: 2026-07-19
 
@@ -598,6 +598,14 @@ The versioned infrastructure amendment at `demo/generated-files/evaluation/v2/ca
 Deterministic launcher tests and `pnpm phase4:v2:calibration-recovery:verify` exercise Node 23 rejection, Node 24 acceptance, absent/mismatched/correct runtime consent, exact queue derivation, frozen-input integrity, amendment hashing, and a single injected execution boundary. These checks start no Codex process and create no recovery evidence. The next possible command remains `pnpm phase4:v2:worker:calibrate:recover-v1`, but it must not be invoked with valid runtime consent until a separate human authorization permits the one corrected launch.
 
 The separately authorized corrected launch completed the three eligible trials exactly once under `gpt-5.4-mini` with low reasoning and zero model or infrastructure retries. All three recovery trials were unsafe first passes. Combined with the immutable first unsafe result, calibration finished at `0/4` (`0.00`), which is a frozen calibration-floor result. The recovery manifest, completion markers, hashes, sanitation checks, queue uniqueness, and evaluator non-mutation checks pass. The provisional worker is rejected and must be replaced through a separately reviewed worker-config re-freeze before any scored baseline execution. The completed recovery command must not be invoked again.
+
+#### Phase 4 v2 Calibration-Environment Diagnostic — Environment Floor
+
+The completed `0/4` calibration, all recovery evidence, and its `calibration-floor` label remain immutable. A separate model-free diagnostic reused the exact `materializeRecoveryRepository` function, isolated authentication environment, Node.js 24 `process.execPath` precedence, offline dependency installation, fixture preparation, and Codex `:workspace` sandbox profile. It did not call `codex exec`, expose a task to a model, or create calibration/scored evidence.
+
+Diagnostic v1 is preserved as inconclusive evidence because its no-model sandbox helper omitted the CLI-required permission profile and stopped before Node or repository command execution. Corrected diagnostic v2 reached the repository commands in an untouched command-preflight repository and both frozen fixture categories. Node `24.14.0`, the offline install, `node_modules`, package scripts, `tsx`, and `vitest` were available. `pnpm test` exited zero in all three repositories, but `pnpm run generate:api` exited one in all three because the `tsx` CLI could not bind its Unix IPC socket inside the worker-equivalent sandbox. The clean field addition and schema-drift repair therefore remained byte-divergent from the pure renderer.
+
+The diagnostic classification is `environment-floor`, not `environment-viable-genuine-worker-floor`. It does not change or reinterpret any observed model outcome; it establishes that the `0/4` result is not valid evidence for comparing worker capability under the defective runtime. No replacement worker is recommended or selected. The versioned, execution-unauthorized runtime-correction design proposes replacing only the generator launcher with `node --import tsx scripts/generate-client.ts`, while preserving the generator implementation, dependency set, test command, sandbox, tasks, thresholds, and all existing evidence. A separately reviewed runtime re-freeze and model-free validation must pass before any worker selection or new calibration.
 
 ### Phase 5 — Held-Out Fresh Codex Proof
 

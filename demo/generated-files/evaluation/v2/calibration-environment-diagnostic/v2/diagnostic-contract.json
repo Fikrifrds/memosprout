@@ -1,0 +1,55 @@
+{
+  "version": "phase4-v2-calibration-environment-diagnostic-v2",
+  "sourceFloorTag": "build-week-phase-4-v2-calibration-floor-mini-low",
+  "sourceFloorClassification": "calibration-floor",
+  "sourceDiagnosticV1": {
+    "manifestSha256": "299d16962d870d23078bce26ddc5fc9030ad617cb8437d04c8aa74558e852255",
+    "status": "inconclusive-diagnostic-launcher-profile-missing",
+    "preserved": true
+  },
+  "scored": false,
+  "modelCallsAllowed": false,
+  "calibrationRerunsAllowed": false,
+  "runtime": {
+    "materializerModule": "lib/eval/v2/calibration-recovery-live.ts",
+    "materializerExport": "materializeRecoveryRepository",
+    "nodeMajor": 24,
+    "pathPolicy": "validated-process-exec-path-first",
+    "dependencyCommand": "pnpm install --offline --ignore-scripts",
+    "sandboxCommand": "codex sandbox",
+    "permissionProfile": ":workspace",
+    "sandboxMode": "workspace-write",
+    "networkRequired": false
+  },
+  "commandPreflight": {
+    "fixture": "clean",
+    "generatorCommand": "pnpm run generate:api",
+    "testCommand": "pnpm test",
+    "mustRunBeforeDiagnosticMutation": true
+  },
+  "fixtures": [
+    {
+      "id": "clean-office-extension",
+      "calibrationTaskId": "calibration-add-office-extension",
+      "requestedField": "office_extension",
+      "fixture": "clean",
+      "initialByteMatchExpected": true,
+      "diagnosticMutation": "add-field-to-source-schema"
+    },
+    {
+      "id": "contact-url-schema-drift",
+      "calibrationTaskId": "calibration-repair-contact-url-drift",
+      "requestedField": "contact_url",
+      "fixture": "schema-field-without-regeneration",
+      "initialByteMatchExpected": false,
+      "diagnosticMutation": "none-use-frozen-drift-fixture"
+    }
+  ],
+  "classification": {
+    "environmentViable": "preflight and both fixtures complete generation, tests, byte comparison, and expected state transitions",
+    "environmentInvalid": "preflight or either fixture fails a required deterministic environment check",
+    "calibrationEvidenceEffect": "none",
+    "workerSelectionEffect": "recommend only; never select or freeze"
+  },
+  "evidenceRoot": "demo/generated-files/evidence/v2/calibration-environment-diagnostic/v2"
+}
