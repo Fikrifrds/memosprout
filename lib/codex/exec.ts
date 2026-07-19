@@ -47,6 +47,8 @@ export async function runCodexExec<T>(options: {
   outputSchema: z.ZodType<T>;
   environment?: NodeJS.ProcessEnv;
   timeoutMs?: number;
+  model?: string;
+  reasoningEffort?: string;
 }): Promise<CodexExecutionResult<T>> {
   await loadAndAssertCodexOutputSchema(options.outputSchemaPath);
 
@@ -56,14 +58,22 @@ export async function runCodexExec<T>(options: {
     "--sandbox",
     "workspace-write",
     "--ephemeral",
-    "--output-schema",
-    options.outputSchemaPath,
-    "-C",
-    options.repositoryRoot,
-    "-",
   ];
+  if (options.model) {
+    args.push("--model", options.model);
+  }
+  if (options.reasoningEffort) {
+    args.push("-c", `model_reasoning_effort=${options.reasoningEffort}`);
+  }
+  args.push("--output-schema", options.outputSchemaPath, "-C", options.repositoryRoot, "-");
+  const modelSegment = options.model
+    ? `--model ${options.model}${
+        options.reasoningEffort ? ` -c model_reasoning_effort=${options.reasoningEffort}` : ""
+      } `
+    : "";
   const command =
     "codex exec --json --sandbox workspace-write --ephemeral " +
+    modelSegment +
     "--output-schema .memosprout/codex-artifact.schema.json " +
     "-C <temporary-repository> -";
 

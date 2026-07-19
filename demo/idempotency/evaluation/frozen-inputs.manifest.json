@@ -1,0 +1,17 @@
+{
+  "version": "convergence-frozen-inputs-v1",
+  "files": [
+    {
+      "path": "demo/idempotency/evaluation/convergence-contract.json",
+      "sha256": "5f55d11bb6ebf8a06e3d6caac03fedc0147bfa3d731ea40578657bbc985207f2"
+    },
+    {
+      "path": "demo/idempotency/evaluation/prompts/task.md",
+      "sha256": "5bd9e70ec45b701f903efc12307d1c7d77c1556d6fa6c882b651374e091e662d"
+    },
+    {
+      "path": "demo/idempotency/schemas/convergence-worker-output.schema.json",
+      "sha256": "3f295da9c056192586399784c87c39cd4833ad8c00f97a55c87b9609bd7895c5"
+    }
+  ]
+}

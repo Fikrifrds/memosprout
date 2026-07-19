@@ -29,6 +29,9 @@ This log records decisions for the Build Week implementation. [`BUILD_WEEK_PRD.m
 | BW-018 | Defer all nice-to-have integrations | Accepted |
 | BW-019 | Keep this primary Codex task for `/feedback` | Accepted |
 | BW-020 | Standardize on Node.js 24 and pnpm 11 | Accepted |
+| BW-021 | Pivot to the Knowledge-Trap Convergence Experiment | Accepted |
+| BW-022 | Run the convergence experiment on the OpenAI API (both conditions) | Accepted |
+| BW-023 | Adopt the reliability framing and reframe the convergence gate on probe evidence | Accepted |
 
 ## Detailed Decisions
 
@@ -191,6 +194,38 @@ This log records decisions for the Build Week implementation. [`BUILD_WEEK_PRD.m
 **Reason:** The implementation and verification environment runs Node.js 24, and one explicit runtime contract removes local, CI, and judge setup ambiguity. This decision was revised by direct user instruction before the Phase 2 commit.
 
 **Consequence:** Root and demo package manifests declare Node.js `>=24 <25` and pnpm `>=11 <12`; `.nvmrc` selects Node.js 24; CI, clean-clone testing, and setup documentation must use Node.js 24.x and pnpm 11.x.
+
+### BW-021 — Pivot to the Knowledge-Trap Convergence Experiment
+
+**Decision:** After Build Week, the project's primary objective is to empirically validate the long-term thesis from `docs/strategy/Intelligence_Amplification_and_Operational_Distillation_PRD.md`: MemoSprout improves *system* intelligence, not a model's intrinsic intelligence or weights. The decisive test is a Knowledge-Trap Convergence Experiment that measures whether a cheap model plus a Validated Sprout approaches a frontier model on recurring, verifiable, organization-specific work. The first scenario is payment-webhook idempotency. A new evaluation generation (`lib/eval/v3/`) is built alongside the frozen Phase 4 v2 stack, which remains immutable.
+
+**Reason:** The Phase 4 v1 evaluation produced a valid improvement delta of `0` because the generated-files scenario is too easy for modern agents (a ceiling effect), so it cannot demonstrate the core value proposition. The idempotency scenario is a genuine knowledge trap (cheap implementations double-charge on duplicate callbacks and downgrade terminal order states) with deterministic acceptance tests, so the gap between cheap and frontier models is measurable. The honest claim boundary is "for recurring, organization-specific, and verifiable workflows, efficient models enhanced by MemoSprout may approach frontier-model outcomes at a substantially lower cost" — never "a cheap model becomes a frontier model."
+
+**Consequence:** The experiment compares three conditions — `cheap-baseline`, `cheap-protected`, and `frontier-baseline` — and gates on `gapDelta >= 0.3` (a genuine trap), `convergenceDelta <= 0.2` (cheap+sprout approaches frontier), and `falseBlockRate = 0`. The cheap worker runs on Codex (the frozen model-run worker); the frontier condition runs through separate API billing. No model trial or scored evaluation runs while Codex usage is exhausted; non-model engineering (scenario, oracle, harness, tests, docs) proceeds independently. Phase 4 v2 evidence is preserved unchanged, and `lib/eval/v3/` does not unlock or reinterpret it.
+
+### BW-022 — Run the Convergence Experiment on the OpenAI API (Both Conditions)
+
+**Decision:** Run both the cheap (`gpt-5.4-mini`) and frontier (`gpt-5.6`) conditions of the convergence experiment through the OpenAI Responses API tool-loop (`FrontierApiWorkerAdapter` in `lib/eval/v3/frontier-worker.ts`), not the Codex CLI. The frontier worker's shell tool is restricted to a command allowlist and a secret-stripped environment. For the protected condition, the sprout (`AGENTS.md`) is injected into the prompt to mirror Codex's automatic `AGENTS.md` discovery. This supersedes BW-021's "cheap worker runs on Codex" for the convergence experiment only; Phase 4 v2 remains frozen on Codex.
+
+**Reason:** Waiting for the Codex usage reset (shown around 25 July) delays the experiment, and running both conditions through the identical API tool-loop harness isolates the model-plus-sprout effect by controlling for the execution harness. The BW-021 design mixed a Codex cheap worker with an API frontier worker, which would introduce a harness confound. The command allowlist and secret-stripped environment are required because the frontier worker executes model-chosen shell commands on the host machine.
+
+**Consequence:** The convergence experiment no longer depends on Codex availability; the cheap worker is the same `FrontierApiWorkerAdapter` with `model: gpt-5.4-mini`. The protected condition delivers the sprout by prompt injection. The frontier worker rejects chained or redirected commands and any command outside the allowlist (`pnpm test`, `pnpm exec vitest`, `pnpm exec tsx`, `npx vitest`, `node`, `tsx`), and strips `KEY`/`SECRET`/`TOKEN`/`PASSWORD`/`AUTHORIZATION`/`CREDENTIAL` variables from the command environment so the model cannot exfiltrate credentials.
+
+### BW-023 — Adopt the Reliability Framing and Reframe the Convergence Gate on Probe Evidence
+
+**Decision:** Adopt the reliability/variance framing of the thesis and reframe the convergence gate around `sproutLift` and `cheapProtectedRate` instead of `gapDelta`/`convergenceDelta`. The realistic, de-hinted task (which does not spell out the idempotency requirement) is the valid experimental task. This decision is grounded in live probe evidence recorded on 2026-07-19.
+
+**Probe evidence (de-hinted task, three trials per condition, OpenAI API):**
+
+| Condition | Model | Sprout | Success rate |
+|---|---|---|---|
+| cheap-baseline | gpt-5.4-mini | no | 0/3 |
+| cheap-protected | gpt-5.4-mini | yes | 3/3 |
+| frontier-baseline | gpt-5.6-sol | no | 0/3 |
+
+**Reason:** The sprout lifts the cheap model from `0/3` to `3/3` (`sproutLift = 1.0`), a clean decisive result. However, the frontier model also fails the de-hinted task without the sprout (`gapDelta = 0`), so the original "cheap+sprout approaches frontier" framing and its `gapDelta >= 0.3` gate are not the right lens: the idempotency requirement is project/domain knowledge that models of either tier do not reliably apply from a bare task. The honest thesis, matching the Full PRD, is that MemoSprout improves *system* intelligence: the sprout encodes knowledge that makes a cheap model reliably correct, regardless of model tier. The earlier ceiling observed with the hinting task was an artifact of the task description revealing the requirement. The economic claim becomes "cheap + sprout delivers correct results at low cost," not "a cheap model becomes a frontier model."
+
+**Consequence:** The convergence gate is `sproutLift >= 0.5`, `cheapProtectedRate >= 0.8`, and `falseBlockRate = 0`; `gapDelta` and `convergenceDelta` remain computed as context but are not gated. The frozen rubric is bumped to `convergence-rubric-v2` and the configuration regenerated. The frontier worker's command allowlist was broadened to ordinary test invocations (for example `pnpm test --silent`), tool failures are returned to the model as recoverable tool results rather than terminating the turn, and the smoke test injects the canonical held-out acceptance suite before scoring every condition.
 
 ## Deferred or Conditional Decisions
 

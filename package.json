@@ -17,6 +17,8 @@
     "lint": "eslint .",
     "phase2:live": "tsx --env-file=.env scripts/generate-live-candidate.ts",
     "phase2:verify": "tsx scripts/verify-phase2.ts",
+    "convergence:config:setup": "tsx scripts/setup-convergence-config.ts",
+    "convergence:design:verify": "tsx scripts/verify-convergence-design.ts",
     "phase3:live": "tsx scripts/generate-protection.ts",
     "phase3:verify": "tsx scripts/verify-phase3.ts",
     "phase4:baseline": "tsx scripts/capture-baseline.ts",
