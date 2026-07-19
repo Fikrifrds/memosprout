@@ -747,6 +747,20 @@ Deferred:
 
 - wedge 7 (Team Control Plane and governance).
 
+### Cost–Intelligence Router — Pinned Model as the Predictable Default
+
+Changed:
+
+- `routeTask` now accepts a `pinnedModel` that respects an explicit model choice and skips cost auto-routing; cost-optimized auto-routing is opt-in, while pinning a model is the predictable default for users who want to know exactly which model handles their task.
+
+Added:
+
+- model-free tests for pinning the cheap model (keeps the sprout) and pinning the frontier model (overrides the otherwise cheap-reliable auto-route).
+
+Evidence:
+
+- `pnpm lint` and `pnpm typecheck` completed with zero errors and zero warnings; the router suite passes 8 tests.
+
 ## Entry Format for Future Work
 
 Future entries must use the date the change was completed and include only applicable sections:

@@ -26,6 +26,7 @@ export const routingDecisionSchema = z
     tier: z.enum(["cheap", "frontier"]),
     withSprout: z.boolean(),
     reason: z.enum([
+      "pinned",
       "cheap-reliable",
       "escalate-unreliable",
       "escalate-insufficient-data",
@@ -42,6 +43,12 @@ export interface RouteTaskOptions {
   policy?: RoutingPolicy;
   catalog?: ModelTier[];
   hasSprout?: boolean;
+  /**
+   * Pin an explicit model. When set, the router respects the choice and does
+   * not auto-route on cost — the predictable default for users who want to
+   * know exactly which model handles their task.
+   */
+  pinnedModel?: string;
 }
 
 export function routeTask(
@@ -54,6 +61,23 @@ export function routeTask(
   const cheap = cheapestModel(catalog);
   const frontier = mostCapableModel(catalog);
   const hasSprout = options.hasSprout ?? true;
+
+  if (options.pinnedModel !== undefined) {
+    const pinned = findModel(options.pinnedModel, catalog);
+    const tier = pinned?.tier ?? "frontier";
+    const samples = ledger.query({ scenario, condition: "protected" }).length;
+    const protectedRate =
+      samples > 0 ? ledger.successRate({ scenario, condition: "protected" }) : null;
+    return {
+      scenario,
+      model: options.pinnedModel,
+      tier,
+      withSprout: hasSprout && tier === "cheap",
+      reason: "pinned",
+      protectedRate,
+      samples,
+    };
+  }
 
   if (!hasSprout) {
     return {

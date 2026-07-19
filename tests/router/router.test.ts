@@ -86,6 +86,27 @@ describe("routeTask", () => {
     });
     expect(relaxed.reason).toBe("cheap-reliable");
   });
+
+  it("respects a pinned cheap model and keeps the sprout", () => {
+    const decision = routeTask(reliableLedger(), "idempotency", {
+      pinnedModel: "gpt-5.4-mini",
+    });
+    expect(decision.reason).toBe("pinned");
+    expect(decision.model).toBe("gpt-5.4-mini");
+    expect(decision.tier).toBe("cheap");
+    expect(decision.withSprout).toBe(true);
+  });
+
+  it("respects a pinned frontier model without auto-routing", () => {
+    // Even though the cheap model is reliable, pinning frontier stays on frontier.
+    const decision = routeTask(reliableLedger(), "idempotency", {
+      pinnedModel: "gpt-5.6-sol",
+    });
+    expect(decision.reason).toBe("pinned");
+    expect(decision.model).toBe("gpt-5.6-sol");
+    expect(decision.tier).toBe("frontier");
+    expect(decision.withSprout).toBe(false);
+  });
 });
 
 describe("routePortfolio", () => {

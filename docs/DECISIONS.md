@@ -279,7 +279,7 @@ This log records decisions for the Build Week implementation. [`BUILD_WEEK_PRD.m
 
 **Reason:** This realizes the economic thesis as a product feature: "cheap price, frontier result" becomes an evidence-based routing decision rather than a blanket claim. The router spends the cheap model only where outcome data shows the sprout makes it reliable, and escalates elsewhere — turning the convergence result into per-task cost optimization.
 
-**Consequence:** `lib/router/{models,router}.ts` provide a model catalog (cheap `gpt-5.4-mini` at relative cost 1, frontier `gpt-5.6-sol` at 10), a routing policy (`minimumReliability`, `minimumSamples`), and `routeTask`/`routePortfolio`, demonstrated model-free (a reliable scenario routes cheap, an unreliable one escalates, and a mixed portfolio shows cost savings).
+**Consequence:** `lib/router/{models,router}.ts` provide a model catalog (cheap `gpt-5.4-mini` at relative cost 1, frontier `gpt-5.6-sol` at 10), a routing policy (`minimumReliability`, `minimumSamples`), and `routeTask`/`routePortfolio`, demonstrated model-free (a reliable scenario routes cheap, an unreliable one escalates, and a mixed portfolio shows cost savings). The router is opt-in: `routeTask` also accepts a `pinnedModel`, which respects an explicit model choice and skips cost auto-routing (the predictable default for users who want to know exactly which model handles their task); cost-optimized auto-routing is a deliberate opt-in on top of that.
 
 ## Deferred or Conditional Decisions
 
