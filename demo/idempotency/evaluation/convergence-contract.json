@@ -14,7 +14,7 @@
   "worker": {
     "cheapModel": "gpt-5.4-mini",
     "cheapReasoningEffort": "low",
-    "frontierModel": "gpt-5.6"
+    "frontierModel": "gpt-5.6-sol"
   },
   "rubricSha256": "f8351f32b81dcd1fee73115f4059a337194f56650d023bdf83a372be76ad4b08",
   "gate": {

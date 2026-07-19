@@ -1,0 +1,119 @@
+{
+  "version": "convergence-evidence-manifest-v1",
+  "generatedAt": "2026-07-19T16:09:07.210Z",
+  "rubricSha256": "f8351f32b81dcd1fee73115f4059a337194f56650d023bdf83a372be76ad4b08",
+  "entries": [
+    {
+      "path": "demo/idempotency/evidence/convergence/live/controls.json",
+      "sha256": "ea93a0d40d14fd13c6f399c04ccd75ef463f6679473c1a75ff1a34dc154613c8"
+    },
+    {
+      "path": "demo/idempotency/evidence/convergence/live/idempotency-implement-handler/trial-01/cheap-baseline/repository.patch",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "demo/idempotency/evidence/convergence/live/idempotency-implement-handler/trial-01/cheap-baseline/run.json",
+      "sha256": "07776b6a1e7724ff433dab7731549d411c39069b3ef9621d4a2dbd31b1c07c4d"
+    },
+    {
+      "path": "demo/idempotency/evidence/convergence/live/idempotency-implement-handler/trial-01/cheap-baseline/worker-trace.jsonl",
+      "sha256": "36080b5c0aa9b7ba221bde4f66ac9d2f4f5437ca1fca281e7c80db92ec6197d5"
+    },
+    {
+      "path": "demo/idempotency/evidence/convergence/live/idempotency-implement-handler/trial-01/cheap-protected/repository.patch",
+      "sha256": "500ce3766343c87d46616110a6121e32505017cbe28f60c91fbcc4aca9d2fa54"
+    },
+    {
+      "path": "demo/idempotency/evidence/convergence/live/idempotency-implement-handler/trial-01/cheap-protected/run.json",
+      "sha256": "9ffe2dfcc00c320ae38e2594ffb1cb3b8c458e54cf7c866ef8b9d0b897d45877"
+    },
+    {
+      "path": "demo/idempotency/evidence/convergence/live/idempotency-implement-handler/trial-01/cheap-protected/worker-trace.jsonl",
+      "sha256": "5087ccb5c1e94107efc0cbdd2a88c072a81c6ac60ae8d2c0a742ee2146812be0"
+    },
+    {
+      "path": "demo/idempotency/evidence/convergence/live/idempotency-implement-handler/trial-01/frontier-baseline/repository.patch",
+      "sha256": "18265e6dc15e15eebf950a066a75f1073d43b8b73f8ca01824f68641d0b2aa46"
+    },
+    {
+      "path": "demo/idempotency/evidence/convergence/live/idempotency-implement-handler/trial-01/frontier-baseline/run.json",
+      "sha256": "e1b435398adad2d29237e80b61e8d1fa1de0e75b930ca0674588c671bec1f7aa"
+    },
+    {
+      "path": "demo/idempotency/evidence/convergence/live/idempotency-implement-handler/trial-01/frontier-baseline/worker-trace.jsonl",
+      "sha256": "5c2186a4159458d74e55a473b779aaa17214fa1a8104675e26449422483f3555"
+    },
+    {
+      "path": "demo/idempotency/evidence/convergence/live/idempotency-implement-handler/trial-02/cheap-baseline/repository.patch",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "demo/idempotency/evidence/convergence/live/idempotency-implement-handler/trial-02/cheap-baseline/run.json",
+      "sha256": "e7f1aaa2fcaf9ea4fb188da3d225d52b80da95e85fa5e4536514b04b54930692"
+    },
+    {
+      "path": "demo/idempotency/evidence/convergence/live/idempotency-implement-handler/trial-02/cheap-baseline/worker-trace.jsonl",
+      "sha256": "82c28592091c339fb6ef1a1047da1b89f923185b2cc74b26894130889450aae2"
+    },
+    {
+      "path": "demo/idempotency/evidence/convergence/live/idempotency-implement-handler/trial-02/cheap-protected/repository.patch",
+      "sha256": "cb1671927d0f7f822ebe8fbdfa55a991dc10969282614890f5b0180722272951"
+    },
+    {
+      "path": "demo/idempotency/evidence/convergence/live/idempotency-implement-handler/trial-02/cheap-protected/run.json",
+      "sha256": "819e2097496dce25de064a19580c20341ceb9857a94a9518fa42b4c30bb0af9b"
+    },
+    {
+      "path": "demo/idempotency/evidence/convergence/live/idempotency-implement-handler/trial-02/cheap-protected/worker-trace.jsonl",
+      "sha256": "a552868fc69b5a49e499d5e156427589d00c3d110a39b220a6163fbea393ba14"
+    },
+    {
+      "path": "demo/idempotency/evidence/convergence/live/idempotency-implement-handler/trial-02/frontier-baseline/repository.patch",
+      "sha256": "18265e6dc15e15eebf950a066a75f1073d43b8b73f8ca01824f68641d0b2aa46"
+    },
+    {
+      "path": "demo/idempotency/evidence/convergence/live/idempotency-implement-handler/trial-02/frontier-baseline/run.json",
+      "sha256": "90e32b7d1de1eb0b10b56be06d8e45857b0642efe91ccea00a11b698b4a84582"
+    },
+    {
+      "path": "demo/idempotency/evidence/convergence/live/idempotency-implement-handler/trial-02/frontier-baseline/worker-trace.jsonl",
+      "sha256": "cf134ff75e77a516e1097c4f6d07f0cb9f99c07af24524f3e47149b533b79e3c"
+    },
+    {
+      "path": "demo/idempotency/evidence/convergence/live/idempotency-implement-handler/trial-03/cheap-baseline/repository.patch",
+      "sha256": "18265e6dc15e15eebf950a066a75f1073d43b8b73f8ca01824f68641d0b2aa46"
+    },
+    {
+      "path": "demo/idempotency/evidence/convergence/live/idempotency-implement-handler/trial-03/cheap-baseline/run.json",
+      "sha256": "2ab9354688b349bee852d5d19cbb725ee91f71df4932d4e598612d4e771b844f"
+    },
+    {
+      "path": "demo/idempotency/evidence/convergence/live/idempotency-implement-handler/trial-03/cheap-baseline/worker-trace.jsonl",
+      "sha256": "0fffaa42eeb21c16097c4890ab2603a3f7543b15e610cbae9434fcfed614b19c"
+    },
+    {
+      "path": "demo/idempotency/evidence/convergence/live/idempotency-implement-handler/trial-03/cheap-protected/repository.patch",
+      "sha256": "3af9897869dbe700d7e220dd9f6c8a2e442359cf0ec6c871f7d607c7bea90489"
+    },
+    {
+      "path": "demo/idempotency/evidence/convergence/live/idempotency-implement-handler/trial-03/cheap-protected/run.json",
+      "sha256": "8240ef3e8dd71cb6b451f2f2c26b72ca81676806b87af60c4235b77c91311ef1"
+    },
+    {
+      "path": "demo/idempotency/evidence/convergence/live/idempotency-implement-handler/trial-03/cheap-protected/worker-trace.jsonl",
+      "sha256": "7dd1cf1a8133976c4ba72bdee4a48d24e95d44545c62cb0683952e8fc66cec0a"
+    },
+    {
+      "path": "demo/idempotency/evidence/convergence/live/idempotency-implement-handler/trial-03/frontier-baseline/repository.patch",
+      "sha256": "18265e6dc15e15eebf950a066a75f1073d43b8b73f8ca01824f68641d0b2aa46"
+    },
+    {
+      "path": "demo/idempotency/evidence/convergence/live/idempotency-implement-handler/trial-03/frontier-baseline/run.json",
+      "sha256": "d545ef26daab6640ac75f1a4d5a62ccdfe7f7e317be97cbc68747203ef4813f7"
+    },
+    {
+      "path": "demo/idempotency/evidence/convergence/live/idempotency-implement-handler/trial-03/frontier-baseline/worker-trace.jsonl",
+      "sha256": "817a67a5330283eb564e38cd9202a4f02f1d5b9586a62992e6b86d53be3ad87e"
+    }
+  ]
+}

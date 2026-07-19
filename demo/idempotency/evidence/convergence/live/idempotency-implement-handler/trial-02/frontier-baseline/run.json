@@ -1,0 +1,63 @@
+{
+  "version": "1",
+  "source": "live",
+  "runId": "convrun_a5f4e15eba27ab70",
+  "case": {
+    "id": "idempotency-implement-handler",
+    "task": "Implement the payment webhook handler in src/webhook-handler.ts. The handler receives provider payment events and must update the corresponding orders in the store. Run the tests to check your work."
+  },
+  "trialId": "trial-02",
+  "condition": "frontier-baseline",
+  "rubricSha256": "f8351f32b81dcd1fee73115f4059a337194f56650d023bdf83a372be76ad4b08",
+  "startedAt": "2026-07-19T16:08:15.091Z",
+  "completedAt": "2026-07-19T16:08:43.004Z",
+  "durationMs": 27913,
+  "worker": {
+    "adapterId": "frontier-api:gpt-5.6-sol",
+    "model": "gpt-5.6-sol",
+    "command": "frontier-api gpt-5.6-sol tool-loop",
+    "exitCode": 0,
+    "turnCompleted": true,
+    "threadId": "resp_0b75807a177e97b3016a5cf6868e608199b2e4319478fb4b23",
+    "finalOutput": {
+      "version": "1",
+      "taskId": "idempotency-implement-handler",
+      "summary": "Implemented idempotent payment webhook handling by skipping previously processed event IDs, applying order and charge updates only once, and marking successfully handled events as processed.",
+      "commandsRun": [
+        "pnpm test (passed: 1 test file, 2 tests)",
+        "pnpm exec tsc --noEmit (not run: command rejected by environment allowlist)"
+      ]
+    }
+  },
+  "exposure": {
+    "durableGuidance": false,
+    "executableProtection": false
+  },
+  "evidence": {
+    "changedPaths": [
+      "src/webhook-handler.ts"
+    ],
+    "repositoryMutated": true,
+    "patchSha256": "18265e6dc15e15eebf950a066a75f1073d43b8b73f8ca01824f68641d0b2aa46",
+    "oracle": {
+      "passed": false,
+      "reason": "acceptance-suite-failed",
+      "acceptanceExitCode": 1
+    },
+    "ordinaryTests": {
+      "command": "pnpm exec vitest run tests/handler.test.ts",
+      "exitCode": 0,
+      "passed": true
+    },
+    "policyViolation": false
+  },
+  "outcome": {
+    "taskSuccess": false,
+    "policyViolation": false,
+    "firstPass": false
+  },
+  "artifacts": {
+    "trace": "demo/idempotency/evidence/convergence/live/idempotency-implement-handler/trial-02/frontier-baseline/worker-trace.jsonl",
+    "patch": "demo/idempotency/evidence/convergence/live/idempotency-implement-handler/trial-02/frontier-baseline/repository.patch"
+  }
+}

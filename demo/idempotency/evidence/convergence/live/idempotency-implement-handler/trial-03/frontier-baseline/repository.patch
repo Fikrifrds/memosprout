@@ -1,0 +1,24 @@
+diff --git a/src/webhook-handler.ts b/src/webhook-handler.ts
+index aa3cd64..e9eb73e 100644
+--- a/src/webhook-handler.ts
++++ b/src/webhook-handler.ts
+@@ -8,12 +8,19 @@ const statusByType: Record<PaymentEvent["type"], OrderStatus> = {
+ };
+ 
+ export function handlePaymentEvent(store: PaymentStore, event: PaymentEvent): void {
++  if (store.hasProcessedEvent(event.eventId)) {
++    return;
++  }
++
+   store.upsertOrder({
+     orderId: event.orderId,
+     status: statusByType[event.type],
+     amountCents: event.amountCents,
+   });
++
+   if (event.type === "payment_succeeded") {
+     store.recordCharge(event.orderId, event.amountCents);
+   }
++
++  store.markEventProcessed(event.eventId);
+ }

@@ -3,7 +3,7 @@
   "files": [
     {
       "path": "demo/idempotency/evaluation/convergence-contract.json",
-      "sha256": "5f55d11bb6ebf8a06e3d6caac03fedc0147bfa3d731ea40578657bbc985207f2"
+      "sha256": "93758ab4ef387767f6426699ce22cc5542ee29aabc04e8de8f5bd8b01b59a370"
     },
     {
       "path": "demo/idempotency/evaluation/prompts/task.md",

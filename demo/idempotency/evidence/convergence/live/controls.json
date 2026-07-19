@@ -1,0 +1,14 @@
+[
+  {
+    "id": "correct-idempotent-handler",
+    "expected": "allow",
+    "observed": "allow",
+    "passed": true
+  },
+  {
+    "id": "correct-terminal-state-handler",
+    "expected": "allow",
+    "observed": "allow",
+    "passed": true
+  }
+]

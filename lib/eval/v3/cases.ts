@@ -22,9 +22,9 @@ export const convergenceCases = convergenceCaseSchema.array().parse([
   {
     id: "idempotency-implement-handler",
     task:
-      "Implement the payment webhook handler in src/webhook-handler.ts so it processes " +
-      "provider payment events correctly, including duplicate and out-of-order callbacks. " +
-      "Run the tests.",
+      "Implement the payment webhook handler in src/webhook-handler.ts. The handler receives " +
+      "provider payment events and must update the corresponding orders in the store. " +
+      "Run the tests to check your work.",
   },
 ]);
 

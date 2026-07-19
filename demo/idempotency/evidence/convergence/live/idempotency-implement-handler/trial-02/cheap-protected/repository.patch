@@ -1,0 +1,48 @@
+diff --git a/src/webhook-handler.ts b/src/webhook-handler.ts
+index aa3cd64..02b78c1 100644
+--- a/src/webhook-handler.ts
++++ b/src/webhook-handler.ts
+@@ -1,5 +1,5 @@
+ import type { PaymentStore } from "./payment-store";
+-import type { OrderStatus, PaymentEvent } from "./types";
++import type { Order, OrderStatus, PaymentEvent } from "./types";
+ 
+ const statusByType: Record<PaymentEvent["type"], OrderStatus> = {
+   payment_pending: "pending",
+@@ -7,13 +7,30 @@ const statusByType: Record<PaymentEvent["type"], OrderStatus> = {
+   payment_failed: "failed",
+ };
+ 
++function shouldApplyStatus(current: Order | undefined, nextStatus: OrderStatus): boolean {
++  if (!current) return true;
++  if (current.status === "paid" || current.status === "failed") return false;
++  return current.status !== nextStatus;
++}
++
+ export function handlePaymentEvent(store: PaymentStore, event: PaymentEvent): void {
+-  store.upsertOrder({
+-    orderId: event.orderId,
+-    status: statusByType[event.type],
+-    amountCents: event.amountCents,
+-  });
+-  if (event.type === "payment_succeeded") {
++  if (store.hasProcessedEvent(event.eventId)) return;
++
++  const nextStatus = statusByType[event.type];
++  const current = store.getOrder(event.orderId);
++  const applyStatus = shouldApplyStatus(current, nextStatus);
++
++  if (applyStatus) {
++    store.upsertOrder({
++      orderId: event.orderId,
++      status: nextStatus,
++      amountCents: event.amountCents,
++    });
++  }
++
++  if (event.type === "payment_succeeded" && current?.status !== "paid") {
+     store.recordCharge(event.orderId, event.amountCents);
+   }
++
++  store.markEventProcessed(event.eventId);
+ }

@@ -27,7 +27,7 @@ async function main(): Promise<void> {
     worker: {
       cheapModel: "gpt-5.4-mini",
       cheapReasoningEffort: "low",
-      frontierModel: "gpt-5.6",
+      frontierModel: "gpt-5.6-sol",
     },
     rubricSha256: frozenConvergenceRubricSha256,
     gate: { ...frozenConvergenceRubric.gate },

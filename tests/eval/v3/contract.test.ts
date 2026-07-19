@@ -26,11 +26,15 @@ afterEach(async () => {
 
 describe("verifyConvergenceDesign", () => {
   it("verifies the frozen design without any model call", async () => {
-    const design = await verifyConvergenceDesign(root);
+    const design = await verifyConvergenceDesign(root, { allowExistingEvidence: true });
     expect(design.contract.executionAuthorized).toBe(false);
     expect(design.contract.rubricSha256).toBe(frozenConvergenceRubricSha256);
     expect(design.contract.scenario).toBe("idempotency");
     expect(design.manifest.files.length).toBeGreaterThan(0);
+  });
+
+  it("rejects verification when scored evidence already exists and that is not allowed", async () => {
+    await expect(verifyConvergenceDesign(root)).rejects.toThrow(/evidence already exists/i);
   });
 
   it("rejects a tampered frozen input hash", async () => {

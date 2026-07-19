@@ -598,6 +598,30 @@ Deferred:
 
 - a formal scored run with an evidence manifest and the false-block control suite remains pending; it is no longer gated on Codex usage because both conditions use the OpenAI API.
 
+### Knowledge-Trap Convergence Experiment — Formal Scored Run (Gate Passed)
+
+Added:
+
+- `scripts/run-convergence-scored.ts`, which orchestrates all three conditions across the frozen trials, evaluates the false-block controls against reference correct handlers, and writes a hash-verified evidence manifest, the convergence report, and the gate result;
+- committed scored evidence under `demo/idempotency/evidence/convergence/live/`: per-trial `run.json`, sanitized `worker-trace.jsonl`, and `repository.patch` for nine trials, plus `controls.json`, `manifest.json`, and `convergence-report.json`;
+- `evaluateConvergenceControl` in `lib/eval/v3/runner.ts` for the false-block measurement.
+
+Changed:
+
+- `runConvergenceTrial` now injects the sprout (`AGENTS.md`) into the prompt for the protected condition, encapsulating sprout delivery in the runner;
+- updated the convergence case task to the de-hinted wording required by BW-023 and aligned the frozen `frontierModel` to the available `gpt-5.6-sol`;
+- `verifyConvergenceDesign` is exercised with `allowExistingEvidence` now that scored evidence is committed, with a new test guarding the evidence-absence check.
+
+Evidence:
+
+- scored run on 2026-07-19 (de-hinted task, three trials per condition, OpenAI API): `cheap-baseline` (gpt-5.4-mini) `0/3`, `cheap-protected` (gpt-5.4-mini + sprout) `3/3`, `frontier-baseline` (gpt-5.6-sol) `0/3`; both false-block controls observed `allow`;
+- metrics: `sproutLift = 1`, `cheapProtectedRate = 1`, `frontierBaselineRate = 0`, `falseBlockRate = 0`, zero policy violations; the convergence gate (`sproutLift >= 0.5`, `cheapProtectedRate >= 0.8`, `falseBlockRate = 0`) passed;
+- `pnpm lint` and `pnpm typecheck` completed with zero errors and zero warnings; `pnpm test` passed 40 test files and 234 tests.
+
+Deferred:
+
+- the convergence thesis is validated; the next work stream is the wedge roadmap toward the Full PRD (reusable Validation Engine, Experience Compiler/OKF, Artifact Compiler, MCP delivery, Outcome Ledger, Cost–Intelligence Router, Team Control Plane).
+
 ## Entry Format for Future Work
 
 Future entries must use the date the change was completed and include only applicable sections:

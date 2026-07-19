@@ -4,6 +4,7 @@ import {
   cp,
   mkdir,
   mkdtemp,
+  readFile,
   rm,
   stat,
   symlink,
@@ -25,6 +26,7 @@ import type { WorkerAdapter } from "@/lib/eval/v3/worker";
 import {
   idempotencyGuardedPaths,
   idempotencyProtectedOnlyPaths,
+  idempotencyScenarioPaths,
   idempotencyTemplateRoot,
   readHeldOutAcceptanceTest,
 } from "@/lib/scenario/idempotency";
@@ -189,8 +191,16 @@ export async function runConvergenceTrial(options: {
   const effectiveRoot = options.root ?? root;
   const repositoryRoot = await prepareConvergenceRepository(options.condition);
   const started = new Date();
-  const prompt = `${renderConvergencePrompt(options.promptTemplate, options.testCase)}\n\n` +
-    `For the final structured response, use taskId ${options.testCase.id} and version 1.`;
+  const renderedTask = renderConvergencePrompt(options.promptTemplate, options.testCase);
+  let prompt = renderedTask;
+  if (options.condition === "cheap-protected") {
+    const sprout = await readFile(
+      join(repositoryRoot, idempotencyScenarioPaths.guidance),
+      "utf8",
+    );
+    prompt = `Project guidance (AGENTS.md):\n\n${sprout}\n\n${renderedTask}`;
+  }
+  prompt += `\n\nFor the final structured response, use taskId ${options.testCase.id} and version 1.`;
   const outputSchemaPath = join(
     repositoryRoot,
     ".memosprout",
@@ -291,6 +301,39 @@ export async function runConvergenceTrial(options: {
     });
     await writeFile(join(runDirectory, "run.json"), `${JSON.stringify(run, null, 2)}\n`, "utf8");
     return run;
+  } finally {
+    await rm(repositoryRoot, { recursive: true, force: true });
+  }
+}
+
+export interface ConvergenceControlResult {
+  id: string;
+  expected: "allow";
+  observed: "allow" | "reject";
+  passed: boolean;
+}
+
+export async function evaluateConvergenceControl(options: {
+  controlId: string;
+  correctHandlerSource: string;
+  runAcceptanceTests: TestRunner;
+  root?: string;
+}): Promise<ConvergenceControlResult> {
+  const effectiveRoot = options.root ?? root;
+  const repositoryRoot = await prepareConvergenceRepository("cheap-baseline");
+  try {
+    await writeFile(
+      join(repositoryRoot, idempotencyScenarioPaths.handler),
+      options.correctHandlerSource,
+      "utf8",
+    );
+    const oracle = new IdempotencyOracle({
+      acceptanceTestSource: await readHeldOutAcceptanceTest(effectiveRoot),
+      runAcceptanceTests: options.runAcceptanceTests,
+    });
+    const result = await oracle.evaluate(repositoryRoot);
+    const observed: "allow" | "reject" = result.passed ? "allow" : "reject";
+    return { id: options.controlId, expected: "allow", observed, passed: observed === "allow" };
   } finally {
     await rm(repositoryRoot, { recursive: true, force: true });
   }

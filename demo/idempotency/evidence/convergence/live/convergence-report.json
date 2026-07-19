@@ -1,0 +1,103 @@
+{
+  "version": "1",
+  "source": "live",
+  "reportId": "convreport_5f42499e5f0f4029",
+  "createdAt": "2026-07-19T16:09:07.211Z",
+  "rubricSha256": "f8351f32b81dcd1fee73115f4059a337194f56650d023bdf83a372be76ad4b08",
+  "rubricPath": "demo/idempotency/evaluation/rubric.json",
+  "trials": [
+    {
+      "caseId": "idempotency-implement-handler",
+      "trialId": "trial-01",
+      "condition": "cheap-baseline",
+      "runId": "convrun_38f64650ce9d29cd",
+      "success": false
+    },
+    {
+      "caseId": "idempotency-implement-handler",
+      "trialId": "trial-02",
+      "condition": "cheap-baseline",
+      "runId": "convrun_eb5694cf4548daf1",
+      "success": false
+    },
+    {
+      "caseId": "idempotency-implement-handler",
+      "trialId": "trial-03",
+      "condition": "cheap-baseline",
+      "runId": "convrun_d1dabeb2859d092e",
+      "success": false
+    },
+    {
+      "caseId": "idempotency-implement-handler",
+      "trialId": "trial-01",
+      "condition": "cheap-protected",
+      "runId": "convrun_b32f23c8baaf7ebe",
+      "success": true
+    },
+    {
+      "caseId": "idempotency-implement-handler",
+      "trialId": "trial-02",
+      "condition": "cheap-protected",
+      "runId": "convrun_9eaf87483fcd9d78",
+      "success": true
+    },
+    {
+      "caseId": "idempotency-implement-handler",
+      "trialId": "trial-03",
+      "condition": "cheap-protected",
+      "runId": "convrun_93169105fb9ee770",
+      "success": true
+    },
+    {
+      "caseId": "idempotency-implement-handler",
+      "trialId": "trial-01",
+      "condition": "frontier-baseline",
+      "runId": "convrun_9046704ee3d9ba68",
+      "success": false
+    },
+    {
+      "caseId": "idempotency-implement-handler",
+      "trialId": "trial-02",
+      "condition": "frontier-baseline",
+      "runId": "convrun_a5f4e15eba27ab70",
+      "success": false
+    },
+    {
+      "caseId": "idempotency-implement-handler",
+      "trialId": "trial-03",
+      "condition": "frontier-baseline",
+      "runId": "convrun_589ba7a33b79c85f",
+      "success": false
+    }
+  ],
+  "controls": [
+    {
+      "id": "correct-idempotent-handler",
+      "expected": "allow",
+      "observed": "allow",
+      "passed": true
+    },
+    {
+      "id": "correct-terminal-state-handler",
+      "expected": "allow",
+      "observed": "allow",
+      "passed": true
+    }
+  ],
+  "metrics": {
+    "cheapBaselineRate": 0,
+    "cheapProtectedRate": 1,
+    "frontierBaselineRate": 0,
+    "gapDelta": 0,
+    "sproutLift": 1,
+    "convergenceDelta": -1,
+    "policyViolations": {
+      "cheapBaseline": 0,
+      "cheapProtected": 0,
+      "frontierBaseline": 0
+    },
+    "falseBlockRate": 0
+  },
+  "evidenceManifestPath": "demo/idempotency/evidence/convergence/live/manifest.json",
+  "evidenceManifestSha256": "237904724a9092c17bfba417a3c92d430e2a69d73da8c094a28788dc19ace0db"
+}
