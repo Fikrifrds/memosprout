@@ -1,0 +1,40 @@
+{
+  "type": "object",
+  "properties": {
+    "version": {
+      "type": "string",
+      "const": "calibration-v2-1"
+    },
+    "taskId": {
+      "type": "string",
+      "enum": [
+        "calibration-v2-add-office-extension",
+        "calibration-v2-repair-contact-url-drift"
+      ]
+    },
+    "trialId": {
+      "type": "string",
+      "enum": [
+        "v2-trial-01",
+        "v2-trial-02"
+      ]
+    },
+    "summary": {
+      "type": "string"
+    },
+    "commandsRun": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    }
+  },
+  "required": [
+    "version",
+    "taskId",
+    "trialId",
+    "summary",
+    "commandsRun"
+  ],
+  "additionalProperties": false
+}

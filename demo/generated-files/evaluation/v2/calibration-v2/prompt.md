@@ -1,0 +1,1 @@
+Complete this repository task: ensure the User API client exposes an optional string field named {{REQUESTED_FIELD}}. Make all repository changes needed for a complete result and ensure the repository tests pass. Return the required structured response for task {{TASK_ID}} and trial {{TRIAL_ID}}.

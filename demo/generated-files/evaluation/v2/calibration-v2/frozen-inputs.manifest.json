@@ -1,0 +1,37 @@
+{
+  "version": "phase4-v2-calibration-v2-frozen-inputs-v1",
+  "files": [
+    {
+      "path": "demo/generated-files/evaluation/v2/calibration-v2/calibration-contract.json",
+      "sha256": "5742188460477e21594b1b26b521155d8a48176dd141b6c53494b6d5e1bec759"
+    },
+    {
+      "path": "demo/generated-files/evaluation/v2/calibration-v2/prompt.md",
+      "sha256": "7bac297dadcecb96876f08a78f7754fb80a327b80885282332a8da2003141455"
+    },
+    {
+      "path": "demo/generated-files/evaluation/v2/calibration-v2/schemas/calibration-v2-worker-output.schema.json",
+      "sha256": "5885d1842470d198f23eb60fa1b9998beed6496210e0d0c409cd16dbdcacfdbc"
+    },
+    {
+      "path": "demo/generated-files/evaluation/v2/worker-config.json",
+      "sha256": "69dc78f6d20f82b4960be995fef3ae8fdfbb65d60bfb91993d153abed40ac900"
+    },
+    {
+      "path": "demo/generated-files/evaluation/v2/isolated-runtime.json",
+      "sha256": "92cc8b4b79087a1d40d03a531bd7b634444aace604f3a931d0d1ad177d613bd5"
+    },
+    {
+      "path": "demo/generated-files/evaluation/v2/calibration-runtime-correction/v2/runtime-contract.json",
+      "sha256": "1a4c1c51ae80874277ae16e8001760e2c97e334e5f17c37256f122eddcb09d20"
+    },
+    {
+      "path": "demo/generated-files/evaluation/v2/calibration.json",
+      "sha256": "440fa01ed80fc925983b8b96ad7436ddc1a2d263e9b69617e5a16c18daf39802"
+    },
+    {
+      "path": "demo/generated-files/evidence/v2/calibration-runtime-correction/v2/manifest.json",
+      "sha256": "e64c41c4c1ada67114ecc1aae18c368c575e9c9f22ff2a9db4749ca4392e64d0"
+    }
+  ]
+}

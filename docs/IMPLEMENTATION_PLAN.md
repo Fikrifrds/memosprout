@@ -1,6 +1,6 @@
 # MemoSprout Build Week Implementation Plan
 
-Status: Phase 4 v1 evidence valid; Phase 4 v2 calibration floor preserved; the model-free runtime correction is validated and the corrected environment is viable; a separately authorized worker-config re-freeze and new non-scored calibration remain required before any scored execution
+Status: Phase 4 v1 evidence valid; Phase 4 v2 calibration floor preserved; the corrected generator runtime is validated and viable; calibration v2 is designed and frozen under runtime v2 with execution unauthorized; scored execution remains prohibited
 
 Date: 2026-07-19
 
@@ -616,6 +616,16 @@ Generator runtime selection is explicit and version-pinned: the shared `material
 `pnpm phase4:v2:runtime-correction:run` executed the model-free validation under Node.js 24, the isolated authentication runtime, offline dependency installation, and the worker-equivalent Codex `:workspace` sandbox, with zero model calls and zero `codex exec` invocations. The untouched command-preflight repository, the clean office-extension fixture, and the contact-URL schema-drift fixture all passed: the corrected generator and ordinary tests exited zero everywhere, generated output matched the pure renderer byte-for-byte, expected schema/output transitions occurred, mutation scopes matched only the deterministic diagnostic operations, and immutable-evidence hashes were identical before and after. The classification is `environment-viable-under-corrected-runtime`. `pnpm phase4:v2:runtime-correction:verify` validates the sanitized evidence and manifest hashes.
 
 The preserved `0/4` calibration outcome remains immutable and remains invalid worker-comparison evidence. No worker was selected or replaced. A separately authorized worker-config re-freeze and a new non-scored calibration under the corrected runtime are required before any scored baseline, protected, or control execution.
+
+#### Phase 4 v2 Calibration v2 — Frozen Design Under Runtime v2, No Execution
+
+A new non-scored calibration is designed and frozen at `demo/generated-files/evaluation/v2/calibration-v2/` as contract version `phase4-v2-calibration-v2`, anchored to tag `build-week-phase-4-v2-runtime-correction`. Every future calibration repository is explicitly bound to `phase4-v2-generator-runtime-v2` (`node --import tsx scripts/generate-client.ts`) through the required no-default runtime argument; the contract binds the runtime-v2 contract and the passed model-free validation manifest by SHA-256 as mandatory pre-execution validation.
+
+The historical calibration remains immutable: its `0/4` calibration-floor result is authentic observed evidence but is excluded from worker selection because it ran under sandbox-incompatible runtime v1. Nothing historical is rerun, overwritten, or reinterpreted.
+
+Four fresh versioned trials are frozen in order — `calibration-v2-add-office-extension` / `v2-trial-01`, `v2-trial-02`, then `calibration-v2-repair-contact-url-drift` / `v2-trial-01`, `v2-trial-02` — preserving the original capability categories (clean schema-first addition and schema-output drift repair) with new identifiers that the historical recovery queue and output schema reject. Calibration fields stay disjoint from the scored corpus, deterministic controls, and the reserved held-out task. The worker remains provisional `gpt-5.4-mini` with low reasoning and zero model-outcome retries; the floor (`0/4`), acceptable-headroom (`1–3` of `4`), and ceiling (`4/4`) thresholds equal the frozen `0.25`–`0.75` selection rule. The frozen prompt keeps the exact historical task wording, and a new versioned worker-output schema enumerates only the v2 identifiers.
+
+The frozen-input manifest hashes the contract, prompt, output schema, worker configuration, isolated-runtime contract, runtime-v2 contract, the immutable historical calibration contract, and the runtime-correction evidence manifest. `pnpm phase4:v2:calibration-v2:design:verify` validates all bindings, trial freshness and uniqueness, threshold equality, namespace disjointness, absent evidence, historical immutability, and the uninstalled future command without any model call. `executionAuthorized` is false, `pnpm phase4:v2:worker:calibrate-v2` is an identifier only and deliberately absent from `package.json`, and evidence must appear only under `demo/generated-files/evidence/v2/calibration-v2` after separate human authorization.
 
 ### Phase 5 — Held-Out Fresh Codex Proof
 

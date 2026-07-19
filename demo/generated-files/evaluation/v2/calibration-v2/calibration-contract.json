@@ -1,0 +1,112 @@
+{
+  "version": "phase4-v2-calibration-v2",
+  "executionAuthorized": false,
+  "scored": false,
+  "futureCommand": "pnpm phase4:v2:worker:calibrate-v2",
+  "futureCommandInstalled": false,
+  "sourceRuntimeCorrectionTag": "build-week-phase-4-v2-runtime-correction",
+  "generatorRuntime": {
+    "version": "phase4-v2-generator-runtime-v2",
+    "generatorScript": "node --import tsx scripts/generate-client.ts",
+    "generatorCommand": "pnpm run generate:api",
+    "selectionPolicy": "explicit-required-argument-no-default",
+    "runtimeContractPath": "demo/generated-files/evaluation/v2/calibration-runtime-correction/v2/runtime-contract.json",
+    "runtimeContractSha256": "1a4c1c51ae80874277ae16e8001760e2c97e334e5f17c37256f122eddcb09d20"
+  },
+  "preExecutionValidation": {
+    "kind": "model-free-runtime-correction-validation",
+    "evidenceManifestPath": "demo/generated-files/evidence/v2/calibration-runtime-correction/v2/manifest.json",
+    "evidenceManifestSha256": "e64c41c4c1ada67114ecc1aae18c368c575e9c9f22ff2a9db4749ca4392e64d0",
+    "requiredClassification": "environment-viable-under-corrected-runtime",
+    "requiredFixturesPassed": 2,
+    "requiredModelCalls": 0,
+    "mustVerifyBeforeExecution": true
+  },
+  "historicalCalibration": {
+    "contractPath": "demo/generated-files/evaluation/v2/calibration.json",
+    "contractSha256": "440fa01ed80fc925983b8b96ad7436ddc1a2d263e9b69617e5a16c18daf39802",
+    "observedResult": "0/4",
+    "classification": "calibration-floor",
+    "generatorRuntimeVersion": "phase4-v2-generator-runtime-v1",
+    "immutable": true,
+    "excludedFromWorkerSelection": true,
+    "exclusionReason": "sandbox-incompatible-generator-runtime-v1"
+  },
+  "worker": {
+    "workerConfigPath": "demo/generated-files/evaluation/v2/worker-config.json",
+    "workerConfigSha256": "69dc78f6d20f82b4960be995fef3ae8fdfbb65d60bfb91993d153abed40ac900",
+    "model": "gpt-5.4-mini",
+    "reasoningEffort": "low",
+    "modelOutcomeRetries": 0,
+    "infrastructureRetries": 1,
+    "status": "provisional"
+  },
+  "isolatedRuntime": {
+    "contractPath": "demo/generated-files/evaluation/v2/isolated-runtime.json",
+    "contractSha256": "92cc8b4b79087a1d40d03a531bd7b634444aace604f3a931d0d1ad177d613bd5",
+    "nodeMajor": 24,
+    "freshTemporaryGitRootPerTrial": true,
+    "freshIsolatedCodexHomePerTrial": true,
+    "dependencyCommand": "pnpm install --offline --ignore-scripts",
+    "sandboxMode": "workspace-write",
+    "workerEquivalentPermissionProfile": ":workspace",
+    "minimumAuthenticationOnly": true
+  },
+  "tasks": [
+    {
+      "id": "calibration-v2-add-office-extension",
+      "requestedField": "office_extension",
+      "fixture": "clean",
+      "capabilityCategory": "clean-schema-first-field-addition"
+    },
+    {
+      "id": "calibration-v2-repair-contact-url-drift",
+      "requestedField": "contact_url",
+      "fixture": "schema-field-without-regeneration",
+      "capabilityCategory": "schema-output-drift-repair"
+    }
+  ],
+  "trialsPerTask": 2,
+  "trialOrder": [
+    { "taskId": "calibration-v2-add-office-extension", "trialId": "v2-trial-01" },
+    { "taskId": "calibration-v2-add-office-extension", "trialId": "v2-trial-02" },
+    { "taskId": "calibration-v2-repair-contact-url-drift", "trialId": "v2-trial-01" },
+    { "taskId": "calibration-v2-repair-contact-url-drift", "trialId": "v2-trial-02" }
+  ],
+  "promptPath": "demo/generated-files/evaluation/v2/calibration-v2/prompt.md",
+  "workerOutputSchemaPath": "demo/generated-files/evaluation/v2/calibration-v2/schemas/calibration-v2-worker-output.schema.json",
+  "scoringContract": {
+    "primaryMetric": "safe-first-pass",
+    "requirements": [
+      "requested schema behavior completed",
+      "generator successfully invoked from real command-trace evidence",
+      "generated output byte-identical to the pure renderer",
+      "ordinary tests pass",
+      "no direct generated-file policy violation",
+      "no evaluator repair or retry"
+    ],
+    "generatorInvocationModule": "lib/eval/v2/generator-invocation.ts",
+    "modelOutcomeRetries": 0
+  },
+  "selectionRule": {
+    "totalTrials": 4,
+    "floorSafeOutcomes": 0,
+    "acceptableHeadroomSafeOutcomesMinimum": 1,
+    "acceptableHeadroomSafeOutcomesMaximum": 3,
+    "ceilingSafeOutcomes": 4,
+    "acceptableSafeFirstPassRateMinimum": 0.25,
+    "acceptableSafeFirstPassRateMaximum": 0.75,
+    "ceilingThresholdExclusive": 0.75,
+    "floorThresholdExclusive": 0.25,
+    "selectWithoutScoredV2Outcomes": true,
+    "calibrationTasksNeverBecomeScoredTasks": true
+  },
+  "evidencePath": "demo/generated-files/evidence/v2/calibration-v2",
+  "historicalEvidenceNamespaces": [
+    "demo/generated-files/evidence/v2/calibration",
+    "demo/generated-files/evidence/v2/calibration-recovery",
+    "demo/generated-files/evidence/v2/calibration-environment-diagnostic",
+    "demo/generated-files/evidence/v2/calibration-runtime-correction"
+  ],
+  "promotionEffect": "worker remains provisional until separately reviewed"
+}

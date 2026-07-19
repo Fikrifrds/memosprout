@@ -480,6 +480,26 @@ Deferred:
 - the provisional `gpt-5.4-mini` low-reasoning worker is neither selected nor replaced; a separately authorized worker-config re-freeze and a new non-scored calibration under the corrected runtime remain required;
 - scored baseline, protected trials, controls, Phase 5, and UI work remain unauthorized and unstarted.
 
+### Phase 4 v2 — Calibration v2 Frozen Design Under Runtime v2
+
+Added:
+
+- frozen calibration contract `phase4-v2-calibration-v2` at `demo/generated-files/evaluation/v2/calibration-v2/` with a versioned prompt, a new `calibration-v2-1` worker-output schema enumerating only fresh identifiers, and an eight-file SHA-256 frozen-input manifest;
+- explicit runtime binding: every future calibration repository must select `phase4-v2-generator-runtime-v2` (`node --import tsx scripts/generate-client.ts`) via the required no-default materializer argument, and the contract SHA-binds the runtime-v2 contract and the passed model-free validation manifest as mandatory pre-execution validation;
+- four fresh ordered trials — `calibration-v2-add-office-extension` / `v2-trial-01`..`v2-trial-02` and `calibration-v2-repair-contact-url-drift` / `v2-trial-01`..`v2-trial-02` — preserving the original capability categories with identifiers the historical recovery queue and output schema reject;
+- `pnpm phase4:v2:calibration-v2:design:verify` plus deterministic tests for runtime-v2 binding, trial freshness and uniqueness, historical-identifier rejection, frozen prompt bytes, unchanged thresholds, disjoint evidence namespaces, historical immutability, and absent scored or reserved content.
+
+Evidence:
+
+- design-only: no model call, calibration execution, baseline, protected trial, control run, Phase 5, or UI work occurred;
+- the historical `0/4` calibration-floor evidence remains byte-identical and is recorded as authentic but excluded from worker selection because it ran under sandbox-incompatible runtime v1;
+- selection thresholds are unchanged: `0/4` floor, `1–3` of `4` acceptable headroom, `4/4` ceiling (`0.25`–`0.75`).
+
+Deferred:
+
+- `executionAuthorized` is false and `pnpm phase4:v2:worker:calibrate-v2` is an identifier only, deliberately absent from `package.json`, pending separate human authorization;
+- the worker remains provisional `gpt-5.4-mini` with low reasoning; scored evaluation, Phase 5, and UI work remain unauthorized.
+
 ## Entry Format for Future Work
 
 Future entries must use the date the change was completed and include only applicable sections:
