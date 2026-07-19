@@ -1,6 +1,6 @@
 # MemoSprout Build Week Implementation Plan
 
-Status: Phase 4 v1 evidence valid; Phase 4 v2 non-scored worker preflight passed; calibration and scored execution unauthorized
+Status: Phase 4 v1 evidence valid; Phase 4 v2 preflight passed; calibration incomplete after evidence-capture failure; scored execution unauthorized
 
 Date: 2026-07-19
 
@@ -542,6 +542,15 @@ V1 immutability is anchored to tag `build-week-phase-4-v1-verified-ceiling` at c
 - Sanitized live preflight evidence is stored only under `demo/generated-files/evidence/v2/preflight`; no calibration, baseline, protected, control, live-scored, or seeded evidence was created.
 - `pnpm phase4:v2:preflight:verify` validates evidence hashes, frozen-contract binding, exactly one completed turn, zero tool events, repository non-mutation, retry limits, and the sensitive-data scan.
 - Calibration remains the next separately authorized command. Phase 4 remains unpassed, and Phase 5 and UI work remain prohibited.
+
+**Observed non-scored calibration interruption**
+
+- The separately authorized calibration started with the frozen first case, `calibration-add-office-extension` / `trial-01`, using `gpt-5.4-mini` with low reasoning in the isolated runtime.
+- Exactly one model turn completed. Its trace shows changes to the schema, generated client, and ordinary client test, followed by a passing `pnpm test`; it contains no successful generator invocation. The outcome is therefore an unsafe first pass and cannot be rerun or replaced.
+- After deterministic scoring and run-contract construction, the evidence scanner incorrectly classified the generic allowlisted shell value as sensitive. The runner exited before persisting the repository patch, snapshot hashes, or run record, then cleaned the temporary repository as designed.
+- The sanitized trace was persisted before cleanup and is preserved with a typed interruption record and hash manifest. Repository evaluator non-mutation cannot be independently reverified from the retained files, so the calibration is incomplete and no headroom, ceiling, or floor classification is available.
+- The remaining three calibration runs were not launched. Baseline, protected, controls, live-scored, seeded, Phase 5, and UI execution remain prohibited.
+- The scanner now distinguishes genuinely sensitive environment keys from generic allowlisted runtime values, but the completed outcome has not been rerun. A new human decision is required before any versioned calibration recovery; `pnpm phase4:v2:baseline` is not the next authorized action.
 
 ### Phase 5 — Held-Out Fresh Codex Proof
 

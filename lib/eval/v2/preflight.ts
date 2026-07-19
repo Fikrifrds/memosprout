@@ -178,7 +178,7 @@ export async function snapshotRepositoryWorktree(repositoryRoot: string): Promis
   const files = new Map<string, string>();
   async function visit(directory: string): Promise<void> {
     for (const entry of await readdir(directory, { withFileTypes: true })) {
-      if (entry.name === ".git") continue;
+      if (entry.name === ".git" || entry.name === "node_modules") continue;
       const absolutePath = join(directory, entry.name);
       const path = relative(repositoryRoot, absolutePath);
       if (entry.isDirectory()) {

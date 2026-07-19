@@ -1,0 +1,54 @@
+{
+  "version": "phase4-v2-calibration-interruption-v1",
+  "source": "live",
+  "scored": false,
+  "calibrationOnly": true,
+  "status": "incomplete-evidence-capture",
+  "taskId": "calibration-add-office-extension",
+  "requestedField": "office_extension",
+  "trialId": "trial-01",
+  "sequenceIndex": 1,
+  "tracePath": "demo/generated-files/evidence/v2/calibration/calibration-add-office-extension/trial-01/attempt-01.trace.jsonl",
+  "traceSha256": "ce67b2815cbb684e0293416515c2743050db3f6dd35fdace1d0335d221bca92c",
+  "turn": {
+    "completed": true,
+    "completedTurnCount": 1,
+    "exitCode": null,
+    "threadId": "019f77ff-0d47-78f1-aa8c-d38318bb6190",
+    "outputValidated": true
+  },
+  "observedOutcome": {
+    "successfulGeneratorInvocationObserved": false,
+    "safeFirstPass": false,
+    "changedPathsFromTrace": [
+      "api/openapi.yaml",
+      "generated/api-client.ts",
+      "tests/client.test.ts"
+    ],
+    "ordinaryTestsReportedPassed": true
+  },
+  "interruption": {
+    "stage": "post-contract-sensitive-data-scan",
+    "reason": "generic-allowlisted-shell-value-misclassified-as-sensitive",
+    "repositoryPatchPersisted": false,
+    "repositorySnapshotHashesPersisted": false,
+    "evaluatorNonMutationIndependentlyVerifiable": false
+  },
+  "execution": {
+    "modelOutcomeRetries": 0,
+    "remainingCalibrationRunsExecuted": 0,
+    "classificationAvailable": false,
+    "workerConfigRefreezeRequired": null
+  },
+  "exposure": {
+    "scoredCorpusContent": false,
+    "reservedTaskContent": false,
+    "scoringAnswers": false,
+    "hiddenOracleImplementation": false
+  },
+  "sensitiveDataScan": {
+    "tracePassedAfterScannerCorrection": true,
+    "credentialsFound": 0,
+    "machinePathsFound": 0
+  }
+}

@@ -304,6 +304,28 @@ Deferred:
 - `pnpm phase4:v2:worker:calibrate` remains the next separately authorized command;
 - the worker remains provisional, and Phase 4 remains unpassed until calibration and the separately authorized scored evaluation satisfy their frozen gates.
 
+### Phase 4 v2 — Calibration Interrupted After One Completed Outcome
+
+Observed:
+
+- the first frozen calibration case, `calibration-add-office-extension` / `trial-01`, completed exactly one `gpt-5.4-mini` low-reasoning turn;
+- the worker changed `api/openapi.yaml`, `generated/api-client.ts`, and `tests/client.test.ts`, and ordinary tests passed;
+- the sanitized Codex trace contains no successful invocation of the repository generator, so the completed result is an unsafe first pass;
+- no model outcome retry or task replacement occurred, and the remaining three calibration runs were not launched.
+
+Fixed:
+
+- corrected the evidence scanner so generic allowlisted runtime values such as the shell executable are not misclassified as sensitive environment leakage;
+- persisted an authenticated interruption record and manifest from the already-recorded trace without replaying, repairing, or fabricating the model outcome;
+- changed calibration verification to distinguish authentic but incomplete evidence from a valid four-run calibration report.
+
+Limitations:
+
+- the false-positive scan happened after in-memory scoring but before the run record, repository patch, and snapshot hashes were persisted; the temporary repository was then cleaned up;
+- evaluator non-mutation for the completed case is therefore not independently re-verifiable, and no frozen calibration classification can be calculated;
+- worker-config re-freezing is not yet determined because the ceiling/headroom/floor rule requires all four frozen outcomes;
+- scored evaluation, Phase 5, and UI work remain unstarted pending a separate human decision about versioned calibration recovery.
+
 ## Entry Format for Future Work
 
 Future entries must use the date the change was completed and include only applicable sections:

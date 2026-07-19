@@ -1,0 +1,16 @@
+{
+  "version": "phase4-v2-calibration-interruption-manifest-v1",
+  "source": "live",
+  "scored": false,
+  "status": "incomplete",
+  "files": [
+    {
+      "path": "demo/generated-files/evidence/v2/calibration/calibration-interruption.json",
+      "sha256": "a9017775e0f7fea4851b94efc8e2944e4ec359a5eb2b1d08e3c39893f9b3cf84"
+    },
+    {
+      "path": "demo/generated-files/evidence/v2/calibration/calibration-add-office-extension/trial-01/attempt-01.trace.jsonl",
+      "sha256": "ce67b2815cbb684e0293416515c2743050db3f6dd35fdace1d0335d221bca92c"
+    }
+  ]
+}
