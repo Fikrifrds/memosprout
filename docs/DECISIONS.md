@@ -37,6 +37,7 @@ This log records decisions for the Build Week implementation. [`BUILD_WEEK_PRD.m
 | BW-026 | Add an Artifact Compiler that turns a sprout into an enforcement artifact spec | Accepted |
 | BW-027 | Deliver validated sprouts dynamically via get_task_context and cross-agent adapters | Accepted |
 | BW-028 | Add an Outcome Ledger that records and aggregates sprout outcomes | Accepted |
+| BW-029 | Add a Cost–Intelligence Router that routes tasks to the cheapest reliable model | Accepted |
 
 ## Detailed Decisions
 
@@ -271,6 +272,14 @@ This log records decisions for the Build Week implementation. [`BUILD_WEEK_PRD.m
 **Reason:** The Outcome Ledger is the compounding data asset (the data moat): it links which sprouts were applied to which tasks, with which models, and what the outcome was — the Agent Outcome Graph in summary form. The `sproutImpact` aggregation mirrors the convergence thesis (sprout lift) and is the feedback signal that tells the system which sprouts actually help, enabling continuous improvement.
 
 **Consequence:** `lib/ledger/{schema,ledger}.ts` provide the record schema and the ledger with query/aggregation/persistence, demonstrated model-free (including a `0 → 1` lift that matches the convergence result). It is the foundation for the Cost–Intelligence Router (wedge 6), which uses these outcomes to route tasks to the cheapest model that stays reliable.
+
+### BW-029 — Add a Cost–Intelligence Router That Routes Tasks to the Cheapest Reliable Model
+
+**Decision:** Add a Cost–Intelligence Router (`lib/router/`) that uses the Outcome Ledger to route a task to the cheapest model that stays reliable. `routeTask` returns the cheap model with the sprout when the scenario's protected success rate meets a reliability threshold with enough samples; otherwise it escalates to the frontier model (unreliable, insufficient data, or no sprout available). `routePortfolio` routes many scenarios and reports the relative cost and savings versus always using the frontier model.
+
+**Reason:** This realizes the economic thesis as a product feature: "cheap price, frontier result" becomes an evidence-based routing decision rather than a blanket claim. The router spends the cheap model only where outcome data shows the sprout makes it reliable, and escalates elsewhere — turning the convergence result into per-task cost optimization.
+
+**Consequence:** `lib/router/{models,router}.ts` provide a model catalog (cheap `gpt-5.4-mini` at relative cost 1, frontier `gpt-5.6-sol` at 10), a routing policy (`minimumReliability`, `minimumSamples`), and `routeTask`/`routePortfolio`, demonstrated model-free (a reliable scenario routes cheap, an unreliable one escalates, and a mixed portfolio shows cost savings).
 
 ## Deferred or Conditional Decisions
 

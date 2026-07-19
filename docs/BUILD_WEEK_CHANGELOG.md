@@ -727,6 +727,26 @@ Deferred:
 
 - wedge 6 and beyond (Cost–Intelligence Router, Team Control Plane).
 
+### Cost–Intelligence Router — Route Tasks to the Cheapest Reliable Model (Wedge 6)
+
+Added:
+
+- a Cost–Intelligence Router under `lib/router/`: a model catalog (`models.ts`) with cheap `gpt-5.4-mini` (relative cost 1) and frontier `gpt-5.6-sol` (relative cost 10) plus `cheapestModel`/`mostCapableModel`/`findModel`; and a router (`router.ts`) with a routing policy (`minimumReliability`, `minimumSamples`), `routeTask` (cheap-with-sprout when reliable, else escalate to frontier for unreliable/insufficient-data/no-sprout), and `routePortfolio` (per-scenario decisions with relative cost and savings versus always-frontier);
+- model-free tests for the cheap-reliable route, the three escalation reasons, a custom reliability threshold, and a mixed-portfolio cost-savings case.
+
+Changed:
+
+- the economic thesis becomes an evidence-based routing decision driven by the Outcome Ledger: the cheap model is used only where outcome data shows the sprout makes it reliable.
+
+Evidence:
+
+- the router and portfolio cost summary are demonstrated model-free (a reliable scenario routes cheap, an unreliable one escalates, and a mixed portfolio reports `totalRelativeCost = 11` versus `alwaysFrontierCost = 20`, `savings = 9`);
+- `pnpm lint` and `pnpm typecheck` completed with zero errors and zero warnings; `pnpm test` passed 49 test files and 289 tests.
+
+Deferred:
+
+- wedge 7 (Team Control Plane and governance).
+
 ## Entry Format for Future Work
 
 Future entries must use the date the change was completed and include only applicable sections:
