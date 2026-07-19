@@ -1,0 +1,73 @@
+{
+  "version": "phase4-v2-generator-runtime-v2",
+  "sourceDesignVersion": "phase4-v2-calibration-runtime-correction-design-v1",
+  "sourceDesignSha256": "da050042c1ad460d33cdbeb75b3ef5a847229d6b3727d4aa17e33ca0b6ad385b",
+  "sourceDiagnosticManifestSha256": "22fd1b5ee0d98c41b810b3da40f496f520cab83d3b9468f17ff843080285ca13",
+  "scored": false,
+  "modelCallsAllowed": false,
+  "calibrationRerunsAllowed": false,
+  "previousRuntime": {
+    "version": "phase4-v2-generator-runtime-v1",
+    "generatorScript": "tsx scripts/generate-client.ts",
+    "status": "historical-sandbox-incompatible",
+    "preserved": true
+  },
+  "correctedRuntime": {
+    "generatorScript": "node --import tsx scripts/generate-client.ts",
+    "generatorCommand": "pnpm run generate:api",
+    "testCommand": "pnpm test",
+    "generatorImplementationChanged": false,
+    "generatedOutputFormatChanged": false,
+    "sourceSchemaSemanticsChanged": false,
+    "dependencySetChanged": false,
+    "testCommandChanged": false,
+    "sandboxModeChanged": false
+  },
+  "treatmentNeutralApplication": {
+    "materializerModule": "lib/eval/v2/calibration-recovery-live.ts",
+    "materializerExport": "materializeRecoveryRepository",
+    "calibration": true,
+    "baseline": true,
+    "protected": true,
+    "deterministicControls": true
+  },
+  "runtime": {
+    "nodeMajor": 24,
+    "pathPolicy": "validated-process-exec-path-first",
+    "dependencyCommand": "pnpm install --offline --ignore-scripts",
+    "sandboxCommand": "codex sandbox",
+    "permissionProfile": ":workspace",
+    "sandboxMode": "workspace-write",
+    "networkRequired": false
+  },
+  "worker": {
+    "model": "gpt-5.4-mini",
+    "reasoningEffort": "low",
+    "status": "provisional-unchanged-refreeze-required-before-any-calibration"
+  },
+  "validationFixtures": [
+    {
+      "id": "clean-office-extension",
+      "calibrationTaskId": "calibration-add-office-extension",
+      "requestedField": "office_extension",
+      "fixture": "clean",
+      "initialByteMatchExpected": true,
+      "diagnosticMutation": "add-field-to-source-schema"
+    },
+    {
+      "id": "contact-url-schema-drift",
+      "calibrationTaskId": "calibration-repair-contact-url-drift",
+      "requestedField": "contact_url",
+      "fixture": "schema-field-without-regeneration",
+      "initialByteMatchExpected": false,
+      "diagnosticMutation": "none-use-frozen-drift-fixture"
+    }
+  ],
+  "classification": {
+    "environmentViable": "preflight and both fixtures complete corrected generation, tests, byte comparison, and expected state transitions",
+    "environmentInvalid": "preflight or either fixture fails a required deterministic environment check",
+    "calibrationEvidenceEffect": "none",
+    "workerSelectionEffect": "none; the provisional worker is neither selected nor replaced"
+  },
+  "evidenceRoot": "demo/generated-files/evidence/v2/calibration-runtime-correction/v2"
+}

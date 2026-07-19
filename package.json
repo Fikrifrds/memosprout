@@ -30,6 +30,8 @@
     "phase4:v2:calibration-recovery:verify": "tsx scripts/verify-phase4-v2-calibration-recovery.ts",
     "phase4:v2:calibration-environment:diagnose": "tsx scripts/run-phase4-v2-calibration-environment-diagnostic.ts",
     "phase4:v2:calibration-environment:verify": "tsx scripts/verify-phase4-v2-calibration-environment-diagnostic.ts",
+    "phase4:v2:runtime-correction:run": "tsx scripts/run-phase4-v2-runtime-correction.ts",
+    "phase4:v2:runtime-correction:verify": "tsx scripts/verify-phase4-v2-runtime-correction.ts",
     "phase4:v2:worker:calibrate": "tsx scripts/run-phase4-v2-calibration.ts",
     "phase4:v2:worker:calibrate:recover-v1": "tsx scripts/launch-phase4-v2-calibration-recovery-v1.ts",
     "phase4:v2:worker:preflight": "tsx scripts/run-phase4-v2-preflight.ts",

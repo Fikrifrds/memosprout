@@ -1,0 +1,21 @@
+{
+  "version": "phase4-v2-runtime-correction-report-v1",
+  "source": "live-model-free-runtime-correction-validation",
+  "runtimeContractVersion": "phase4-v2-generator-runtime-v2",
+  "previousRuntimeVersion": "phase4-v2-generator-runtime-v1",
+  "scored": false,
+  "calibrationOutcomesModified": false,
+  "modelCalls": 0,
+  "preflightPassed": true,
+  "fixturesPassed": 2,
+  "totalFixtures": 2,
+  "environmentClassification": "environment-viable-under-corrected-runtime",
+  "observedCalibrationFloorPreserved": true,
+  "workerConfiguration": {
+    "model": "gpt-5.4-mini",
+    "reasoningEffort": "low",
+    "status": "provisional-unchanged-refreeze-required-before-any-calibration"
+  },
+  "immutableEvidenceBeforeSha256": "6f039df93bfca99895355e9bcab0a6824809fca9e3a1f38ffdfd778469d15712",
+  "immutableEvidenceAfterSha256": "6f039df93bfca99895355e9bcab0a6824809fca9e3a1f38ffdfd778469d15712"
+}

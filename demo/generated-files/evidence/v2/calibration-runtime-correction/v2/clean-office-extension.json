@@ -1,0 +1,61 @@
+{
+  "version": "phase4-v2-runtime-correction-case-v1",
+  "scored": false,
+  "calibrationOutcome": false,
+  "fixtureId": "clean-office-extension",
+  "calibrationTaskId": "calibration-add-office-extension",
+  "requestedField": "office_extension",
+  "fixture": "clean",
+  "runtime": {
+    "runtimeContractVersion": "phase4-v2-generator-runtime-v2",
+    "materializer": "materializeRecoveryRepository",
+    "generatorScript": "node --import tsx scripts/generate-client.ts",
+    "generatorCommand": "pnpm run generate:api",
+    "nodeProbe": {
+      "command": "node -p process.versions.node",
+      "exitCode": 0
+    },
+    "nodeVersion": "24.15.0",
+    "nodeMajorValid": true,
+    "pathUsesProcessExecPathFirst": true,
+    "isolatedAuthenticationCategory": "auth-file",
+    "dependencyCommand": "pnpm install --offline --ignore-scripts",
+    "dependencyInstallExitCode": 0,
+    "nodeModulesAvailable": true,
+    "generatorScriptCorrected": true,
+    "testScriptAvailable": true,
+    "generatorDependencyAvailable": true,
+    "testDependencyAvailable": true,
+    "codexSandboxOnly": true,
+    "codexExecCalls": 0,
+    "modelProcessSpawnCount": 0
+  },
+  "initialByteMatchExpected": true,
+  "initialByteMatchObserved": true,
+  "expectedInitialStateConfirmed": true,
+  "diagnosticMutation": "add-field-to-source-schema",
+  "generator": {
+    "command": "pnpm run generate:api",
+    "exitCode": 0
+  },
+  "tests": {
+    "command": "pnpm test",
+    "exitCode": 0
+  },
+  "finalByteMatch": true,
+  "expectedFinalStateReached": true,
+  "evaluatorMutationDetected": false,
+  "repositoryHashes": {
+    "initial": "a883ac2a3156d859249f59c7db0f4674aeab3b1ed7f6a9bd22d5ac568ade50fc",
+    "afterMutation": "96468743a16b3a3e83016b9196d0490f2bda13e64789271672f1d569d4be84f3",
+    "final": "cecc1586ca02b030922099898a89ab613d7a7e36574258739ddeeca9326592cc"
+  },
+  "changedFiles": {
+    "created": [],
+    "changed": [
+      "api/openapi.yaml",
+      "generated/api-client.ts"
+    ],
+    "deleted": []
+  }
+}

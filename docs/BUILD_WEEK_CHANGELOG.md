@@ -456,6 +456,30 @@ Deferred:
 - no replacement worker is recommended, selected, or frozen while the environment is invalid;
 - runtime-correction execution, any new calibration, scored baseline/protected/control evaluation, Phase 5, and UI work remain unauthorized.
 
+### Phase 4 v2 — Generator Runtime Correction v2 Validated
+
+Added:
+
+- versioned generator-runtime module `lib/eval/v2/generator-runtime.ts` preserving `phase4-v2-generator-runtime-v1` (`tsx scripts/generate-client.ts`) as a historical version and defining `phase4-v2-generator-runtime-v2` (`node --import tsx scripts/generate-client.ts`) as the corrected launcher;
+- new frozen runtime contract `demo/generated-files/evaluation/v2/calibration-runtime-correction/v2/runtime-contract.json`, bound by SHA-256 to the frozen v1 correction design and the diagnostic v2 manifest, without overwriting either;
+- `pnpm phase4:v2:runtime-correction:run` and `pnpm phase4:v2:runtime-correction:verify`, plus deterministic tests for version preservation, treatment-neutral application, contract binding, rubric-compatible generator semantics, and mandatory `modelCalls: 0`.
+
+Changed:
+
+- the shared `materializeRecoveryRepository` materializer now requires an explicit `generatorRuntimeVersion` and fails locally without one; it rewrites only the `generate:api` package script for the selected version after verifying the historical baseline script. Historical calibration, recovery, and diagnostic paths stay pinned to runtime v1, while corrected runtime paths — including future baseline and protected conditions — must explicitly select runtime v2.
+
+Evidence:
+
+- the model-free validation ran under Node.js `24.15.0`, the isolated authentication runtime, `pnpm install --offline --ignore-scripts`, and the worker-equivalent Codex `:workspace` sandbox with zero model calls and zero `codex exec` invocations;
+- the untouched command-preflight repository, the clean office-extension fixture, and the contact-URL schema-drift fixture all passed: corrected generator exit `0`, ordinary tests exit `0`, byte-identical pure-renderer output, expected initial and final state transitions, and mutation scope limited to the deterministic diagnostic operation;
+- the environment classification is `environment-viable-under-corrected-runtime`; immutable calibration, recovery, diagnostic, and correction-design evidence hashes were identical before and after the run;
+- sanitized evidence and its manifest live under `demo/generated-files/evidence/v2/calibration-runtime-correction/v2`.
+
+Deferred:
+
+- the provisional `gpt-5.4-mini` low-reasoning worker is neither selected nor replaced; a separately authorized worker-config re-freeze and a new non-scored calibration under the corrected runtime remain required;
+- scored baseline, protected trials, controls, Phase 5, and UI work remain unauthorized and unstarted.
+
 ## Entry Format for Future Work
 
 Future entries must use the date the change was completed and include only applicable sections:

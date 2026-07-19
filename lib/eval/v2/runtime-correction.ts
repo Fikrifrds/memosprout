@@ -6,6 +6,11 @@ import { z } from "zod";
 
 import { evaluateGeneratedFilesEvidence } from "@/lib/eval/oracle";
 import {
+  buildCalibrationDiagnosticSandboxArguments,
+  calibrationRuntimeCorrectionDesignPath,
+  calibrationRuntimeCorrectionDesignSchema,
+} from "@/lib/eval/v2/calibration-environment-diagnostic";
+import {
   assertOriginalCalibrationImmutable,
   assertRecoveryFrozenInputs,
 } from "@/lib/eval/v2/calibration-recovery";
@@ -18,73 +23,81 @@ import {
 } from "@/lib/eval/v2/calibration-recovery-live";
 import { assertRecoveryNode24 } from "@/lib/eval/v2/calibration-recovery-launcher";
 import { assertPhase4V2Design, sha256 } from "@/lib/eval/v2/design";
-import { historicalGeneratorRuntimeVersion } from "@/lib/eval/v2/generator-runtime";
+import {
+  correctedGeneratorRuntimeVersion,
+  generatorRuntimeVersions,
+  historicalGeneratorRuntimeVersion,
+} from "@/lib/eval/v2/generator-runtime";
 import { materializeIsolatedCodexRuntime } from "@/lib/eval/v2/isolated-runtime";
 import {
   compareRepositorySnapshots,
   snapshotRepositoryWorktree,
 } from "@/lib/eval/v2/preflight";
 
-export const calibrationEnvironmentDiagnosticContractPath =
-  "demo/generated-files/evaluation/v2/calibration-environment-diagnostic/v2/diagnostic-contract.json";
-export const calibrationRuntimeCorrectionDesignPath =
-  "demo/generated-files/evaluation/v2/calibration-runtime-correction/v1/design.json";
+export const runtimeCorrectionContractPath =
+  "demo/generated-files/evaluation/v2/calibration-runtime-correction/v2/runtime-contract.json";
 
 const sha256Schema = z.string().regex(/^[a-f0-9]{64}$/);
-const failureCategorySchema = z.enum([
-  "command-unavailable",
-  "package-script-unavailable",
-  "dependency-missing",
-  "node-modules-missing",
-  "network-dependent-installation-unavailable",
-  "node-version-mismatch",
-  "path-mismatch",
-  "generator-implementation-failure",
-  "fixture-invalidity",
-  "another-deterministic-infrastructure-cause",
-]);
 
-export const calibrationEnvironmentDiagnosticContractSchema = z
+export const runtimeCorrectionContractSchema = z
   .object({
-    version: z.enum([
-      "phase4-v2-calibration-environment-diagnostic-v1",
-      "phase4-v2-calibration-environment-diagnostic-v2",
-    ]),
-    sourceFloorTag: z.literal("build-week-phase-4-v2-calibration-floor-mini-low"),
-    sourceFloorClassification: z.literal("calibration-floor"),
+    version: z.literal("phase4-v2-generator-runtime-v2"),
+    sourceDesignVersion: z.literal("phase4-v2-calibration-runtime-correction-design-v1"),
+    sourceDesignSha256: sha256Schema,
+    sourceDiagnosticManifestSha256: sha256Schema,
     scored: z.literal(false),
     modelCallsAllowed: z.literal(false),
     calibrationRerunsAllowed: z.literal(false),
-    sourceDiagnosticV1: z
+    previousRuntime: z
       .object({
-        manifestSha256: sha256Schema,
-        status: z.literal("inconclusive-diagnostic-launcher-profile-missing"),
+        version: z.literal("phase4-v2-generator-runtime-v1"),
+        generatorScript: z.literal("tsx scripts/generate-client.ts"),
+        status: z.literal("historical-sandbox-incompatible"),
         preserved: z.literal(true),
       })
-      .strict()
-      .optional(),
-    runtime: z
+      .strict(),
+    correctedRuntime: z
+      .object({
+        generatorScript: z.literal("node --import tsx scripts/generate-client.ts"),
+        generatorCommand: z.literal("pnpm run generate:api"),
+        testCommand: z.literal("pnpm test"),
+        generatorImplementationChanged: z.literal(false),
+        generatedOutputFormatChanged: z.literal(false),
+        sourceSchemaSemanticsChanged: z.literal(false),
+        dependencySetChanged: z.literal(false),
+        testCommandChanged: z.literal(false),
+        sandboxModeChanged: z.literal(false),
+      })
+      .strict(),
+    treatmentNeutralApplication: z
       .object({
         materializerModule: z.literal("lib/eval/v2/calibration-recovery-live.ts"),
         materializerExport: z.literal("materializeRecoveryRepository"),
+        calibration: z.literal(true),
+        baseline: z.literal(true),
+        protected: z.literal(true),
+        deterministicControls: z.literal(true),
+      })
+      .strict(),
+    runtime: z
+      .object({
         nodeMajor: z.literal(24),
         pathPolicy: z.literal("validated-process-exec-path-first"),
         dependencyCommand: z.literal("pnpm install --offline --ignore-scripts"),
         sandboxCommand: z.literal("codex sandbox"),
-        permissionProfile: z.literal(":workspace").optional(),
+        permissionProfile: z.literal(":workspace"),
         sandboxMode: z.literal("workspace-write"),
         networkRequired: z.literal(false),
       })
       .strict(),
-    commandPreflight: z
+    worker: z
       .object({
-        fixture: z.literal("clean"),
-        generatorCommand: z.literal("pnpm run generate:api"),
-        testCommand: z.literal("pnpm test"),
-        mustRunBeforeDiagnosticMutation: z.literal(true),
+        model: z.literal("gpt-5.4-mini"),
+        reasoningEffort: z.literal("low"),
+        status: z.literal("provisional-unchanged-refreeze-required-before-any-calibration"),
       })
       .strict(),
-    fixtures: z.tuple([
+    validationFixtures: z.tuple([
       z
         .object({
           id: z.literal("clean-office-extension"),
@@ -111,48 +124,34 @@ export const calibrationEnvironmentDiagnosticContractSchema = z
         environmentViable: z.string().min(1),
         environmentInvalid: z.string().min(1),
         calibrationEvidenceEffect: z.literal("none"),
-        workerSelectionEffect: z.literal("recommend only; never select or freeze"),
+        workerSelectionEffect: z.string().min(1),
       })
       .strict(),
-    evidenceRoot: z.enum([
-      "demo/generated-files/evidence/v2/calibration-environment-diagnostic/v1",
-      "demo/generated-files/evidence/v2/calibration-environment-diagnostic/v2",
-    ]),
+    evidenceRoot: z.literal(
+      "demo/generated-files/evidence/v2/calibration-runtime-correction/v2",
+    ),
   })
-  .strict()
-  .superRefine((contract, context) => {
-    if (
-      contract.version === "phase4-v2-calibration-environment-diagnostic-v2" &&
-      (!contract.sourceDiagnosticV1 || contract.runtime.permissionProfile !== ":workspace")
-    ) {
-      context.addIssue({
-        code: "custom",
-        message: "Diagnostic v2 must preserve v1 and use the built-in workspace profile.",
-      });
-    }
-  });
+  .strict();
 
 const commandEvidenceSchema = z
-  .object({
-    command: z.string().min(1),
-    exitCode: z.number().int(),
-    failureCategory: failureCategorySchema.nullable(),
-    failureDetailCode: z.string().regex(/^[a-z0-9-]+$/).nullable(),
-  })
+  .object({ command: z.string().min(1), exitCode: z.number().int() })
   .strict();
 
 const runtimeEvidenceSchema = z
   .object({
+    runtimeContractVersion: z.literal("phase4-v2-generator-runtime-v2"),
     materializer: z.literal("materializeRecoveryRepository"),
+    generatorScript: z.literal("node --import tsx scripts/generate-client.ts"),
+    generatorCommand: z.literal("pnpm run generate:api"),
     nodeProbe: commandEvidenceSchema,
-    nodeVersion: z.string().regex(/^\d+\.\d+\.\d+$/).nullable(),
-    nodeMajorValid: z.boolean(),
+    nodeVersion: z.string().regex(/^24\.\d+\.\d+$/),
+    nodeMajorValid: z.literal(true),
     pathUsesProcessExecPathFirst: z.literal(true),
     isolatedAuthenticationCategory: z.enum(["auth-file", "environment"]),
     dependencyCommand: z.literal("pnpm install --offline --ignore-scripts"),
     dependencyInstallExitCode: z.number().int(),
     nodeModulesAvailable: z.boolean(),
-    generatorScriptAvailable: z.boolean(),
+    generatorScriptCorrected: z.boolean(),
     testScriptAvailable: z.boolean(),
     generatorDependencyAvailable: z.boolean(),
     testDependencyAvailable: z.boolean(),
@@ -162,12 +161,9 @@ const runtimeEvidenceSchema = z
   })
   .strict();
 
-export const calibrationEnvironmentPreflightEvidenceSchema = z
+export const runtimeCorrectionPreflightEvidenceSchema = z
   .object({
-    version: z.enum([
-      "phase4-v2-calibration-environment-preflight-v1",
-      "phase4-v2-calibration-environment-preflight-v2",
-    ]),
+    version: z.literal("phase4-v2-runtime-correction-preflight-v1"),
     scored: z.literal(false),
     calibrationOutcome: z.literal(false),
     runtime: runtimeEvidenceSchema,
@@ -179,12 +175,9 @@ export const calibrationEnvironmentPreflightEvidenceSchema = z
   })
   .strict();
 
-export const calibrationEnvironmentCaseEvidenceSchema = z
+export const runtimeCorrectionCaseEvidenceSchema = z
   .object({
-    version: z.enum([
-      "phase4-v2-calibration-environment-case-v1",
-      "phase4-v2-calibration-environment-case-v2",
-    ]),
+    version: z.literal("phase4-v2-runtime-correction-case-v1"),
     scored: z.literal(false),
     calibrationOutcome: z.literal(false),
     fixtureId: z.enum(["clean-office-extension", "contact-url-schema-drift"]),
@@ -206,6 +199,7 @@ export const calibrationEnvironmentCaseEvidenceSchema = z
     tests: commandEvidenceSchema,
     finalByteMatch: z.boolean(),
     expectedFinalStateReached: z.boolean(),
+    evaluatorMutationDetected: z.literal(false),
     repositoryHashes: z
       .object({ initial: sha256Schema, afterMutation: sha256Schema, final: sha256Schema })
       .strict(),
@@ -219,98 +213,50 @@ export const calibrationEnvironmentCaseEvidenceSchema = z
   })
   .strict();
 
-export const calibrationEnvironmentReportSchema = z
+export const runtimeCorrectionReportSchema = z
   .object({
-    version: z.enum([
-      "phase4-v2-calibration-environment-report-v1",
-      "phase4-v2-calibration-environment-report-v2",
-    ]),
-    source: z.literal("live-model-free-diagnostic"),
+    version: z.literal("phase4-v2-runtime-correction-report-v1"),
+    source: z.literal("live-model-free-runtime-correction-validation"),
+    runtimeContractVersion: z.literal("phase4-v2-generator-runtime-v2"),
+    previousRuntimeVersion: z.literal("phase4-v2-generator-runtime-v1"),
     scored: z.literal(false),
     calibrationOutcomesModified: z.literal(false),
     modelCalls: z.literal(0),
     preflightPassed: z.boolean(),
     fixturesPassed: z.number().int().min(0).max(2),
     totalFixtures: z.literal(2),
-    diagnosis: z.enum(["environment-viable-genuine-worker-floor", "environment-floor"]),
-    observedFloorPreserved: z.literal(true),
-    workerRefreezeRequired: z.boolean(),
-    recommendedWorkerConfiguration: z
+    environmentClassification: z.enum([
+      "environment-viable-under-corrected-runtime",
+      "environment-floor-persists",
+    ]),
+    observedCalibrationFloorPreserved: z.literal(true),
+    workerConfiguration: z
       .object({
         model: z.literal("gpt-5.4-mini"),
-        reasoningEffort: z.literal("medium"),
-        status: z.literal("recommendation-only-requires-separate-refreeze"),
+        reasoningEffort: z.literal("low"),
+        status: z.literal("provisional-unchanged-refreeze-required-before-any-calibration"),
       })
-      .strict()
-      .nullable(),
+      .strict(),
     immutableEvidenceBeforeSha256: sha256Schema,
     immutableEvidenceAfterSha256: sha256Schema,
   })
   .strict();
 
-export const calibrationEnvironmentManifestSchema = z
+export const runtimeCorrectionManifestSchema = z
   .object({
-    version: z.enum([
-      "phase4-v2-calibration-environment-manifest-v1",
-      "phase4-v2-calibration-environment-manifest-v2",
-    ]),
+    version: z.literal("phase4-v2-runtime-correction-manifest-v1"),
     files: z
       .array(z.object({ path: z.string().min(1), sha256: sha256Schema }).strict())
       .length(4),
   })
   .strict();
 
-export const calibrationRuntimeCorrectionDesignSchema = z
-  .object({
-    version: z.literal("phase4-v2-calibration-runtime-correction-design-v1"),
-    sourceDiagnosticManifestSha256: sha256Schema,
-    status: z.literal("design-only-execution-unauthorized"),
-    executionAuthorized: z.literal(false),
-    diagnosis: z.literal("environment-floor"),
-    deterministicCause: z
-      .object({
-        category: z.literal("another-deterministic-infrastructure-cause"),
-        code: z.literal("sandbox-unix-socket-denied"),
-        affectedCommand: z.literal("pnpm run generate:api"),
-        unaffectedCommand: z.literal("pnpm test"),
-      })
-      .strict(),
-    preservedInputs: z
-      .object({
-        calibrationOutcomes: z.literal(true),
-        recoveryEvidence: z.literal(true),
-        floorClassification: z.literal(true),
-        tasks: z.literal(true),
-        thresholds: z.literal(true),
-        workerSelectionDeferred: z.literal(true),
-      })
-      .strict(),
-    proposedCorrection: z
-      .object({
-        scope: z.literal("repository generator launcher only"),
-        currentGeneratorScript: z.literal("tsx scripts/generate-client.ts"),
-        candidateGeneratorScript: z.literal("node --import tsx scripts/generate-client.ts"),
-        generatorImplementationChanged: z.literal(false),
-        sandboxModeChanged: z.literal(false),
-        dependencySetChanged: z.literal(false),
-        testCommandChanged: z.literal(false),
-        reason: z.string().min(1),
-      })
-      .strict(),
-    requiredValidationBeforeAnyWorkerSelection: z.array(z.string().min(1)).length(8),
-    prohibitedActions: z.array(z.string().min(1)).length(3),
-  })
-  .strict();
-
-export type DiagnosticContract = z.infer<
-  typeof calibrationEnvironmentDiagnosticContractSchema
->;
-export type DiagnosticCase = DiagnosticContract["fixtures"][number];
-export type DiagnosticCaseEvidence = z.infer<
-  typeof calibrationEnvironmentCaseEvidenceSchema
+export type RuntimeCorrectionContract = z.infer<typeof runtimeCorrectionContractSchema>;
+export type RuntimeCorrectionCaseEvidence = z.infer<
+  typeof runtimeCorrectionCaseEvidenceSchema
 >;
 
-export interface DiagnosticDependencies {
+export interface RuntimeCorrectionDependencies {
   materialize: typeof materializeRecoveryRepository;
   runSandbox: (options: {
     repositoryRoot: string;
@@ -318,23 +264,6 @@ export interface DiagnosticDependencies {
     args: string[];
     environment: Record<string, string | undefined>;
   }) => Promise<RecoveryCommandResult>;
-}
-
-export function buildCalibrationDiagnosticSandboxArguments(options: {
-  repositoryRoot: string;
-  executable: string;
-  args: string[];
-}): string[] {
-  return [
-    "sandbox",
-    "-P",
-    ":workspace",
-    "-C",
-    options.repositoryRoot,
-    "--",
-    options.executable,
-    ...options.args,
-  ];
 }
 
 async function pathExists(path: string): Promise<boolean> {
@@ -361,14 +290,17 @@ async function atomicWrite(path: string, content: string): Promise<void> {
   await rename(temporary, path);
 }
 
+const immutableEvidenceRoots = [
+  "demo/generated-files/evidence/v2/calibration",
+  "demo/generated-files/evidence/v2/calibration-recovery",
+  "demo/generated-files/evaluation/v2/calibration.json",
+  "demo/generated-files/evaluation/v2/calibration-recovery/v1",
+  "demo/generated-files/evidence/v2/calibration-environment-diagnostic/v1",
+  "demo/generated-files/evidence/v2/calibration-environment-diagnostic/v2",
+  "demo/generated-files/evaluation/v2/calibration-runtime-correction/v1",
+];
+
 async function snapshotImmutableEvidence(root: string): Promise<string> {
-  const roots = [
-    "demo/generated-files/evidence/v2/calibration",
-    "demo/generated-files/evidence/v2/calibration-recovery",
-    "demo/generated-files/evaluation/v2/calibration.json",
-    "demo/generated-files/evaluation/v2/calibration-recovery/v1",
-    "demo/generated-files/evidence/v2/calibration-environment-diagnostic/v1",
-  ];
   const files: Array<{ path: string; sha256: string }> = [];
   async function visit(path: string): Promise<void> {
     const absolute = join(root, path);
@@ -381,48 +313,49 @@ async function snapshotImmutableEvidence(root: string): Promise<string> {
       await visit(join(path, entry.name));
     }
   }
-  for (const path of roots) await visit(path);
+  for (const path of immutableEvidenceRoots) await visit(path);
   return sha256(`${JSON.stringify(files.sort((a, b) => a.path.localeCompare(b.path)))}\n`);
 }
 
-function classifyFailure(
-  result: RecoveryCommandResult,
-  kind: "node" | "generator" | "tests",
-): { failureCategory: z.infer<typeof failureCategorySchema> | null; failureDetailCode: string | null } {
-  if (result.exitCode === 0) return { failureCategory: null, failureDetailCode: null };
-  const text = `${result.stdout}\n${result.stderr}`.toLowerCase();
-  if (text.includes("missing script") || text.includes("unknown command")) {
-    return { failureCategory: "package-script-unavailable", failureDetailCode: "package-script-unavailable" };
+export async function loadRuntimeCorrectionContract(
+  root = process.cwd(),
+): Promise<{ contract: RuntimeCorrectionContract; contractSha256: string }> {
+  const contractText = await readFile(join(root, runtimeCorrectionContractPath), "utf8");
+  const contract = runtimeCorrectionContractSchema.parse(JSON.parse(contractText));
+  const designText = await readFile(join(root, calibrationRuntimeCorrectionDesignPath), "utf8");
+  const design = calibrationRuntimeCorrectionDesignSchema.parse(JSON.parse(designText));
+  if (contract.sourceDesignSha256 !== sha256(designText)) {
+    throw new Error("Runtime-correction contract is not bound to the frozen v1 design.");
   }
-  if (text.includes("node_modules") && text.includes("missing")) {
-    return { failureCategory: "node-modules-missing", failureDetailCode: "node-modules-missing" };
+  if (contract.sourceDiagnosticManifestSha256 !== design.sourceDiagnosticManifestSha256) {
+    throw new Error("Runtime-correction contract diverges from the diagnostic v2 binding.");
   }
-  if (text.includes("cannot find module") || text.includes("command not found")) {
-    return { failureCategory: "dependency-missing", failureDetailCode: "dependency-or-command-missing" };
+  if (
+    contract.previousRuntime.generatorScript !==
+      generatorRuntimeVersions[historicalGeneratorRuntimeVersion] ||
+    contract.correctedRuntime.generatorScript !==
+      generatorRuntimeVersions[correctedGeneratorRuntimeVersion] ||
+    contract.version !== correctedGeneratorRuntimeVersion
+  ) {
+    throw new Error("Runtime-correction contract diverges from the generator-runtime versions.");
   }
-  if (text.includes("listen eperm") || text.includes("operation not permitted")) {
-    return {
-      failureCategory: "another-deterministic-infrastructure-cause",
-      failureDetailCode: "sandbox-unix-socket-denied",
-    };
+  const diagnosticManifest = await readFile(
+    join(
+      root,
+      "demo/generated-files/evidence/v2/calibration-environment-diagnostic/v2/manifest.json",
+    ),
+  );
+  if (sha256(diagnosticManifest) !== contract.sourceDiagnosticManifestSha256) {
+    throw new Error("Diagnostic v2 evidence changed after the runtime-correction freeze.");
   }
-  if (kind === "node") {
-    return { failureCategory: "node-version-mismatch", failureDetailCode: "node-probe-failed" };
-  }
-  return {
-    failureCategory:
-      kind === "generator"
-        ? "generator-implementation-failure"
-        : "another-deterministic-infrastructure-cause",
-    failureDetailCode: kind === "generator" ? "generator-command-failed" : "ordinary-tests-failed",
-  };
+  return { contract, contractSha256: sha256(contractText) };
 }
 
-function commandEvidence(command: string, result: RecoveryCommandResult, kind: "node" | "generator" | "tests") {
-  return commandEvidenceSchema.parse({ command, exitCode: result.exitCode, ...classifyFailure(result, kind) });
+function commandEvidence(command: string, result: RecoveryCommandResult) {
+  return commandEvidenceSchema.parse({ command, exitCode: result.exitCode });
 }
 
-async function inspectRuntime(options: {
+async function inspectCorrectedRuntime(options: {
   repositoryRoot: string;
   nodeResult: RecoveryCommandResult;
   authenticationCategory: "auth-file" | "environment";
@@ -431,79 +364,64 @@ async function inspectRuntime(options: {
   const packageJson = JSON.parse(
     await readFile(join(options.repositoryRoot, "package.json"), "utf8"),
   ) as { scripts?: Record<string, string> };
-  const generatorDependency = join(options.repositoryRoot, "node_modules", ".bin", "tsx");
-  const testDependency = join(options.repositoryRoot, "node_modules", ".bin", "vitest");
   const nodeVersion = options.nodeResult.stdout.trim();
-  const nodeMajorValid = options.nodeResult.exitCode === 0 && nodeVersion.startsWith("24.");
   return runtimeEvidenceSchema.parse({
+    runtimeContractVersion: "phase4-v2-generator-runtime-v2",
     materializer: "materializeRecoveryRepository",
-    nodeProbe: commandEvidence("node -p process.versions.node", options.nodeResult, "node"),
-    nodeVersion: /^\d+\.\d+\.\d+$/.test(nodeVersion) ? nodeVersion : null,
-    nodeMajorValid,
+    generatorScript: generatorRuntimeVersions[correctedGeneratorRuntimeVersion],
+    generatorCommand: "pnpm run generate:api",
+    nodeProbe: commandEvidence("node -p process.versions.node", options.nodeResult),
+    nodeVersion,
+    nodeMajorValid: options.nodeResult.exitCode === 0 && nodeVersion.startsWith("24."),
     pathUsesProcessExecPathFirst: true,
     isolatedAuthenticationCategory: options.authenticationCategory,
     dependencyCommand: "pnpm install --offline --ignore-scripts",
     dependencyInstallExitCode: options.dependencyInstall.exitCode,
     nodeModulesAvailable: await pathExists(join(options.repositoryRoot, "node_modules")),
-    generatorScriptAvailable: packageJson.scripts?.["generate:api"] === "tsx scripts/generate-client.ts",
+    generatorScriptCorrected:
+      packageJson.scripts?.["generate:api"] ===
+      generatorRuntimeVersions[correctedGeneratorRuntimeVersion],
     testScriptAvailable: packageJson.scripts?.test === "vitest run",
-    generatorDependencyAvailable: await pathExists(generatorDependency),
-    testDependencyAvailable: await pathExists(testDependency),
+    generatorDependencyAvailable: await pathExists(
+      join(options.repositoryRoot, "node_modules", "tsx"),
+    ),
+    testDependencyAvailable: await pathExists(
+      join(options.repositoryRoot, "node_modules", ".bin", "vitest"),
+    ),
     codexSandboxOnly: true,
     codexExecCalls: 0,
     modelProcessSpawnCount: 0,
   });
 }
 
-export async function runCalibrationEnvironmentDiagnostic(options: {
+export async function runRuntimeCorrectionValidation(options: {
   root?: string;
-  dependencies?: DiagnosticDependencies;
-}) {
+  dependencies?: RuntimeCorrectionDependencies;
+} = {}) {
   const root = options.root ?? process.cwd();
   assertRecoveryNode24(process.versions.node);
-  const [design, contractText, immutableBefore] = await Promise.all([
+  const [design, { contract }, immutableBefore] = await Promise.all([
     assertPhase4V2Design(root),
-    readFile(join(root, calibrationEnvironmentDiagnosticContractPath), "utf8"),
+    loadRuntimeCorrectionContract(root),
     snapshotImmutableEvidence(root),
     assertRecoveryFrozenInputs(root),
     assertOriginalCalibrationImmutable(root),
   ]);
-  const contract = calibrationEnvironmentDiagnosticContractSchema.parse(JSON.parse(contractText));
-  if (contract.sourceDiagnosticV1) {
-    const priorManifest = await readFile(
-      join(
-        root,
-        "demo/generated-files/evidence/v2/calibration-environment-diagnostic/v1/manifest.json",
-      ),
-    );
-    if (sha256(priorManifest) !== contract.sourceDiagnosticV1.manifestSha256) {
-      throw new Error("Diagnostic v1 evidence changed before the corrected v2 run.");
-    }
-  }
   if (await pathExists(join(root, contract.evidenceRoot))) {
-    throw new Error("Calibration-environment diagnostic evidence already exists; rerun refused.");
+    throw new Error("Runtime-correction validation evidence already exists; rerun refused.");
   }
   const calibrationIdentity = design.calibration.tasks.map((task) => ({
     id: task.id,
     requestedField: task.requestedField,
     fixture: task.fixture,
   }));
-  const diagnosticIdentity = contract.fixtures.map((fixture) => ({
+  const fixtureIdentity = contract.validationFixtures.map((fixture) => ({
     id: fixture.calibrationTaskId,
     requestedField: fixture.requestedField,
     fixture: fixture.fixture,
   }));
-  if (JSON.stringify(calibrationIdentity) !== JSON.stringify(diagnosticIdentity)) {
-    throw new Error("Diagnostic fixtures differ from the frozen calibration taxonomy.");
-  }
-  const contractTextLower = contractText.toLowerCase();
-  for (const task of design.corpus.tasks) {
-    if (
-      contractTextLower.includes(task.id.toLowerCase()) ||
-      contractTextLower.includes(task.requestedField.toLowerCase())
-    ) {
-      throw new Error("Diagnostic contract exposes scored corpus content.");
-    }
+  if (JSON.stringify(calibrationIdentity) !== JSON.stringify(fixtureIdentity)) {
+    throw new Error("Runtime-correction fixtures differ from the frozen calibration taxonomy.");
   }
 
   const runtime = await materializeIsolatedCodexRuntime();
@@ -518,7 +436,7 @@ export async function runCalibrationEnvironmentDiagnostic(options: {
     access(codexExecutable, constants.X_OK),
     access(pnpmExecutable, constants.X_OK),
   ]);
-  const dependencies: DiagnosticDependencies = options.dependencies ?? {
+  const dependencies: RuntimeCorrectionDependencies = options.dependencies ?? {
     materialize: materializeRecoveryRepository,
     runSandbox: ({ repositoryRoot, executable, args, environment }) =>
       runRecoveryCommandProcess({
@@ -535,21 +453,21 @@ export async function runCalibrationEnvironmentDiagnostic(options: {
   };
   const repositories: string[] = [];
   try {
-    const nodeProbe = async (repositoryRoot: string) =>
+    const nodeProbe = (repositoryRoot: string) =>
       dependencies.runSandbox({
         repositoryRoot,
         executable: process.execPath,
         args: ["-p", "process.versions.node"],
         environment: runtime.environment,
       });
-    const generator = async (repositoryRoot: string) =>
+    const generator = (repositoryRoot: string) =>
       dependencies.runSandbox({
         repositoryRoot,
         executable: pnpmExecutable,
         args: ["run", "generate:api"],
         environment: runtime.environment,
       });
-    const tests = async (repositoryRoot: string) =>
+    const tests = (repositoryRoot: string) =>
       dependencies.runSandbox({
         repositoryRoot,
         executable: pnpmExecutable,
@@ -563,17 +481,16 @@ export async function runCalibrationEnvironmentDiagnostic(options: {
       fixture: "clean",
       pnpmExecutable,
       environment: runtime.environment,
-      generatorRuntimeVersion: historicalGeneratorRuntimeVersion,
+      generatorRuntimeVersion: correctedGeneratorRuntimeVersion,
     });
     repositories.push(preflightRepository.repositoryRoot);
     const preflightBefore = await snapshotRepositoryWorktree(preflightRepository.repositoryRoot);
     const preflightInitialOracle = await evaluateGeneratedFilesEvidence(
       preflightRepository.repositoryRoot,
     );
-    const preflightNode = await nodeProbe(preflightRepository.repositoryRoot);
-    const preflightRuntime = await inspectRuntime({
+    const preflightRuntime = await inspectCorrectedRuntime({
       repositoryRoot: preflightRepository.repositoryRoot,
-      nodeResult: preflightNode,
+      nodeResult: await nodeProbe(preflightRepository.repositoryRoot),
       authenticationCategory: runtime.authenticationMode,
       dependencyInstall: preflightRepository.dependencyInstall,
     });
@@ -587,14 +504,14 @@ export async function runCalibrationEnvironmentDiagnostic(options: {
       preflightBefore.files,
       preflightAfter.files,
     );
-    const preflight = calibrationEnvironmentPreflightEvidenceSchema.parse({
-      version: "phase4-v2-calibration-environment-preflight-v2",
+    const preflight = runtimeCorrectionPreflightEvidenceSchema.parse({
+      version: "phase4-v2-runtime-correction-preflight-v1",
       scored: false,
       calibrationOutcome: false,
       runtime: preflightRuntime,
       initialByteMatch: preflightInitialOracle.passed,
-      generator: commandEvidence("pnpm run generate:api", preflightGenerator, "generator"),
-      tests: commandEvidence("pnpm test", preflightTests, "tests"),
+      generator: commandEvidence("pnpm run generate:api", preflightGenerator),
+      tests: commandEvidence("pnpm test", preflightTests),
       finalByteMatch: preflightFinalOracle.passed,
       repositoryUnchanged:
         preflightChanges.created.length === 0 &&
@@ -602,23 +519,22 @@ export async function runCalibrationEnvironmentDiagnostic(options: {
         preflightChanges.deleted.length === 0,
     });
 
-    const caseEvidence: DiagnosticCaseEvidence[] = [];
-    for (const fixture of contract.fixtures) {
+    const caseEvidence: RuntimeCorrectionCaseEvidence[] = [];
+    for (const fixture of contract.validationFixtures) {
       const materialized = await dependencies.materialize({
         root,
         requestedField: fixture.requestedField,
         fixture: fixture.fixture,
         pnpmExecutable,
         environment: runtime.environment,
-        generatorRuntimeVersion: historicalGeneratorRuntimeVersion,
+        generatorRuntimeVersion: correctedGeneratorRuntimeVersion,
       });
       repositories.push(materialized.repositoryRoot);
       const initialSnapshot = await snapshotRepositoryWorktree(materialized.repositoryRoot);
       const initialOracle = await evaluateGeneratedFilesEvidence(materialized.repositoryRoot);
-      const caseNode = await nodeProbe(materialized.repositoryRoot);
-      const caseRuntime = await inspectRuntime({
+      const caseRuntime = await inspectCorrectedRuntime({
         repositoryRoot: materialized.repositoryRoot,
-        nodeResult: caseNode,
+        nodeResult: await nodeProbe(materialized.repositoryRoot),
         authenticationCategory: runtime.authenticationMode,
         dependencyInstall: materialized.dependencyInstall,
       });
@@ -634,17 +550,25 @@ export async function runCalibrationEnvironmentDiagnostic(options: {
       }
       const afterMutation = await snapshotRepositoryWorktree(materialized.repositoryRoot);
       const generatorResult = await generator(materialized.repositoryRoot);
+      const generatorSnapshot = await snapshotRepositoryWorktree(materialized.repositoryRoot);
       const testResult = await tests(materialized.repositoryRoot);
       const finalOracle = await evaluateGeneratedFilesEvidence(materialized.repositoryRoot);
       const finalSnapshot = await snapshotRepositoryWorktree(materialized.repositoryRoot);
+      const evaluatorChanges = compareRepositorySnapshots(
+        generatorSnapshot.files,
+        finalSnapshot.files,
+      );
+      const evaluatorMutationDetected =
+        evaluatorChanges.created.length > 0 ||
+        evaluatorChanges.changed.length > 0 ||
+        evaluatorChanges.deleted.length > 0;
+      if (evaluatorMutationDetected) {
+        throw new Error("Runtime-correction evaluation mutated the repository after generation.");
+      }
       const changedFiles = compareRepositorySnapshots(initialSnapshot.files, finalSnapshot.files);
-      const expectedInitialStateConfirmed =
-        initialOracle.passed === fixture.initialByteMatchExpected;
-      const expectedFinalStateReached =
-        generatorResult.exitCode === 0 && testResult.exitCode === 0 && finalOracle.passed;
       caseEvidence.push(
-        calibrationEnvironmentCaseEvidenceSchema.parse({
-          version: "phase4-v2-calibration-environment-case-v2",
+        runtimeCorrectionCaseEvidenceSchema.parse({
+          version: "phase4-v2-runtime-correction-case-v1",
           scored: false,
           calibrationOutcome: false,
           fixtureId: fixture.id,
@@ -654,12 +578,14 @@ export async function runCalibrationEnvironmentDiagnostic(options: {
           runtime: caseRuntime,
           initialByteMatchExpected: fixture.initialByteMatchExpected,
           initialByteMatchObserved: initialOracle.passed,
-          expectedInitialStateConfirmed,
+          expectedInitialStateConfirmed: initialOracle.passed === fixture.initialByteMatchExpected,
           diagnosticMutation: fixture.diagnosticMutation,
-          generator: commandEvidence("pnpm run generate:api", generatorResult, "generator"),
-          tests: commandEvidence("pnpm test", testResult, "tests"),
+          generator: commandEvidence("pnpm run generate:api", generatorResult),
+          tests: commandEvidence("pnpm test", testResult),
           finalByteMatch: finalOracle.passed,
-          expectedFinalStateReached,
+          expectedFinalStateReached:
+            generatorResult.exitCode === 0 && testResult.exitCode === 0 && finalOracle.passed,
+          evaluatorMutationDetected: false,
           repositoryHashes: {
             initial: initialSnapshot.sha256,
             afterMutation: afterMutation.sha256,
@@ -674,7 +600,7 @@ export async function runCalibrationEnvironmentDiagnostic(options: {
       value.dependencyInstallExitCode === 0 &&
       value.nodeMajorValid &&
       value.nodeModulesAvailable &&
-      value.generatorScriptAvailable &&
+      value.generatorScriptCorrected &&
       value.testScriptAvailable &&
       value.generatorDependencyAvailable &&
       value.testDependencyAvailable;
@@ -693,33 +619,32 @@ export async function runCalibrationEnvironmentDiagnostic(options: {
     ).length;
     const viable = preflightPassed && fixturesPassed === 2;
     const immutableAfter = await snapshotImmutableEvidence(root);
-    const report = calibrationEnvironmentReportSchema.parse({
-      version: "phase4-v2-calibration-environment-report-v2",
-      source: "live-model-free-diagnostic",
+    if (immutableBefore !== immutableAfter) {
+      throw new Error("Runtime-correction validation modified frozen evidence.");
+    }
+    const report = runtimeCorrectionReportSchema.parse({
+      version: "phase4-v2-runtime-correction-report-v1",
+      source: "live-model-free-runtime-correction-validation",
+      runtimeContractVersion: "phase4-v2-generator-runtime-v2",
+      previousRuntimeVersion: "phase4-v2-generator-runtime-v1",
       scored: false,
       calibrationOutcomesModified: false,
       modelCalls: 0,
       preflightPassed,
       fixturesPassed,
       totalFixtures: 2,
-      diagnosis: viable
-        ? "environment-viable-genuine-worker-floor"
-        : "environment-floor",
-      observedFloorPreserved: true,
-      workerRefreezeRequired: viable,
-      recommendedWorkerConfiguration: viable
-        ? {
-            model: "gpt-5.4-mini",
-            reasoningEffort: "medium",
-            status: "recommendation-only-requires-separate-refreeze",
-          }
-        : null,
+      environmentClassification: viable
+        ? "environment-viable-under-corrected-runtime"
+        : "environment-floor-persists",
+      observedCalibrationFloorPreserved: true,
+      workerConfiguration: {
+        model: "gpt-5.4-mini",
+        reasoningEffort: "low",
+        status: "provisional-unchanged-refreeze-required-before-any-calibration",
+      },
       immutableEvidenceBeforeSha256: immutableBefore,
       immutableEvidenceAfterSha256: immutableAfter,
     });
-    if (immutableBefore !== immutableAfter) {
-      throw new Error("Diagnostic modified frozen calibration or recovery evidence.");
-    }
 
     const evidenceRoot = join(root, contract.evidenceRoot);
     const evidence = [
@@ -736,8 +661,8 @@ export async function runCalibrationEnvironmentDiagnostic(options: {
       await atomicWrite(path, content);
       files.push({ path: relative(root, path), sha256: sha256(content) });
     }
-    const manifest = calibrationEnvironmentManifestSchema.parse({
-      version: "phase4-v2-calibration-environment-manifest-v2",
+    const manifest = runtimeCorrectionManifestSchema.parse({
+      version: "phase4-v2-runtime-correction-manifest-v1",
       files,
     });
     await atomicWrite(
@@ -746,67 +671,50 @@ export async function runCalibrationEnvironmentDiagnostic(options: {
     );
     return { contract, preflight, cases: caseEvidence, report, manifest };
   } finally {
-    await Promise.all(repositories.map((repository) => rm(repository, { recursive: true, force: true })));
+    await Promise.all(
+      repositories.map((repository) => rm(repository, { recursive: true, force: true })),
+    );
     await runtime.cleanup();
   }
 }
 
-export async function verifyCalibrationEnvironmentDiagnostic(root = process.cwd()) {
-  const contract = calibrationEnvironmentDiagnosticContractSchema.parse(
-    JSON.parse(await readFile(join(root, calibrationEnvironmentDiagnosticContractPath), "utf8")),
-  );
-  if (contract.sourceDiagnosticV1) {
-    const priorManifestText = await readFile(
-      join(
-        root,
-        "demo/generated-files/evidence/v2/calibration-environment-diagnostic/v1/manifest.json",
-      ),
-    );
-    if (sha256(priorManifestText) !== contract.sourceDiagnosticV1.manifestSha256) {
-      throw new Error("Diagnostic v1 preservation hash failed.");
-    }
-    const priorManifest = calibrationEnvironmentManifestSchema.parse(
-      JSON.parse(priorManifestText.toString("utf8")),
-    );
-    for (const file of priorManifest.files) {
-      if (sha256(await readFile(join(root, file.path))) !== file.sha256) {
-        throw new Error(`Diagnostic v1 evidence hash mismatch: ${file.path}.`);
-      }
-    }
-  }
+export async function verifyRuntimeCorrectionValidation(root = process.cwd()) {
+  const { contract, contractSha256 } = await loadRuntimeCorrectionContract(root);
   const evidenceRoot = join(root, contract.evidenceRoot);
   const manifestText = await readFile(join(evidenceRoot, "manifest.json"), "utf8");
-  const manifest = calibrationEnvironmentManifestSchema.parse(JSON.parse(manifestText));
+  const manifest = runtimeCorrectionManifestSchema.parse(JSON.parse(manifestText));
   const parsed = new Map<string, unknown>();
   for (const file of manifest.files) {
     const content = await readFile(join(root, file.path), "utf8");
-    if (sha256(content) !== file.sha256) throw new Error(`Diagnostic hash mismatch: ${file.path}.`);
-    if (/\/Users\/|\/home\/|\/private\/var\/|MEMOSPROUT_RECOVERY_AUTHORIZATION_ID|CODEX_API_KEY|OPENAI_API_KEY/.test(content)) {
-      throw new Error(`Diagnostic evidence sanitation failed: ${file.path}.`);
+    if (sha256(content) !== file.sha256) {
+      throw new Error(`Runtime-correction evidence hash mismatch: ${file.path}.`);
+    }
+    if (
+      /\/Users\/|\/home\/|\/private\/var\/|MEMOSPROUT_RECOVERY_AUTHORIZATION_ID|CODEX_API_KEY|OPENAI_API_KEY/.test(
+        content,
+      )
+    ) {
+      throw new Error(`Runtime-correction evidence sanitation failed: ${file.path}.`);
     }
     parsed.set(file.path, JSON.parse(content));
   }
-  const preflightPath = `${contract.evidenceRoot}/command-preflight.json`;
-  const cleanPath = `${contract.evidenceRoot}/clean-office-extension.json`;
-  const driftPath = `${contract.evidenceRoot}/contact-url-schema-drift.json`;
-  const reportPath = `${contract.evidenceRoot}/report.json`;
-  const preflight = calibrationEnvironmentPreflightEvidenceSchema.parse(parsed.get(preflightPath));
-  const cases = [cleanPath, driftPath].map((path) =>
-    calibrationEnvironmentCaseEvidenceSchema.parse(parsed.get(path)),
+  const preflight = runtimeCorrectionPreflightEvidenceSchema.parse(
+    parsed.get(`${contract.evidenceRoot}/command-preflight.json`),
   );
-  const report = calibrationEnvironmentReportSchema.parse(parsed.get(reportPath));
-  const correction = calibrationRuntimeCorrectionDesignSchema.parse(
-    JSON.parse(await readFile(join(root, calibrationRuntimeCorrectionDesignPath), "utf8")),
+  const cases = [
+    `${contract.evidenceRoot}/clean-office-extension.json`,
+    `${contract.evidenceRoot}/contact-url-schema-drift.json`,
+  ].map((path) => runtimeCorrectionCaseEvidenceSchema.parse(parsed.get(path)));
+  const report = runtimeCorrectionReportSchema.parse(
+    parsed.get(`${contract.evidenceRoot}/report.json`),
   );
   if (
     report.immutableEvidenceBeforeSha256 !== report.immutableEvidenceAfterSha256 ||
     report.modelCalls !== 0 ||
+    preflight.runtime.codexExecCalls !== 0 ||
     cases.some((entry) => entry.runtime.codexExecCalls !== 0)
   ) {
-    throw new Error("Diagnostic altered immutable evidence or used a model execution path.");
-  }
-  if (correction.sourceDiagnosticManifestSha256 !== sha256(manifestText)) {
-    throw new Error("Runtime-correction design is not bound to diagnostic v2 evidence.");
+    throw new Error("Runtime-correction validation altered evidence or used a model path.");
   }
   await Promise.all([
     assertRecoveryFrozenInputs(root),
@@ -814,11 +722,11 @@ export async function verifyCalibrationEnvironmentDiagnostic(root = process.cwd(
   ]);
   return {
     contract,
+    contractSha256,
     preflight,
     cases,
     report,
     manifest,
-    correction,
     manifestSha256: sha256(manifestText),
   };
 }

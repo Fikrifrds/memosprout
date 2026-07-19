@@ -26,6 +26,12 @@ import type {
 } from "@/lib/eval/v2/calibration-recovery-runner";
 import { assertPhase4V2Design } from "@/lib/eval/v2/design";
 import { deriveSafeFirstPass } from "@/lib/eval/v2/generator-invocation";
+import {
+  applyGeneratorRuntime,
+  assertExplicitGeneratorRuntimeVersion,
+  historicalGeneratorRuntimeVersion,
+  type GeneratorRuntimeVersion,
+} from "@/lib/eval/v2/generator-runtime";
 import { materializeIsolatedCodexRuntime } from "@/lib/eval/v2/isolated-runtime";
 import {
   compareRepositorySnapshots,
@@ -113,11 +119,15 @@ export async function materializeRecoveryRepository(options: {
   fixture: "clean" | "schema-field-without-regeneration";
   pnpmExecutable: string;
   environment: Record<string, string | undefined>;
+  generatorRuntimeVersion: GeneratorRuntimeVersion;
 }): Promise<{
   repositoryRoot: string;
   outputSchemaPath: string;
   dependencyInstall: RecoveryCommandResult;
 }> {
+  const generatorRuntimeVersion = assertExplicitGeneratorRuntimeVersion(
+    options.generatorRuntimeVersion,
+  );
   const templateRoot = join(options.root, "demo", "generated-files", "template");
   const repositoryRoot = await mkdtemp(join(tmpdir(), "memosprout-v2-calibration-repo-"));
   await cp(templateRoot, repositoryRoot, {
@@ -134,6 +144,7 @@ export async function materializeRecoveryRepository(options: {
     scripts: Record<string, string>;
   };
   delete packageJson.scripts["check:generated"];
+  packageJson.scripts = applyGeneratorRuntime(packageJson.scripts, generatorRuntimeVersion);
   await writeFile(packagePath, `${JSON.stringify(packageJson, null, 2)}\n`);
   if (options.fixture === "schema-field-without-regeneration") {
     const sourcePath = join(repositoryRoot, "api", "openapi.yaml");
@@ -276,6 +287,7 @@ export async function executeLiveRecoveryTrial(options: {
       fixture,
       pnpmExecutable,
       environment: runtime.environment,
+      generatorRuntimeVersion: historicalGeneratorRuntimeVersion,
     });
     repositoryRoot = materialized.repositoryRoot;
     const initialSnapshot = await snapshotRepositoryWorktree(repositoryRoot);

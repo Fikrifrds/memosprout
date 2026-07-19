@@ -1,6 +1,6 @@
 # MemoSprout Build Week Implementation Plan
 
-Status: Phase 4 v1 evidence valid; Phase 4 v2 calibration floor preserved; model-free diagnostic found an invalid generator runtime; runtime correction required before worker selection; scored execution unauthorized
+Status: Phase 4 v1 evidence valid; Phase 4 v2 calibration floor preserved; the model-free runtime correction is validated and the corrected environment is viable; a separately authorized worker-config re-freeze and new non-scored calibration remain required before any scored execution
 
 Date: 2026-07-19
 
@@ -606,6 +606,16 @@ The completed `0/4` calibration, all recovery evidence, and its `calibration-flo
 Diagnostic v1 is preserved as inconclusive evidence because its no-model sandbox helper omitted the CLI-required permission profile and stopped before Node or repository command execution. Corrected diagnostic v2 reached the repository commands in an untouched command-preflight repository and both frozen fixture categories. Node `24.14.0`, the offline install, `node_modules`, package scripts, `tsx`, and `vitest` were available. `pnpm test` exited zero in all three repositories, but `pnpm run generate:api` exited one in all three because the `tsx` CLI could not bind its Unix IPC socket inside the worker-equivalent sandbox. The clean field addition and schema-drift repair therefore remained byte-divergent from the pure renderer.
 
 The diagnostic classification is `environment-floor`, not `environment-viable-genuine-worker-floor`. It does not change or reinterpret any observed model outcome; it establishes that the `0/4` result is not valid evidence for comparing worker capability under the defective runtime. No replacement worker is recommended or selected. The versioned, execution-unauthorized runtime-correction design proposes replacing only the generator launcher with `node --import tsx scripts/generate-client.ts`, while preserving the generator implementation, dependency set, test command, sandbox, tasks, thresholds, and all existing evidence. A separately reviewed runtime re-freeze and model-free validation must pass before any worker selection or new calibration.
+
+#### Phase 4 v2 Generator Runtime Correction v2 — Validated, Model-Free
+
+The designed correction is now implemented and validated. A new versioned runtime contract, `phase4-v2-generator-runtime-v2` at `demo/generated-files/evaluation/v2/calibration-runtime-correction/v2/runtime-contract.json`, replaces the repository generator launcher `tsx scripts/generate-client.ts` with `node --import tsx scripts/generate-client.ts`. The historical launcher is preserved as `phase4-v2-generator-runtime-v1`; the v1 correction design, both diagnostic evidence versions, and all calibration and recovery evidence remain byte-identical.
+
+Generator runtime selection is explicit and version-pinned: the shared `materializeRecoveryRepository` materializer requires a `generatorRuntimeVersion` argument and fails locally when it is absent, with no default. Historical calibration, recovery, and diagnostic paths remain pinned to `phase4-v2-generator-runtime-v1`; only corrected runtime paths select `phase4-v2-generator-runtime-v2`, and future baseline and protected conditions must both explicitly select v2 so every treated repository condition receives the identical corrected `generate:api` script. Generator logic, generated output format, source-schema semantics, task wording, prompts, the rubric, Phase 3 promoted artifacts, the sandbox mode, and the provisional `gpt-5.4-mini` low-reasoning worker are unchanged; the corrected launcher already falls inside the frozen rubric's accepted generator semantics.
+
+`pnpm phase4:v2:runtime-correction:run` executed the model-free validation under Node.js 24, the isolated authentication runtime, offline dependency installation, and the worker-equivalent Codex `:workspace` sandbox, with zero model calls and zero `codex exec` invocations. The untouched command-preflight repository, the clean office-extension fixture, and the contact-URL schema-drift fixture all passed: the corrected generator and ordinary tests exited zero everywhere, generated output matched the pure renderer byte-for-byte, expected schema/output transitions occurred, mutation scopes matched only the deterministic diagnostic operations, and immutable-evidence hashes were identical before and after. The classification is `environment-viable-under-corrected-runtime`. `pnpm phase4:v2:runtime-correction:verify` validates the sanitized evidence and manifest hashes.
+
+The preserved `0/4` calibration outcome remains immutable and remains invalid worker-comparison evidence. No worker was selected or replaced. A separately authorized worker-config re-freeze and a new non-scored calibration under the corrected runtime are required before any scored baseline, protected, or control execution.
 
 ### Phase 5 — Held-Out Fresh Codex Proof
 

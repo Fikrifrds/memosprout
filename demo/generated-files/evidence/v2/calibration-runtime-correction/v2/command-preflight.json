@@ -1,0 +1,40 @@
+{
+  "version": "phase4-v2-runtime-correction-preflight-v1",
+  "scored": false,
+  "calibrationOutcome": false,
+  "runtime": {
+    "runtimeContractVersion": "phase4-v2-generator-runtime-v2",
+    "materializer": "materializeRecoveryRepository",
+    "generatorScript": "node --import tsx scripts/generate-client.ts",
+    "generatorCommand": "pnpm run generate:api",
+    "nodeProbe": {
+      "command": "node -p process.versions.node",
+      "exitCode": 0
+    },
+    "nodeVersion": "24.15.0",
+    "nodeMajorValid": true,
+    "pathUsesProcessExecPathFirst": true,
+    "isolatedAuthenticationCategory": "auth-file",
+    "dependencyCommand": "pnpm install --offline --ignore-scripts",
+    "dependencyInstallExitCode": 0,
+    "nodeModulesAvailable": true,
+    "generatorScriptCorrected": true,
+    "testScriptAvailable": true,
+    "generatorDependencyAvailable": true,
+    "testDependencyAvailable": true,
+    "codexSandboxOnly": true,
+    "codexExecCalls": 0,
+    "modelProcessSpawnCount": 0
+  },
+  "initialByteMatch": true,
+  "generator": {
+    "command": "pnpm run generate:api",
+    "exitCode": 0
+  },
+  "tests": {
+    "command": "pnpm test",
+    "exitCode": 0
+  },
+  "finalByteMatch": true,
+  "repositoryUnchanged": true
+}
