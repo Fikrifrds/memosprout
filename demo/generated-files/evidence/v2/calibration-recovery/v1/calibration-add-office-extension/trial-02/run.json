@@ -1,0 +1,41 @@
+{
+  "version": "phase4-v2-calibration-recovery-run-v1",
+  "source": "live",
+  "scored": false,
+  "calibrationOnly": true,
+  "stableResumeId": "1f7d54b107b134269136356ed718490d35cb8b8306a417c8b338f3b5f202ef90",
+  "sequenceIndex": 2,
+  "taskId": "calibration-add-office-extension",
+  "trialId": "trial-02",
+  "worker": {
+    "model": "gpt-5.4-mini",
+    "reasoningEffort": "low"
+  },
+  "turnCompleted": true,
+  "modelOutcomeRetries": 0,
+  "infrastructureRetries": 0,
+  "safeFirstPass": false,
+  "snapshots": {
+    "beforeSha256": "9651e886119596486410755b69f82f37458fa4b9bd5bddf1b6afd1caae929ddb",
+    "afterSha256": "967dd2116fd2c6da17c1203c0ffd3527546e4e5569eb7fa6ad80ef8c7d9b0225",
+    "postEvaluationSha256": "967dd2116fd2c6da17c1203c0ffd3527546e4e5569eb7fa6ad80ef8c7d9b0225",
+    "evaluatorUnchanged": true
+  },
+  "files": {
+    "created": [],
+    "changed": [
+      "api/openapi.yaml",
+      "generated/api-client.ts",
+      "tests/client.test.ts"
+    ],
+    "deleted": []
+  },
+  "exposure": {
+    "phase3Guidance": false,
+    "phase3Enforcement": false,
+    "scoredCorpusContent": false,
+    "scoringAnswers": false,
+    "hiddenOracleImplementation": false,
+    "reservedTaskContent": false
+  }
+}

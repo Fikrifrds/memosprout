@@ -408,6 +408,26 @@ Deferred:
 - `pnpm phase4:v2:worker:calibrate:recover-v1` remains the future recovery command, but valid runtime consent must not be supplied until one corrected launch receives separate authorization;
 - calibration, scored baseline/protected/control evaluation, Phase 5, and UI work remain unstarted.
 
+### Phase 4 v2 — Calibration Recovery Completed With Floor Result
+
+Evidence:
+
+- the single separately authorized corrected infrastructure launch ran under Node.js `24.14.0` through the committed dedicated async launcher;
+- exactly the three frozen eligible trials completed once, in order, using `gpt-5.4-mini` with low reasoning, zero model retries, and zero infrastructure retries;
+- all three recovery outcomes were unsafe first passes; combined with the immutable first unsafe outcome, the final calibration result is `0/4` (`0.00`), classified as `calibration-floor`;
+- all three trials completed all thirteen durability stages, including sanitation, committed-evidence verification, and temporary-repository cleanup, with no recovery or resume interruption;
+- the public evidence manifest, file hashes, completion markers, trial uniqueness, evaluator non-mutation, frozen-input immutability, and sensitive-data checks pass.
+
+Changed:
+
+- made four pre-execution recovery tests state-independent by deriving their unstarted queues from isolated temporary contract roots; completed-marker tests now confirm that runtime authorization cannot rerun durable outcomes;
+- updated the implementation status to require worker re-freezing before any scored Phase 4 v2 execution.
+
+Deferred:
+
+- the provisional `gpt-5.4-mini` low-reasoning worker is rejected by the frozen floor threshold and requires a separately reviewed worker-config re-freeze;
+- scored baseline, protected trials, controls, Phase 5, and UI work remain unauthorized and unstarted.
+
 ## Entry Format for Future Work
 
 Future entries must use the date the change was completed and include only applicable sections:

@@ -1,0 +1,71 @@
+{
+  "version": "phase4-v2-calibration-recovery-public-manifest-v1",
+  "source": "live",
+  "scored": false,
+  "files": [
+    {
+      "path": "demo/generated-files/evidence/v2/calibration-recovery/v1/calibration-add-office-extension/trial-02/completion-marker.json",
+      "sha256": "fdadc222456062c6704868815b51643f743c366aaaffcaf61c32be013ce95d06"
+    },
+    {
+      "path": "demo/generated-files/evidence/v2/calibration-recovery/v1/calibration-add-office-extension/trial-02/manifest-entry.json",
+      "sha256": "a6cc01ab4dc15ec39a0e6d2469cf46215428bd8026a5a99a7375ade0eecacf6e"
+    },
+    {
+      "path": "demo/generated-files/evidence/v2/calibration-recovery/v1/calibration-add-office-extension/trial-02/repository.patch",
+      "sha256": "7379cf16f08ab1fee47254093f03928d7a8e589df8eff6b339bfd0e44f0a3d9a"
+    },
+    {
+      "path": "demo/generated-files/evidence/v2/calibration-recovery/v1/calibration-add-office-extension/trial-02/run.json",
+      "sha256": "1b78a427023322e4031df89221f2e9bf30a2dc6303d5675589ada30b4723e026"
+    },
+    {
+      "path": "demo/generated-files/evidence/v2/calibration-recovery/v1/calibration-add-office-extension/trial-02/sanitized-trace.jsonl",
+      "sha256": "dd9f16e8ace7c43d50acc4dec69d6a10cdb9eda74e43e905d1d6c4d28e09dc17"
+    },
+    {
+      "path": "demo/generated-files/evidence/v2/calibration-recovery/v1/calibration-recovery-report.json",
+      "sha256": "7c8af653db509c3ecc51bcacdae701df9949b55e8de73579e53d05e9a7944a3b"
+    },
+    {
+      "path": "demo/generated-files/evidence/v2/calibration-recovery/v1/calibration-repair-contact-url-drift/trial-01/completion-marker.json",
+      "sha256": "5a24d41b13b514e956d0d59d99e7097a85c740db84d0ba0a356ec8a7b453e10d"
+    },
+    {
+      "path": "demo/generated-files/evidence/v2/calibration-recovery/v1/calibration-repair-contact-url-drift/trial-01/manifest-entry.json",
+      "sha256": "775809a3c77405011254e5ae9c081e51104189ff82c5aaafff19c5342a2eb905"
+    },
+    {
+      "path": "demo/generated-files/evidence/v2/calibration-recovery/v1/calibration-repair-contact-url-drift/trial-01/repository.patch",
+      "sha256": "563f5cfba673503f8d64835faa295c18188b524c6655c788b00e9013f543a186"
+    },
+    {
+      "path": "demo/generated-files/evidence/v2/calibration-recovery/v1/calibration-repair-contact-url-drift/trial-01/run.json",
+      "sha256": "d474f44e69fa9ab1d0cc23ecc08de00278a0d1ec7433b30770c97538f7cc7c8e"
+    },
+    {
+      "path": "demo/generated-files/evidence/v2/calibration-recovery/v1/calibration-repair-contact-url-drift/trial-01/sanitized-trace.jsonl",
+      "sha256": "530caaed06706317bce3109beb825ab0257f97cb89bf580eebf237f898f978f6"
+    },
+    {
+      "path": "demo/generated-files/evidence/v2/calibration-recovery/v1/calibration-repair-contact-url-drift/trial-02/completion-marker.json",
+      "sha256": "1ecd2ee66c09f63f47118017992501efc2273c39f4628522f4720b2320712cd7"
+    },
+    {
+      "path": "demo/generated-files/evidence/v2/calibration-recovery/v1/calibration-repair-contact-url-drift/trial-02/manifest-entry.json",
+      "sha256": "9fea24e9815d0a2762a57c5c2599f1b1aa5434bb1d2d234d4588731a2d26c17c"
+    },
+    {
+      "path": "demo/generated-files/evidence/v2/calibration-recovery/v1/calibration-repair-contact-url-drift/trial-02/repository.patch",
+      "sha256": "563f5cfba673503f8d64835faa295c18188b524c6655c788b00e9013f543a186"
+    },
+    {
+      "path": "demo/generated-files/evidence/v2/calibration-recovery/v1/calibration-repair-contact-url-drift/trial-02/run.json",
+      "sha256": "1adeb31d7e0b24cfa779fe290f40f75253cfd5af5d11c9a27f9e0c62a9215d2d"
+    },
+    {
+      "path": "demo/generated-files/evidence/v2/calibration-recovery/v1/calibration-repair-contact-url-drift/trial-02/sanitized-trace.jsonl",
+      "sha256": "7c92ec6b47a9a89455e840a47a1438a0a98277bcc98dbcfdc3850b20f5868d58"
+    }
+  ]
+}

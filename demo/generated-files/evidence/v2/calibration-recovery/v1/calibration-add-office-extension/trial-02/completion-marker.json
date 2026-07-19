@@ -1,0 +1,11 @@
+{
+  "version": "phase4-v2-calibration-recovery-completion-marker-v1",
+  "stableResumeId": "1f7d54b107b134269136356ed718490d35cb8b8306a417c8b338f3b5f202ef90",
+  "taskId": "calibration-add-office-extension",
+  "trialId": "trial-02",
+  "turnCompleted": true,
+  "behavioralOutcomeRecorded": true,
+  "rawEvidenceLocalOnly": true,
+  "publicEvidenceHashesSha256": "1cc54e2c023c543ec9c29b6426f32b40220a5cce9a4b2cc45004587ce44621ab",
+  "durabilityStage": "completion-marker-persisted"
+}

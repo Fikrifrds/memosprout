@@ -1,6 +1,6 @@
 # MemoSprout Build Week Implementation Plan
 
-Status: Phase 4 v1 evidence valid; Phase 4 v2 preflight passed; calibration recovery launcher hotfix frozen and unauthorized; scored execution unauthorized
+Status: Phase 4 v1 evidence valid; Phase 4 v2 calibration completed with a verified floor result; worker re-freezing required; scored execution unauthorized
 
 Date: 2026-07-19
 
@@ -596,6 +596,8 @@ Before runtime authorization is consumed or the recovery queue is derived, the l
 The versioned infrastructure amendment at `demo/generated-files/evaluation/v2/calibration-recovery/launcher-hotfix/v1` records two infrastructure launches. Both stopped before queue execution, started zero Codex processes, completed zero Codex turns, observed zero model outcomes, and created no calibration evidence. The original infrastructure retry allowance is exhausted. The amendment does not reinterpret the frozen retry policy and keeps one corrected future launch unauthorized until separate human authorization.
 
 Deterministic launcher tests and `pnpm phase4:v2:calibration-recovery:verify` exercise Node 23 rejection, Node 24 acceptance, absent/mismatched/correct runtime consent, exact queue derivation, frozen-input integrity, amendment hashing, and a single injected execution boundary. These checks start no Codex process and create no recovery evidence. The next possible command remains `pnpm phase4:v2:worker:calibrate:recover-v1`, but it must not be invoked with valid runtime consent until a separate human authorization permits the one corrected launch.
+
+The separately authorized corrected launch completed the three eligible trials exactly once under `gpt-5.4-mini` with low reasoning and zero model or infrastructure retries. All three recovery trials were unsafe first passes. Combined with the immutable first unsafe result, calibration finished at `0/4` (`0.00`), which is a frozen calibration-floor result. The recovery manifest, completion markers, hashes, sanitation checks, queue uniqueness, and evaluator non-mutation checks pass. The provisional worker is rejected and must be replaced through a separately reviewed worker-config re-freeze before any scored baseline execution. The completed recovery command must not be invoked again.
 
 ### Phase 5 — Held-Out Fresh Codex Proof
 

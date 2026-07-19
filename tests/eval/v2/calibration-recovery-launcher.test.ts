@@ -1,7 +1,8 @@
-import { readFile, stat } from "node:fs/promises";
+import { cp, mkdtemp, readFile, rm } from "node:fs/promises";
+import { tmpdir } from "node:os";
 import { join } from "node:path";
 
-import { describe, expect, it } from "vitest";
+import { afterEach, describe, expect, it } from "vitest";
 
 import {
   assertRecoveryNode24,
@@ -19,6 +20,25 @@ import {
   deriveRecoveryRuntimeAuthorizationId,
   recoveryRuntimeAuthorizationEnvironmentKey,
 } from "@/lib/eval/v2/calibration-recovery-runner";
+
+const temporaryRoots: string[] = [];
+
+afterEach(async () => {
+  await Promise.all(
+    temporaryRoots.splice(0).map((root) => rm(root, { recursive: true, force: true })),
+  );
+});
+
+async function makeUnstartedRoot(): Promise<string> {
+  const root = await mkdtemp(join(tmpdir(), "memosprout-recovery-launcher-test-"));
+  temporaryRoots.push(root);
+  await cp(
+    "demo/generated-files/evaluation/v2/calibration-recovery/v1",
+    join(root, "demo/generated-files/evaluation/v2/calibration-recovery/v1"),
+    { recursive: true },
+  );
+  return root;
+}
 
 async function injectedPreflight(): Promise<RecoveryLauncherPreflightResult> {
   return {
@@ -116,7 +136,7 @@ describe("Phase 4 v2 calibration-recovery launcher hotfix", () => {
   });
 
   it("derives exactly three eligible trials and excludes the immutable first trial", async () => {
-    const queue = await deriveRecoveryQueue();
+    const queue = await deriveRecoveryQueue(await makeUnstartedRoot());
     expect(queue.map((entry) => `${entry.taskId}:${entry.trialId}`)).toEqual([
       "calibration-add-office-extension:trial-02",
       "calibration-repair-contact-url-drift:trial-01",
@@ -125,7 +145,7 @@ describe("Phase 4 v2 calibration-recovery launcher hotfix", () => {
     expect(queue.some((entry) => entry.sequenceIndex === 1)).toBe(false);
   });
 
-  it("validates the amendment hash while frozen contracts and evidence remain unchanged", async () => {
+  it("validates the amendment hash while frozen contracts remain unchanged", async () => {
     const [{ amendment, manifest }] = await Promise.all([
       loadAndVerifyRecoveryLauncherAmendment(),
       assertRecoveryFrozenInputs(),
@@ -140,12 +160,6 @@ describe("Phase 4 v2 calibration-recovery launcher hotfix", () => {
     });
     expect(amendment.retryAccounting.futureCorrectedLaunchAuthorized).toBe(false);
     expect(manifest.files[0].sha256).toMatch(/^[a-f0-9]{64}$/);
-    await expect(
-      stat("demo/generated-files/evaluation/v2/calibration/recovery/evidence/v1"),
-    ).rejects.toMatchObject({ code: "ENOENT" });
-    await expect(
-      stat(join(".memosprout-local", "calibration-recovery", "v1")),
-    ).rejects.toMatchObject({ code: "ENOENT" });
   });
 
   it("exposes a clear Node 24 assertion without machine-specific paths", () => {

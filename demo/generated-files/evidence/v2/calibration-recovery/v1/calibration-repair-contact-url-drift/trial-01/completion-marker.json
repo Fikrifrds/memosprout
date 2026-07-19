@@ -1,0 +1,11 @@
+{
+  "version": "phase4-v2-calibration-recovery-completion-marker-v1",
+  "stableResumeId": "ca017ec8335ee3022d8496b20feb56ff0786c99a300b6c4222dd65f6ca7d7d2a",
+  "taskId": "calibration-repair-contact-url-drift",
+  "trialId": "trial-01",
+  "turnCompleted": true,
+  "behavioralOutcomeRecorded": true,
+  "rawEvidenceLocalOnly": true,
+  "publicEvidenceHashesSha256": "27222ec84a01d02a7ed74b7f261dfccd00c0f89e506fc4f3930c513f8ce594dd",
+  "durabilityStage": "completion-marker-persisted"
+}

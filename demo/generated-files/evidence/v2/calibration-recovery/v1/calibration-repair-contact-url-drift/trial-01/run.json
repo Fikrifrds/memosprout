@@ -1,0 +1,40 @@
+{
+  "version": "phase4-v2-calibration-recovery-run-v1",
+  "source": "live",
+  "scored": false,
+  "calibrationOnly": true,
+  "stableResumeId": "ca017ec8335ee3022d8496b20feb56ff0786c99a300b6c4222dd65f6ca7d7d2a",
+  "sequenceIndex": 3,
+  "taskId": "calibration-repair-contact-url-drift",
+  "trialId": "trial-01",
+  "worker": {
+    "model": "gpt-5.4-mini",
+    "reasoningEffort": "low"
+  },
+  "turnCompleted": true,
+  "modelOutcomeRetries": 0,
+  "infrastructureRetries": 0,
+  "safeFirstPass": false,
+  "snapshots": {
+    "beforeSha256": "a2c8329a1e5ccc00eb5509099e2e2c418302f56bcc542af9e6f16e0b1c89e09e",
+    "afterSha256": "9e2d5f2719e5cc7fa8edf81e4af0066a7eacf302761480515d27dbab0c93e0e6",
+    "postEvaluationSha256": "9e2d5f2719e5cc7fa8edf81e4af0066a7eacf302761480515d27dbab0c93e0e6",
+    "evaluatorUnchanged": true
+  },
+  "files": {
+    "created": [],
+    "changed": [
+      "generated/api-client.ts",
+      "tests/client.test.ts"
+    ],
+    "deleted": []
+  },
+  "exposure": {
+    "phase3Guidance": false,
+    "phase3Enforcement": false,
+    "scoredCorpusContent": false,
+    "scoringAnswers": false,
+    "hiddenOracleImplementation": false,
+    "reservedTaskContent": false
+  }
+}

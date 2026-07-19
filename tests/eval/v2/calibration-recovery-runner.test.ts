@@ -104,24 +104,21 @@ describe("Phase 4 v2 calibration-recovery runner", () => {
     expect(spawnCount).toBe(0);
   });
 
-  it("allows the exact runtime identifier to reach only the injected boundary", async () => {
+  it("does not let exact runtime authorization rerun completed recovery turns", async () => {
     const authorization = await deriveRecoveryRuntimeAuthorizationId();
-    const boundary = new Error("injected-boundary");
     const reached: string[] = [];
-    await expect(
-      runRecoveryCommand({
-        argv: [],
-        runtimeAuthorization: authorization,
-        spawnTrial: async (trial) => {
-          reached.push(`${trial.taskId}:${trial.trialId}`);
-          throw boundary;
-        },
-        scanPublicEvidence: async () => undefined,
-        cleanupPreservedRepository: async () => undefined,
-      }),
-    ).rejects.toBe(boundary);
-    expect(reached).toEqual(["calibration-add-office-extension:trial-02"]);
-    expect(JSON.stringify({ reached, error: boundary.message })).not.toContain(authorization);
+    await runRecoveryCommand({
+      argv: [],
+      runtimeAuthorization: authorization,
+      spawnTrial: async (trial) => {
+        reached.push(`${trial.taskId}:${trial.trialId}`);
+        throw new Error("Completed recovery must not reach the spawn boundary.");
+      },
+      scanPublicEvidence: async () => undefined,
+      cleanupPreservedRepository: async () => undefined,
+    });
+    expect(reached).toEqual([]);
+    expect(JSON.stringify({ reached })).not.toContain(authorization);
   });
 
   it("consumes runtime authorization without retaining or disclosing its value", async () => {
@@ -154,7 +151,7 @@ describe("Phase 4 v2 calibration-recovery runner", () => {
   });
 
   it("queues only the three frozen unstarted trials in immutable order", async () => {
-    const queue = await deriveRecoveryQueue();
+    const queue = await deriveRecoveryQueue(await makeRoot());
     expect(queue.map(({ taskId, trialId, action }) => ({ taskId, trialId, action }))).toEqual([
       {
         taskId: "calibration-add-office-extension",

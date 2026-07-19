@@ -1,0 +1,20 @@
+{
+  "version": "phase4-v2-calibration-recovery-manifest-entry-v1",
+  "stableResumeId": "1f7d54b107b134269136356ed718490d35cb8b8306a417c8b338f3b5f202ef90",
+  "taskId": "calibration-add-office-extension",
+  "trialId": "trial-02",
+  "files": [
+    {
+      "path": "demo/generated-files/evidence/v2/calibration-recovery/v1/calibration-add-office-extension/trial-02/sanitized-trace.jsonl",
+      "sha256": "dd9f16e8ace7c43d50acc4dec69d6a10cdb9eda74e43e905d1d6c4d28e09dc17"
+    },
+    {
+      "path": "demo/generated-files/evidence/v2/calibration-recovery/v1/calibration-add-office-extension/trial-02/repository.patch",
+      "sha256": "7379cf16f08ab1fee47254093f03928d7a8e589df8eff6b339bfd0e44f0a3d9a"
+    },
+    {
+      "path": "demo/generated-files/evidence/v2/calibration-recovery/v1/calibration-add-office-extension/trial-02/run.json",
+      "sha256": "1b78a427023322e4031df89221f2e9bf30a2dc6303d5675589ada30b4723e026"
+    }
+  ]
+}

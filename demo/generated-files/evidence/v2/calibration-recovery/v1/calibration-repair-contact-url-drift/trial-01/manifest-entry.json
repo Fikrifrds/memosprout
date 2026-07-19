@@ -1,0 +1,20 @@
+{
+  "version": "phase4-v2-calibration-recovery-manifest-entry-v1",
+  "stableResumeId": "ca017ec8335ee3022d8496b20feb56ff0786c99a300b6c4222dd65f6ca7d7d2a",
+  "taskId": "calibration-repair-contact-url-drift",
+  "trialId": "trial-01",
+  "files": [
+    {
+      "path": "demo/generated-files/evidence/v2/calibration-recovery/v1/calibration-repair-contact-url-drift/trial-01/sanitized-trace.jsonl",
+      "sha256": "530caaed06706317bce3109beb825ab0257f97cb89bf580eebf237f898f978f6"
+    },
+    {
+      "path": "demo/generated-files/evidence/v2/calibration-recovery/v1/calibration-repair-contact-url-drift/trial-01/repository.patch",
+      "sha256": "563f5cfba673503f8d64835faa295c18188b524c6655c788b00e9013f543a186"
+    },
+    {
+      "path": "demo/generated-files/evidence/v2/calibration-recovery/v1/calibration-repair-contact-url-drift/trial-01/run.json",
+      "sha256": "d474f44e69fa9ab1d0cc23ecc08de00278a0d1ec7433b30770c97538f7cc7c8e"
+    }
+  ]
+}
