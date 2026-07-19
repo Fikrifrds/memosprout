@@ -1,0 +1,32 @@
+{
+  "version": "phase4-v2-calibration-recovery-durability-v1",
+  "strictOrder": true,
+  "stages": [
+    "raw-trace-local-persisted",
+    "sanitized-trace-persisted",
+    "repository-patch-persisted",
+    "before-snapshot-hash-persisted",
+    "after-snapshot-hash-persisted",
+    "file-change-sets-persisted",
+    "run-record-persisted",
+    "evidence-hashes-persisted",
+    "manifest-entry-persisted",
+    "completion-marker-persisted",
+    "sanitation-scan-passed",
+    "committed-evidence-verified",
+    "cleanup-complete"
+  ],
+  "scannerEarliestStage": "completion-marker-persisted",
+  "verifierEarliestStage": "sanitation-scan-passed",
+  "cleanupPrerequisiteStage": "committed-evidence-verified",
+  "completedTurnPersistenceRule": "Every evidence stage through completion-marker-persisted must finish before scanning, verification, or cleanup.",
+  "scannerFailureRule": {
+    "temporaryRepositoryPreserved": true,
+    "rawEvidencePreserved": true,
+    "sanitizedEvidencePreserved": true,
+    "interruptionRecordRequired": true,
+    "stableResumeIdentifierRequired": true,
+    "completedOutcomeRetryAllowed": false,
+    "cleanupAllowed": false
+  }
+}

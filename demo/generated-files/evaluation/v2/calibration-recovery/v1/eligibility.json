@@ -1,0 +1,46 @@
+{
+  "version": "phase4-v2-calibration-recovery-eligibility-v1",
+  "source": "durable-evidence-derived-only",
+  "operatorOverrideAllowed": false,
+  "frozenTrialOrder": [
+    {
+      "sequenceIndex": 1,
+      "taskId": "calibration-add-office-extension",
+      "trialId": "trial-01",
+      "status": "completed-fixed-unsafe",
+      "eligible": false,
+      "completionEvidencePath": "demo/generated-files/evidence/v2/calibration/calibration-interruption.json"
+    },
+    {
+      "sequenceIndex": 2,
+      "taskId": "calibration-add-office-extension",
+      "trialId": "trial-02",
+      "status": "unstarted",
+      "eligible": true,
+      "completionEvidencePath": null
+    },
+    {
+      "sequenceIndex": 3,
+      "taskId": "calibration-repair-contact-url-drift",
+      "trialId": "trial-01",
+      "status": "unstarted",
+      "eligible": true,
+      "completionEvidencePath": null
+    },
+    {
+      "sequenceIndex": 4,
+      "taskId": "calibration-repair-contact-url-drift",
+      "trialId": "trial-02",
+      "status": "unstarted",
+      "eligible": true,
+      "completionEvidencePath": null
+    }
+  ],
+  "eligibleTrialKeys": [
+    "calibration-add-office-extension:trial-02",
+    "calibration-repair-contact-url-drift:trial-01",
+    "calibration-repair-contact-url-drift:trial-02"
+  ],
+  "resumeRule": "Select the first trial in frozen order whose durable status is unstarted; never accept an operator-provided eligibility list.",
+  "completionRule": "A trial becomes permanently ineligible when its verified completion marker is durably recorded, regardless of behavioral success or failure."
+}

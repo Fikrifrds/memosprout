@@ -1,0 +1,52 @@
+{
+  "version": "phase4-v2-calibration-recovery-scanner-v1",
+  "genericAllowlistedRuntimeKeys": [
+    "PATH",
+    "SHELL",
+    "LANG",
+    "LC_ALL",
+    "TERM",
+    "TMPDIR",
+    "TEMP",
+    "TMP",
+    "SSL_CERT_FILE",
+    "SSL_CERT_DIR",
+    "HTTP_PROXY",
+    "HTTPS_PROXY",
+    "NO_PROXY"
+  ],
+  "genericAllowlistedValuesAreCredentials": false,
+  "sensitiveEnvironmentKeyFragments": [
+    "KEY",
+    "TOKEN",
+    "SECRET",
+    "PASSWORD",
+    "CREDENTIAL",
+    "AUTH",
+    "HOME",
+    "USER",
+    "PWD",
+    "SSH"
+  ],
+  "credentialPatterns": [
+    "openai-secret-key",
+    "bearer-token",
+    "named-secret-assignment"
+  ],
+  "machinePathPatterns": [
+    "macos-user-home",
+    "linux-user-home",
+    "windows-user-home",
+    "temporary-repository-path",
+    "temporary-codex-home-path"
+  ],
+  "scanTargets": [
+    "sanitized-trace",
+    "repository-patch",
+    "run-record",
+    "manifest-entry",
+    "completion-marker",
+    "interruption-record"
+  ],
+  "rawEvidenceScanResultIsNeverPublicEvidence": true
+}

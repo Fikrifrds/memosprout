@@ -1,0 +1,43 @@
+{
+  "version": "phase4-v2-calibration-recovery-frozen-inputs-v1",
+  "status": "design-only-execution-unauthorized",
+  "executionAuthorized": false,
+  "inputs": [
+    {
+      "path": "demo/generated-files/evaluation/v2/calibration-recovery/v1/recovery-contract.json",
+      "sha256": "290698dfac6b336cac8308bb5e2925b4d6010d184ed7ece024439cd218d2f6ed"
+    },
+    {
+      "path": "demo/generated-files/evaluation/v2/calibration-recovery/v1/eligibility.json",
+      "sha256": "aa93324d4407f4595b4a5699847ac736f34a243b3ee8814172db1438ed34716d"
+    },
+    {
+      "path": "demo/generated-files/evaluation/v2/calibration-recovery/v1/durability-order.json",
+      "sha256": "d150e7d333a1c3bc315797f0074ac31e7dda313efe4de7a69e8d55859f2d0883"
+    },
+    {
+      "path": "demo/generated-files/evaluation/v2/calibration-recovery/v1/scanner-policy.json",
+      "sha256": "c17b0d71f6c1b3ac9862f85bd314ad3ab119bbbe613dd070170c62db3f372a2a"
+    },
+    {
+      "path": "demo/generated-files/evaluation/v2/calibration-recovery/v1/recovery-manifest.json",
+      "sha256": "5db77234012af03bfc0a5a7b183ddf6728128e4eda78330ec0ab44bcc84837fd"
+    },
+    {
+      "path": "demo/generated-files/evaluation/v2/calibration-recovery/v1/schemas/recovery-worker-output.schema.json",
+      "sha256": "34cacae638f0ea6b946a8e1352ce95342f2d7801a939652f7cb41d8825aa27dc"
+    },
+    {
+      "path": "demo/generated-files/evaluation/v2/calibration-recovery/v1/schemas/recovery-completion-marker.schema.json",
+      "sha256": "3771b62d3e6930582caf94c82c16526912ec387c7c456c094e36e6072f7979fc"
+    },
+    {
+      "path": "demo/generated-files/evaluation/v2/calibration-recovery/v1/schemas/recovery-report.schema.json",
+      "sha256": "f9a2e4bc6f0163adec532cd50ba7065b402cc2c522d5f0b140fccf0f60c8f61a"
+    },
+    {
+      "path": "demo/generated-files/evaluation/v2/calibration-recovery/v1/original-immutability.manifest.json",
+      "sha256": "c59c136578a2b1cd684c0ddfee053b318e2b482e6d1bc84e83374c38c8400cfb"
+    }
+  ]
+}

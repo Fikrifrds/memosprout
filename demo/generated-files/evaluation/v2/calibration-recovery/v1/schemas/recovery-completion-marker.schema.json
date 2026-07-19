@@ -1,0 +1,59 @@
+{
+  "type": "object",
+  "properties": {
+    "version": {
+      "type": "string",
+      "const": "phase4-v2-calibration-recovery-completion-marker-v1"
+    },
+    "stableResumeId": {
+      "type": "string",
+      "description": "Stable SHA-256 recovery identifier without a machine-specific path."
+    },
+    "taskId": {
+      "type": "string",
+      "enum": [
+        "calibration-add-office-extension",
+        "calibration-repair-contact-url-drift"
+      ]
+    },
+    "trialId": {
+      "type": "string",
+      "enum": [
+        "trial-01",
+        "trial-02"
+      ]
+    },
+    "turnCompleted": {
+      "type": "boolean",
+      "const": true
+    },
+    "behavioralOutcomeRecorded": {
+      "type": "boolean",
+      "const": true
+    },
+    "rawEvidenceLocalOnly": {
+      "type": "boolean",
+      "const": true
+    },
+    "publicEvidenceHashesSha256": {
+      "type": "string",
+      "description": "SHA-256 binding for the persisted public evidence hashes."
+    },
+    "durabilityStage": {
+      "type": "string",
+      "const": "completion-marker-persisted"
+    }
+  },
+  "required": [
+    "version",
+    "stableResumeId",
+    "taskId",
+    "trialId",
+    "turnCompleted",
+    "behavioralOutcomeRecorded",
+    "rawEvidenceLocalOnly",
+    "publicEvidenceHashesSha256",
+    "durabilityStage"
+  ],
+  "additionalProperties": false
+}

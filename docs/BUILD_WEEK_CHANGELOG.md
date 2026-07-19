@@ -326,6 +326,31 @@ Limitations:
 - worker-config re-freezing is not yet determined because the ceiling/headroom/floor rule requires all four frozen outcomes;
 - scored evaluation, Phase 5, and UI work remain unstarted pending a separate human decision about versioned calibration recovery.
 
+### Phase 4 v2 — Calibration-Recovery v1 Design Frozen
+
+Added:
+
+- separate versioned calibration-recovery contracts for the exact three unstarted trials, with the original task order, `gpt-5.4-mini` low-reasoning worker, isolation, safe-first-pass rubric, thresholds, and retry policy unchanged;
+- durable-evidence-derived eligibility, stable path-free resume identifiers, an explicit thirteen-stage persistence order, local-only raw-evidence paths, scanner-failure preservation rules, and cleanup only after committed-evidence verification;
+- provider-compatible worker-output and completion-marker schemas, strict Zod validation, an interruption-tag immutability manifest, and a frozen SHA-256 input manifest;
+- `pnpm phase4:v2:calibration-recovery:design:verify` and deterministic tests for eligibility, idempotent resume, durability ordering, scanner failure, cleanup safety, classification, task isolation, schema validation, Git ignore behavior, and immutable source evidence.
+
+Changed:
+
+- corrected the recovery scanner contract so generic allowlisted runtime metadata such as `SHELL` and `PATH` is not classified as credential material while secret-bearing keys and machine-specific values remain prohibited;
+- fixed the first observed result as permanently unsafe with complete behavioral trace evidence, incomplete patch/snapshot evidence, an explicit incompleteness reason, and a permanent no-rerun rule.
+
+Evidence:
+
+- all recovery artifacts are under `demo/generated-files/evaluation/v2/calibration-recovery/v1`; the reviewed original contract and interruption artifacts remain byte-identical to tag `build-week-phase-4-v2-calibration-interrupted`;
+- the future command identifier is `pnpm phase4:v2:worker:calibrate:recover-v1`, but no executable package command or runner exists and execution authorization remains false;
+- no model call, remaining calibration trial, scored evaluation, control, Phase 5, or UI work was performed.
+
+Deferred:
+
+- recovery execution and its three remaining non-scored trials require separate authorization;
+- baseline execution is not authorized and Phase 4 remains unpassed.
+
 ## Entry Format for Future Work
 
 Future entries must use the date the change was completed and include only applicable sections:

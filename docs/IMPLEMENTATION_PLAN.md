@@ -552,6 +552,31 @@ V1 immutability is anchored to tag `build-week-phase-4-v1-verified-ceiling` at c
 - The remaining three calibration runs were not launched. Baseline, protected, controls, live-scored, seeded, Phase 5, and UI execution remain prohibited.
 - The scanner now distinguishes genuinely sensitive environment keys from generic allowlisted runtime values, but the completed outcome has not been rerun. A new human decision is required before any versioned calibration recovery; `pnpm phase4:v2:baseline` is not the next authorized action.
 
+#### Proposed Phase 4 v2 Calibration Recovery v1 — Frozen Design, No Execution
+
+The reviewed interruption remains immutable at tag `build-week-phase-4-v2-calibration-interrupted` and commit `b246d92bad3a2d7bfaa8bffbe458a58bee991c7e`. Recovery contracts live only under `demo/generated-files/evaluation/v2/calibration-recovery/v1`; they do not mutate or reinterpret the original calibration contract or evidence.
+
+**Immutable outcome and eligibility**
+
+- `calibration-add-office-extension` / `trial-01` is permanently unsafe because its complete behavioral trace contains no successful generator invocation. Its repository patch and snapshot evidence remain explicitly incomplete, the reason is retained, and it can never be reconstructed, repaired, or rerun.
+- Exactly three trials are eligible, in the original frozen order: `calibration-add-office-extension` / `trial-02`, then `calibration-repair-contact-url-drift` / `trial-01`, then `calibration-repair-contact-url-drift` / `trial-02`.
+- Eligibility is derived only from durable completion markers. Operators cannot supply, skip, replace, or reorder trials. A completed turn is recorded exactly once regardless of behavioral success; infrastructure retry remains limited to one attempt before a completed turn and model-outcome retry remains zero.
+- Final model selection uses exactly four results: the fixed unsafe first outcome plus the three future results. The original acceptable-headroom interval of `0.25` through `0.75`, ceiling above `0.75`, and floor below `0.25` remains unchanged.
+
+**Durability and recovery**
+
+For every future completed turn, persistence occurs strictly in this order: durable local-only raw trace; sanitized trace; repository patch; before and after snapshot hashes; created, changed, and deleted path sets; run record; evidence hashes; manifest entry; and completion marker. Only then may sanitation scanning run. Committed-evidence verification follows a passing scan, and temporary-repository cleanup is last.
+
+A scanner or verifier failure preserves the temporary repository, raw evidence, and already sanitized evidence; creates an interruption record; and retains a stable SHA-256 resume identifier derived from contract version, task ID, and trial ID without recording a local path. It never makes the completed outcome eligible again. Raw unsanitized evidence lives under the Git-ignored `.memosprout-local/calibration-recovery/v1` root and is excluded from public manifests, logs, staging, and committed evidence.
+
+The scanner policy treats generic allowlisted runtime keys such as `SHELL` and `PATH` as runtime metadata rather than credentials while continuing to reject credential-bearing keys, values, machine paths, arbitrary environment values, raw traces, temporary paths, and private configuration.
+
+**Frozen files and stopping rule**
+
+The v1 recovery contract, eligibility set, thirteen-stage durability order, scanner policy, public/local evidence manifest, provider-compatible worker-output schema, completion-marker schema, derived final-report schema, original-interruption immutability manifest, and nine-input SHA-256 manifest are frozen. `pnpm phase4:v2:calibration-recovery:design:verify` checks this design without a model call.
+
+Execution authorization remains false. `pnpm phase4:v2:worker:calibrate:recover-v1` is only the future command identifier; it is deliberately absent from `package.json` and no recovery runner has been implemented. The recovery calibration, remaining trials, baseline, protected runs, controls, Phase 5, and UI require separate authorization.
+
 ### Phase 5 — Held-Out Fresh Codex Proof
 
 **Files**

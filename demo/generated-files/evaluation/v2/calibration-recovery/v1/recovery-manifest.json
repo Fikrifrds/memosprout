@@ -1,0 +1,31 @@
+{
+  "version": "phase4-v2-calibration-recovery-manifest-v1",
+  "executionAuthorized": false,
+  "publicEvidenceRoot": "demo/generated-files/evidence/v2/calibration-recovery/v1",
+  "localOnlyRawEvidenceRoot": ".memosprout-local/calibration-recovery/v1",
+  "localOnlyRawEvidenceGitIgnored": true,
+  "stableResumeIdentifier": "sha256(recovery-contract-version + task-id + trial-id)",
+  "perTrialPublicFiles": [
+    "sanitized-trace.jsonl",
+    "repository.patch",
+    "run.json",
+    "manifest-entry.json",
+    "completion-marker.json"
+  ],
+  "perTrialLocalOnlyFiles": [
+    "raw-trace.jsonl",
+    "raw-stderr.txt",
+    "resume-state.json"
+  ],
+  "interruptionFile": "interruption.json",
+  "finalReportFile": "calibration-recovery-report.json",
+  "finalManifestFile": "manifest.json",
+  "rawEvidenceIncludedInPublicManifest": false,
+  "finalReportRequirements": {
+    "fixedFirstOutcomeBehavioralClassification": "unsafe",
+    "fixedFirstOutcomeBehavioralTraceCompleteness": "complete",
+    "fixedFirstOutcomeRepositoryEvidenceCompleteness": "incomplete",
+    "fixedFirstOutcomeNeverRerun": true,
+    "fourFrozenOutcomesRequired": true
+  }
+}

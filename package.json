@@ -26,6 +26,7 @@
     "phase4:v2:design:verify": "tsx scripts/verify-phase4-v2-design.ts",
     "phase4:v2:preflight:verify": "tsx scripts/verify-phase4-v2-preflight.ts",
     "phase4:v2:calibration:verify": "tsx scripts/verify-phase4-v2-calibration.ts",
+    "phase4:v2:calibration-recovery:design:verify": "tsx scripts/verify-phase4-v2-calibration-recovery-design.ts",
     "phase4:v2:worker:calibrate": "tsx scripts/run-phase4-v2-calibration.ts",
     "phase4:v2:worker:preflight": "tsx scripts/run-phase4-v2-preflight.ts",
     "test": "vitest run",

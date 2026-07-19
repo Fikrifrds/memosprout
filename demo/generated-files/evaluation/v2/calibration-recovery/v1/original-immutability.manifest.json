@@ -1,0 +1,27 @@
+{
+  "version": "phase4-v2-calibration-recovery-original-immutability-v1",
+  "sourceTag": "build-week-phase-4-v2-calibration-interrupted",
+  "sourceCommit": "b246d92bad3a2d7bfaa8bffbe458a58bee991c7e",
+  "files": [
+    {
+      "path": "demo/generated-files/evaluation/v2/calibration.json",
+      "sha256": "440fa01ed80fc925983b8b96ad7436ddc1a2d263e9b69617e5a16c18daf39802"
+    },
+    {
+      "path": "demo/generated-files/evaluation/v2/frozen-inputs.manifest.json",
+      "sha256": "1da8624c646d4d1f3ca98eedcefeb9947cd3892fcefd8d862e1382118746f99a"
+    },
+    {
+      "path": "demo/generated-files/evidence/v2/calibration/calibration-interruption.json",
+      "sha256": "a9017775e0f7fea4851b94efc8e2944e4ec359a5eb2b1d08e3c39893f9b3cf84"
+    },
+    {
+      "path": "demo/generated-files/evidence/v2/calibration/calibration-add-office-extension/trial-01/attempt-01.trace.jsonl",
+      "sha256": "ce67b2815cbb684e0293416515c2743050db3f6dd35fdace1d0335d221bca92c"
+    },
+    {
+      "path": "demo/generated-files/evidence/v2/calibration/manifest.json",
+      "sha256": "f301278bff1b5495e9ce863d1ae798cbde792a93245279c600462ee01a8c481f"
+    }
+  ]
+}
