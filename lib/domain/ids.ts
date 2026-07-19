@@ -6,6 +6,7 @@ export const idPrefixes = {
   correctedOutcome: "outcome",
   deterministicEvidence: "evidence",
   candidateSprout: "sprout",
+  auditEntry: "audit",
 } as const;
 
 export type IdPrefix = (typeof idPrefixes)[keyof typeof idPrefixes];

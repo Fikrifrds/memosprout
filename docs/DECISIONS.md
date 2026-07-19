@@ -38,6 +38,7 @@ This log records decisions for the Build Week implementation. [`BUILD_WEEK_PRD.m
 | BW-027 | Deliver validated sprouts dynamically via get_task_context and cross-agent adapters | Accepted |
 | BW-028 | Add an Outcome Ledger that records and aggregates sprout outcomes | Accepted |
 | BW-029 | Add a Cost–Intelligence Router that routes tasks to the cheapest reliable model | Accepted |
+| BW-030 | Add a Team Control Plane governing the sprout release lifecycle | Accepted |
 
 ## Detailed Decisions
 
@@ -280,6 +281,14 @@ This log records decisions for the Build Week implementation. [`BUILD_WEEK_PRD.m
 **Reason:** This realizes the economic thesis as a product feature: "cheap price, frontier result" becomes an evidence-based routing decision rather than a blanket claim. The router spends the cheap model only where outcome data shows the sprout makes it reliable, and escalates elsewhere — turning the convergence result into per-task cost optimization.
 
 **Consequence:** `lib/router/{models,router}.ts` provide a model catalog (cheap `gpt-5.4-mini` at relative cost 1, frontier `gpt-5.6-sol` at 10), a routing policy (`minimumReliability`, `minimumSamples`), and `routeTask`/`routePortfolio`, demonstrated model-free (a reliable scenario routes cheap, an unreliable one escalates, and a mixed portfolio shows cost savings). The router is opt-in: `routeTask` also accepts a `pinnedModel`, which respects an explicit model choice and skips cost auto-routing (the predictable default for users who want to know exactly which model handles their task); cost-optimized auto-routing is a deliberate opt-in on top of that.
+
+### BW-030 — Add a Team Control Plane Governing the Sprout Release Lifecycle
+
+**Decision:** Add a Team Control Plane (`lib/control-plane/`) that governs the sprout release lifecycle: `candidate → validated → released → deprecated`, with transition guards (a sprout must be validated before release, and only a released sprout can be rolled back), a canary rollout percentage on release, rollback to deprecated, and an append-only audit trail recording every transition (actor, action, timestamp, note), with local-first file persistence.
+
+**Reason:** Enterprise governance requires managing validated sprouts safely and auditablely: a sprout should not reach agents until it is validated and released, releases should support partial (canary) rollout and rollback, and every lifecycle change must leave an audit trail (who did what, when). This is the governance layer that makes the rest of the loop safe to operate in a team.
+
+**Consequence:** `lib/control-plane/{schema,control-plane}.ts` provide `SproutRelease`/`AuditEntry` schemas and a `ControlPlane` with `register`/`markValidated`/`release`/`rollback`/`deprecate`, transition guards, an ordered audit trail, and `loadControlPlane`/`saveControlPlane`, demonstrated model-free (full lifecycle, canary, guards, rollback, audit ordering, and persistence round-trip). This completes the wedge roadmap (0–7).
 
 ## Deferred or Conditional Decisions
 

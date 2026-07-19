@@ -761,6 +761,23 @@ Evidence:
 
 - `pnpm lint` and `pnpm typecheck` completed with zero errors and zero warnings; the router suite passes 8 tests.
 
+### Team Control Plane — Sprout Release Lifecycle and Governance (Wedge 7)
+
+Added:
+
+- a Team Control Plane under `lib/control-plane/`: `SproutRelease`/`AuditEntry` schemas (`schema.ts`) and a `ControlPlane` (`control-plane.ts`) governing the `candidate → validated → released → deprecated` lifecycle with transition guards (validate-before-release, rollback-only-when-released), a canary rollout percentage on release, rollback to deprecated, an append-only ordered audit trail (actor, action, timestamp, note), and local-first persistence (`loadControlPlane`/`saveControlPlane`);
+- an `audit` id prefix in `lib/domain/ids.ts`;
+- model-free tests for the full lifecycle, canary release, the transition guards, rollback, audit-trail ordering, and persistence round-trip.
+
+Changed:
+
+- this completes the wedge roadmap (0–7): the full MemoSprout loop (correction → sprout → guidance + artifact → validation → delivery → outcome ledger → cost routing → governance) is built and demonstrated model-free across the idempotency and soft-delete scenarios, with the convergence thesis validated by live scored evidence.
+
+Evidence:
+
+- the control plane lifecycle, guards, audit trail, and persistence are demonstrated model-free;
+- `pnpm lint` and `pnpm typecheck` completed with zero errors and zero warnings; `pnpm test` passed 50 test files and 302 tests.
+
 ## Entry Format for Future Work
 
 Future entries must use the date the change was completed and include only applicable sections:
