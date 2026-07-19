@@ -666,6 +666,26 @@ Deferred:
 
 - wedge 3 and beyond (Artifact Compiler, MCP delivery, Outcome Ledger, Cost–Intelligence Router, Team Control Plane).
 
+### Artifact Compiler — Sprout to Enforcement Artifact Spec (Wedge 3)
+
+Added:
+
+- an Artifact Compiler under `lib/artifact/`: `compileArtifactSpec` (`spec.ts`) maps a validated `CandidateSproutContent` into an `ArtifactSpec` (artifact type, target paths, enforced prohibited actions, verified procedure), and `renderArtifactManifest`/`parseArtifactManifest` (`manifest.ts`) provide a `specSha256`-verified portable manifest;
+- model-free tests compiling specs for both the idempotency and soft-delete sprouts, round-tripping the manifest, and rejecting a tampered spec.
+
+Changed:
+
+- reused the sprout's `recommendedArtifact` enum (`ci_and_hook`/`ci_check`/`pre_tool_hook`) for the artifact type; the executable artifact generation (LLM-based, Phase 3 style) remains the live path while the spec and manifest are the deterministic core.
+
+Evidence:
+
+- the artifact spec and manifest are demonstrated model-free for both scenarios, with manifest integrity enforced by a spec hash;
+- `pnpm lint` and `pnpm typecheck` completed with zero errors and zero warnings; `pnpm test` passed 46 test files and 260 tests.
+
+Deferred:
+
+- wedge 4 and beyond (MCP delivery, Outcome Ledger, Cost–Intelligence Router, Team Control Plane).
+
 ## Entry Format for Future Work
 
 Future entries must use the date the change was completed and include only applicable sections:

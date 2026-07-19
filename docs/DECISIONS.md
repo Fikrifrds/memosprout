@@ -34,6 +34,7 @@ This log records decisions for the Build Week implementation. [`BUILD_WEEK_PRD.m
 | BW-023 | Adopt the reliability framing and reframe the convergence gate on probe evidence | Accepted |
 | BW-024 | Extract a reusable Validation Engine parameterized by scenario | Accepted |
 | BW-025 | Generalize the Experience Compiler and OKF export across scenarios | Accepted |
+| BW-026 | Add an Artifact Compiler that turns a sprout into an enforcement artifact spec | Accepted |
 
 ## Detailed Decisions
 
@@ -244,6 +245,14 @@ This log records decisions for the Build Week implementation. [`BUILD_WEEK_PRD.m
 **Reason:** The Phase 2 Experience Compiler, prompt, and OKF rendering were hardcoded to generated-files (specific evidence bundle, prompt instructions, description, and filename). Supporting the Validation Engine's multiple scenarios (idempotency, soft-delete, and future ones) requires extraction from generic evidence, scenario-aware OKF, and a sprout-to-guidance path so an extracted sprout can be validated by the engine. The generic `CandidateSproutContent` schema is reused unchanged; only the generated-files-specific evidence bundle and provenance literals are bypassed by the new path.
 
 **Consequence:** `lib/compiler/{experience-compiler,compile-guidance}.ts` and `renderExperienceOkf`/`experienceOkfFilename` in `lib/okf/render.ts` form the generalized path, demonstrated model-free for both the idempotency and soft-delete scenarios. The existing generated-files Experience Compiler and `renderCandidateOkf` remain unchanged for the Phase 2 flow.
+
+### BW-026 — Add an Artifact Compiler That Turns a Sprout Into an Enforcement Artifact Spec
+
+**Decision:** Add an Artifact Compiler (`lib/artifact/`) that compiles a validated Candidate Sprout into an enforcement artifact specification (`ArtifactSpec`: artifact type, target paths, the prohibited actions it enforces, the procedure it verifies) plus an integrity-checked portable manifest. This generalizes the Phase 3 protection concept (which was generated only for generated-files) into a scenario-agnostic step.
+
+**Reason:** The MemoSprout loop is correction → sprout → guidance + enforcement artifact → validation. Wedge 2 produced the guidance; the enforcement artifact (the executable test/check/hook that catches violations) is the other half. Phase 3 generated that artifact for generated-files via Codex; the generalized loop needs a deterministic, scenario-agnostic description of the artifact (what it enforces and verifies) and a portable, hash-verified manifest, independent of how the executable artifact is produced.
+
+**Consequence:** `compileArtifactSpec` maps a `CandidateSproutContent` to an `ArtifactSpec` (reusing the sprout's `recommendedArtifact` enum: `ci_and_hook`/`ci_check`/`pre_tool_hook`), and `renderArtifactManifest`/`parseArtifactManifest` provide a `specSha256`-verified manifest. The executable artifact generation (LLM-based, Phase 3 style) remains the live path; the spec and manifest are the deterministic, model-free core, demonstrated for both scenarios.
 
 ## Deferred or Conditional Decisions
 
