@@ -857,6 +857,22 @@ Evidence:
 - a live smoke test confirms the first run seeds the store and the next run loads two sprouts from the file;
 - `pnpm lint` and `pnpm typecheck` completed with zero errors and zero warnings; `pnpm test` passed 53 test files and 319 tests.
 
+### Multi-Domain Phase A — Tenant-Isolation and Secret-Handling Scenarios
+
+Added:
+
+- two new coding scenarios proving the Validation Engine generalizes: tenant-isolation (`demo/tenant-isolation/` — naive `listRecords` leaks cross-tenant data; the sprout scopes every query by `tenantId`) and secret-handling (`demo/secret-handling/` — naive `describeConfig` emits the raw API key; the sprout masks it with `maskSecret`);
+- for each: a deterministic template, a held-out acceptance suite, a worker-output schema, a `ScenarioDefinition` (`lib/scenario/tenant-isolation.ts`, `lib/scenario/secret-handling.ts`), and a knowledge-trap test.
+
+Changed:
+
+- the engine is unchanged; the two new scenarios run through it as-is, bringing the total to four scenarios.
+
+Evidence:
+
+- the trap tests show each naive implementation fails its acceptance suite while the correct implementation passes;
+- `pnpm lint` and `pnpm typecheck` completed with zero errors and zero warnings; `pnpm test` passed 55 test files and 327 tests.
+
 ## Entry Format for Future Work
 
 Future entries must use the date the change was completed and include only applicable sections:

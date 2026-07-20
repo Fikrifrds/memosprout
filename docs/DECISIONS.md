@@ -44,6 +44,7 @@ This log records decisions for the Build Week implementation. [`BUILD_WEEK_PRD.m
 | BW-033 | Serve get_task_context and the reflex gate over a real MCP stdio server | Accepted |
 | BW-034 | Wire the demo UI to live sprout extraction | Accepted |
 | BW-035 | Persist the MCP server's sprout registry to a file-backed store | Accepted |
+| BW-036 | Add tenant-isolation and secret-handling scenarios to prove engine generalization | Accepted |
 
 ## Detailed Decisions
 
@@ -334,6 +335,14 @@ This log records decisions for the Build Week implementation. [`BUILD_WEEK_PRD.m
 **Reason:** The MCP server previously seeded its registry in memory from hardcoded demo data, so the validated sprouts were not durable or editable. A file-backed store makes them a persistent asset that survives restarts and can be extended without code changes.
 
 **Consequence:** `loadSproutStore`/`saveSproutStore` and `sproutStoreSchema` provide the persistence; `scripts/mcp-server.ts` loads from the store (or seeds and saves it when empty). Demonstrated via store round-trip tests and a live smoke test (first run seeds, the next loads two sprouts from the file).
+
+### BW-036 — Add Tenant-Isolation and Secret-Handling Scenarios to Prove Engine Generalization
+
+**Decision:** Add two more coding scenarios — tenant-isolation (a naive `listRecords` returns every record, leaking one tenant's data to another; the sprout instructs scoping every query by `tenantId`) and secret-handling (a naive `describeConfig` emits the raw API key; the sprout instructs masking it with the provided `maskSecret`) — each a deterministic template plus a held-out acceptance suite, a `ScenarioDefinition`, and a knowledge-trap test.
+
+**Reason:** Multi-domain expansion (Phase A) begins by proving the Validation Engine generalizes across diverse coding knowledge traps, not just idempotency and soft-delete. Both new scenarios run through the unchanged engine, confirming the `ScenarioDefinition` abstraction holds.
+
+**Consequence:** `demo/tenant-isolation/` and `demo/secret-handling/` (templates, acceptance suites, schemas), `lib/scenario/{tenant-isolation,secret-handling}.ts`, and trap tests bring the total to four scenarios, all validated by the same engine. The naive implementations are intentionally wrong (and lint-clean) so the acceptance suites discriminate naive from correct.
 
 ## Deferred or Conditional Decisions
 

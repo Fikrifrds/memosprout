@@ -1,0 +1,21 @@
+{
+  "name": "@memosprout/tenant-isolation-demo",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "description": "Deterministic tenant-isolation scenario for MemoSprout.",
+  "engines": {
+    "node": ">=24 <25",
+    "pnpm": ">=11 <12"
+  },
+  "packageManager": "pnpm@11.9.0",
+  "scripts": {
+    "test": "vitest run"
+  },
+  "devDependencies": {
+    "@types/node": "24.13.3",
+    "tsx": "4.21.0",
+    "typescript": "5.9.3",
+    "vitest": "4.1.10"
+  }
+}
