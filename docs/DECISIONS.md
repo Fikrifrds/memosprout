@@ -50,6 +50,7 @@ This log records decisions for the Build Week implementation. [`BUILD_WEEK_PRD.m
 | BW-039 | Add flexible domain outcome metrics to the Outcome Ledger | Accepted |
 | BW-040 | Add a public product surface: landing page, dashboard, and docs | Accepted |
 | BW-041 | Store sprouts local-first and user-owned; JSON now, SQLite next, Postgres+pgvector at team scale | Accepted |
+| BW-042 | Deliver free-first via the MCP server, led by MCP registries and open source | Accepted |
 
 ## Detailed Decisions
 
@@ -388,6 +389,14 @@ This log records decisions for the Build Week implementation. [`BUILD_WEEK_PRD.m
 **Reason:** Sprouts encode an organization's corrections and know-how, which is often sensitive, so the privacy-first default is that users store their own knowledge locally and nothing leaves their machine unless they opt into sharing. Deterministic matching is sufficient for the shipped scenarios, so embeddings would be premature complexity; SQLite is the right local step up from JSON; Postgres + pgvector is reserved for the team tier that needs a shared, governed library and semantic retrieval at scale.
 
 **Consequence:** The free/individual tier needs no database server or cloud (the current `SproutStore` JSON file plus in-memory `SproutRegistry` and deterministic matching). SQLite backing, embeddings/vector indexing, PostgreSQL + pgvector, and a shared community/team sprout library are documented future work, phased as local-first product then team/scale.
+
+### BW-042 — Deliver Free-First via the MCP Server
+
+**Decision:** Deliver MemoSprout free-first, with the MCP server as the primary delivery mechanism (users install it into the agent they already use). Distribution is led by MCP registries/directories and open source (GitHub), supported by npm/npx, a hosted demo, an empirical content hook (the convergence result), and per-ecosystem agent integrations. The model is open-core: the engine and delivery are free for individuals; the Team Control Plane is the future paid tier. Full strategy in `docs/DELIVERY.md`.
+
+**Reason:** MemoSprout is an MCP server, so MCP registries are the highest-intent free channel — they reach users actively looking for an MCP server to install. Open source builds the trust and community that developer tools need, and fits the local-first design. Free-first with an open-core path lets the product grow on accumulated knowledge (the retention moat) before monetizing team governance.
+
+**Consequence:** The MVP ships the open-source MCP server (`get_task_context`, `check_tool_call`), local-first storage, deterministic matching, four scenarios, and the demo UI, distributed via npm/npx, GitHub, MCP registries, and a hosted demo. Deferred and documented: team/cloud storage, embeddings, a community sprout library (network effect), billing, and native per-ecosystem agent plugins.
 
 ## Deferred or Conditional Decisions
 
