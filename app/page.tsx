@@ -76,6 +76,22 @@ export default function HomePage() {
         </section>
 
         <section className="border-t border-slate-200 py-14">
+          <h2 className="text-center text-2xl font-bold tracking-tight">
+            The model is not your advantage
+          </h2>
+          <p className="mx-auto mt-4 max-w-2xl text-center text-slate-600">
+            AI models are becoming interchangeable — today&apos;s frontier is tomorrow&apos;s
+            commodity. The durable advantage is not which model you run. It is the verified
+            knowledge your organization accumulates and delivers to its agents.
+          </p>
+          <p className="mx-auto mt-4 max-w-2xl text-center text-slate-600">
+            A bigger context window gives an agent a larger memory. MemoSprout gives it the right
+            knowledge — validated, portable, and delivered exactly when it is needed. The
+            difference between remembering everything and knowing what is true.
+          </p>
+        </section>
+
+        <section className="border-t border-slate-200 py-14">
           <h2 className="text-center text-2xl font-bold tracking-tight">The problem</h2>
           <p className="mx-auto mt-4 max-w-2xl text-center text-slate-600">
             AI agents repeat the same project-specific mistakes because human corrections are

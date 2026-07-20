@@ -9,6 +9,11 @@ improves every future run, across models and tools.
 Memory stores a note. MemoSprout attaches evidence, validates it with an independent oracle,
 and delivers it to any agent exactly when it is needed.
 
+**The model is not your advantage — your knowledge is.** As models become interchangeable, the
+durable advantage is the verified knowledge your organization accumulates and delivers to its
+agents. A bigger context window gives an agent a larger memory; MemoSprout gives it the right
+knowledge, validated and delivered exactly when it is needed.
+
 ## Prerequisites
 
 - Node.js 24.x
