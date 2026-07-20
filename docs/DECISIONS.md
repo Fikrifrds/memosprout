@@ -43,6 +43,7 @@ This log records decisions for the Build Week implementation. [`BUILD_WEEK_PRD.m
 | BW-032 | Add a four-state judge-mode demo UI on Next.js | Accepted |
 | BW-033 | Serve get_task_context and the reflex gate over a real MCP stdio server | Accepted |
 | BW-034 | Wire the demo UI to live sprout extraction | Accepted |
+| BW-035 | Persist the MCP server's sprout registry to a file-backed store | Accepted |
 
 ## Detailed Decisions
 
@@ -325,6 +326,14 @@ This log records decisions for the Build Week implementation. [`BUILD_WEEK_PRD.m
 **Reason:** The UI was seeded-only (judge mode). Live wiring demonstrates the real Experience Compiler — correction → Candidate Sprout via the model — in the product surface, while the seeded judge mode remains the offline default that needs no API key.
 
 **Consequence:** `app/api/sprouts/extract/route.ts`, `components/demo/LiveExtractor.tsx`, and its integration into the Candidate step provide the live path; the route validates input with `experienceEvidenceSchema` and maps `ExperienceCompilationError` to HTTP errors. Live extraction requires `OPENAI_API_KEY`; the seeded walkthrough is unchanged.
+
+### BW-035 — Persist the MCP Server's Sprout Registry to a File-Backed Store
+
+**Decision:** Add a persistent sprout store (`lib/delivery/store.ts`) that loads and saves a `SproutRegistry` as a versioned JSON file, and wire the MCP server to load its registry from that store — configurable via `MEMOSPROUT_SPROUT_STORE`, defaulting to `.memosprout-local/sprout-store.json` — seeding it with the demo sprouts and saving on first run.
+
+**Reason:** The MCP server previously seeded its registry in memory from hardcoded demo data, so the validated sprouts were not durable or editable. A file-backed store makes them a persistent asset that survives restarts and can be extended without code changes.
+
+**Consequence:** `loadSproutStore`/`saveSproutStore` and `sproutStoreSchema` provide the persistence; `scripts/mcp-server.ts` loads from the store (or seeds and saves it when empty). Demonstrated via store round-trip tests and a live smoke test (first run seeds, the next loads two sprouts from the file).
 
 ## Deferred or Conditional Decisions
 

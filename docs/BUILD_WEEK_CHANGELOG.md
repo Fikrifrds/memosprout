@@ -841,6 +841,22 @@ Evidence:
 
 - `pnpm lint`, `pnpm typecheck`, and `pnpm build` completed successfully, with `/api/sprouts/extract` registered as a dynamic route; `pnpm test` passed 52 test files and 316 tests.
 
+### Persistent Sprout Store — File-Backed Registry for the MCP Server
+
+Added:
+
+- a persistent sprout store (`lib/delivery/store.ts`): `loadSproutStore`/`saveSproutStore` and a versioned `sproutStoreSchema` that persist a `SproutRegistry` as JSON;
+- model-free tests for store round-trip, empty-file loading, and parent-directory creation.
+
+Changed:
+
+- the MCP server (`scripts/mcp-server.ts`) now loads its registry from the store (configurable via `MEMOSPROUT_SPROUT_STORE`, defaulting to `.memosprout-local/sprout-store.json`), seeding and saving the demo sprouts on first run instead of seeding only in memory.
+
+Evidence:
+
+- a live smoke test confirms the first run seeds the store and the next run loads two sprouts from the file;
+- `pnpm lint` and `pnpm typecheck` completed with zero errors and zero warnings; `pnpm test` passed 53 test files and 319 tests.
+
 ## Entry Format for Future Work
 
 Future entries must use the date the change was completed and include only applicable sections:
