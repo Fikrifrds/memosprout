@@ -48,6 +48,7 @@ This log records decisions for the Build Week implementation. [`BUILD_WEEK_PRD.m
 | BW-037 | Generalize the oracle beyond code test suites (structured-check and rubric-judge) | Accepted |
 | BW-038 | Generalize delivery matching to arbitrary context attributes | Accepted |
 | BW-039 | Add flexible domain outcome metrics to the Outcome Ledger | Accepted |
+| BW-040 | Add a public product surface: landing page, dashboard, and docs | Accepted |
 
 ## Detailed Decisions
 
@@ -370,6 +371,14 @@ This log records decisions for the Build Week implementation. [`BUILD_WEEK_PRD.m
 **Reason:** Different domains measure outcomes differently (CSAT, conversion, SLA violations). A flexible metrics map plus a domain vocabulary lets the ledger capture and aggregate domain-specific outcomes without schema changes per domain.
 
 **Consequence:** `lib/ledger/schema.ts` and `lib/ledger/ledger.ts` provide the extended record, domain vocabularies, and metric aggregation; demonstrated model-free (per-domain vocabularies, averaging a metric, null when absent).
+
+### BW-040 — Add a Public Product Surface: Landing Page, Dashboard, and Docs
+
+**Decision:** Add a public, English-language product surface: a landing page (`/`) explaining the value proposition and how it works, a dashboard (`/dashboard`) showing the scenario catalog, validated sprouts, measured sprout impact, and cost-intelligence routing, an in-app docs/usage guide (`/docs`), and a rewritten README. The judge-mode demo moves to `/demo`.
+
+**Reason:** The library layer and MCP server needed a tangible, understandable surface for a global audience. Clear English pages make the product demonstrable and usable without reading the code, and the dashboard makes the measured value (sprout lift, routing savings) visible.
+
+**Consequence:** `app/page.tsx` (landing), `app/demo/page.tsx` (wizard, moved), `app/dashboard/page.tsx`, `app/docs/page.tsx`, `components/SiteNav.tsx`, `lib/demo/dashboard-data.ts`, and a rewritten `README.md`. All four pages prerender as static content; the dashboard assembles its data from the library layer (seeded registry, a demo ledger, and the router).
 
 ## Deferred or Conditional Decisions
 

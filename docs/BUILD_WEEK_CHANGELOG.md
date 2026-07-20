@@ -889,6 +889,21 @@ Evidence:
 
 - `pnpm lint` and `pnpm typecheck` completed with zero errors and zero warnings; `pnpm test` passed 56 test files and 340 tests, including the new oracle, context-matching, and domain-metric tests.
 
+### Product Surface — Landing Page, Dashboard, and Docs
+
+Added:
+
+- a public, English-language product surface: a landing page (`app/page.tsx`) with the value proposition, how-it-works, and capabilities; a dashboard (`app/dashboard/page.tsx`) showing the scenario catalog, validated sprouts, measured sprout impact, and cost-intelligence routing; an in-app usage guide (`app/docs/page.tsx`); a shared nav (`components/SiteNav.tsx`); and dashboard data assembly (`lib/demo/dashboard-data.ts`);
+- a rewritten `README.md` as a clear English guide (quick start, MCP server, concepts, commands, architecture).
+
+Changed:
+
+- the judge-mode demo moved from `/` to `/demo`; `/` is now the landing page.
+
+Evidence:
+
+- `pnpm build` prerenders `/`, `/demo`, `/dashboard`, and `/docs` as static pages; `pnpm lint`, `pnpm typecheck`, and `pnpm test` (340 tests) pass.
+
 ## Entry Format for Future Work
 
 Future entries must use the date the change was completed and include only applicable sections:
