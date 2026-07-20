@@ -795,6 +795,20 @@ Evidence:
 - the reflex gate is demonstrated model-free;
 - `pnpm lint` and `pnpm typecheck` completed with zero errors and zero warnings; `pnpm test` passed 51 test files and 308 tests.
 
+### Demo UI — Four-State Judge-Mode Walkthrough
+
+Added:
+
+- a Next.js App Router demo UI: root layout and global styles (`app/layout.tsx`, `app/globals.css`); a home page (`app/page.tsx`) that loads the seeded Candidate Sprout; a judge-mode wizard with one-click progression (`components/demo/DemoWizard.tsx`); the four screens — Run, Candidate Sprout, Eval, Published (`components/demo/screens.tsx`); and seeded flow data (`lib/demo/seeded-flow.ts`).
+
+Changed:
+
+- `next build` now prerenders the home page (`/`) as a static judge-mode walkthrough over seeded evidence (no API key required); the existing `/api/candidates` and `/api/artifacts/okf` route handlers are unchanged.
+
+Evidence:
+
+- `pnpm lint`, `pnpm typecheck`, and `pnpm build` completed successfully, with `/` prerendered as a static page; `pnpm test` passed 51 test files and 308 tests.
+
 ## Entry Format for Future Work
 
 Future entries must use the date the change was completed and include only applicable sections:

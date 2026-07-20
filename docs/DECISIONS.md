@@ -40,6 +40,7 @@ This log records decisions for the Build Week implementation. [`BUILD_WEEK_PRD.m
 | BW-029 | Add a Cost–Intelligence Router that routes tasks to the cheapest reliable model | Accepted |
 | BW-030 | Add a Team Control Plane governing the sprout release lifecycle | Accepted |
 | BW-031 | Add a Runtime Reflex Gate that blocks tool calls violating sprout protections | Accepted |
+| BW-032 | Add a four-state judge-mode demo UI on Next.js | Accepted |
 
 ## Detailed Decisions
 
@@ -298,6 +299,14 @@ This log records decisions for the Build Week implementation. [`BUILD_WEEK_PRD.m
 **Reason:** The Validation Engine scores an implementation after the fact; the Reflex Gate adds before-the-fact prevention. An agent should not be able to tamper with the guarded provided files or the held-out acceptance suite to force a pass; the gate stops such edits at the tool-call boundary, making the protection enforceable at runtime rather than merely detectable later.
 
 **Consequence:** `lib/reflex/{schema,gate}.ts` provide `ReflexRule`/`ToolCall`/`ReflexDecision` schemas, `compileReflexRule`, and `ReflexGate`, demonstrated model-free (blocking edits to guarded and enforcement files, allowing non-guarded edits and non-file-edit tools, and a warn mode). A `reflex` id prefix was added.
+
+### BW-032 — Add a Four-State Judge-Mode Demo UI on Next.js
+
+**Decision:** Add a Next.js App Router demo UI with the four product states from the Build Week PRD — Run, Candidate Sprout, Eval, Published — as a judge-mode wizard with one-click progression over seeded evidence. The home page (`/`) is a static walkthrough that loads the seeded Candidate Sprout and steps through the four screens; the existing `/api/candidates` and `/api/artifacts/okf` route handlers remain.
+
+**Reason:** The library layer (Validation Engine, Experience Compiler, delivery, ledger, router, control plane, reflex gate) needed a tangible surface. The four-screen flow demonstrates the MemoSprout loop end-to-end, and judge mode (seeded evidence, one-click progression) lets anyone walk the loop without live model calls or API keys.
+
+**Consequence:** `app/{layout.tsx,page.tsx,globals.css}`, `components/demo/{DemoWizard,screens}.tsx`, and `lib/demo/seeded-flow.ts` provide the UI; `next build` prerenders `/` as a static page. The UI is presentational over seeded data; wiring it to live extraction/evaluation is a later step.
 
 ## Deferred or Conditional Decisions
 
