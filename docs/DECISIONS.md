@@ -51,6 +51,7 @@ This log records decisions for the Build Week implementation. [`BUILD_WEEK_PRD.m
 | BW-040 | Add a public product surface: landing page, dashboard, and docs | Accepted |
 | BW-041 | Store sprouts local-first and user-owned; JSON now, SQLite next, Postgres+pgvector at team scale | Accepted |
 | BW-042 | Deliver free-first via the MCP server, led by MCP registries and open source | Accepted |
+| BW-043 | Treat sprouts as conditional rules with applicability, precedence, and project detection | Accepted |
 
 ## Detailed Decisions
 
@@ -397,6 +398,14 @@ This log records decisions for the Build Week implementation. [`BUILD_WEEK_PRD.m
 **Reason:** MemoSprout is an MCP server, so MCP registries are the highest-intent free channel — they reach users actively looking for an MCP server to install. Open source builds the trust and community that developer tools need, and fits the local-first design. Free-first with an open-core path lets the product grow on accumulated knowledge (the retention moat) before monetizing team governance.
 
 **Consequence:** The MVP ships the open-source MCP server (`get_task_context`, `check_tool_call`), local-first storage, deterministic matching, four scenarios, and the demo UI, distributed via npm/npx, GitHub, MCP registries, and a hosted demo. Deferred and documented: team/cloud storage, embeddings, a community sprout library (network effect), billing, and native per-ecosystem agent plugins.
+
+### BW-043 — Treat Sprouts as Conditional Rules with Applicability, Precedence, and Project Detection
+
+**Decision:** A sprout is a conditional rule (`IF applicable THEN guidance`), not a universal truth. Each sprout carries applicability conditions (project characteristics, scope paths, context attributes); conflicts are resolved by a precedence hierarchy (user > project > community > pre-built) rather than by detecting contradictions; delivery is selective (filter by applicability, resolve by precedence, rank by relevance, deliver top-k); and a project fingerprint detected on first open activates the applicable pre-built sprouts so the product is useful on day zero. Full design in `docs/SPROUT_APPLICABILITY.md`.
+
+**Reason:** A rich pre-built and community library only stays correct across diverse projects if sprouts are contextual and overridable. The same guidance ("edit the schema, regenerate") is right for a schema-first codegen project and wrong for one that hand-writes its client. Applicability conditions keep irrelevant sprouts inactive, precedence lets a user's own corrections override generic defaults, selective retrieval avoids dumping a large library into context, and project detection delivers value before the user has made any correction.
+
+**Consequence:** Building on the existing `scopePaths`, `contextMatch`, and retrieval, the architecture adds a `source`/precedence field on sprouts, richer applicability conditions, project detection (patterns, heuristics, explicit `.memosprout/config`, optional LLM analysis), and precedence-based resolution in delivery. Phased: precedence + basic applicability in the MVP; richer applicability, project detection, and a curated pre-built library next; semantic retrieval, LLM-assisted detection, and a community library later. Documented honest challenges: project detection is hard, the pre-built library is a curation burden, and subtle semantic conflicts can slip past precedence.
 
 ## Deferred or Conditional Decisions
 
