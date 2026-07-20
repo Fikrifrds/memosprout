@@ -8,6 +8,7 @@ import {
   PublishedScreen,
   RunScreen,
 } from "@/components/demo/screens";
+import { LiveExtractor } from "@/components/demo/LiveExtractor";
 import {
   demoEval,
   demoFinalCard,
@@ -53,7 +54,12 @@ export function DemoWizard({ candidate }: { candidate: CandidateSprout }) {
 
       <main>
         {step === 0 && <RunScreen run={demoRun} />}
-        {step === 1 && <CandidateScreen candidate={candidate} />}
+        {step === 1 && (
+          <>
+            <CandidateScreen candidate={candidate} />
+            <LiveExtractor />
+          </>
+        )}
         {step === 2 && <EvalScreen evaluation={demoEval} />}
         {step === 3 && <PublishedScreen freshRun={demoFreshRun} finalCard={demoFinalCard} />}
       </main>

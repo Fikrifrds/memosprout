@@ -42,6 +42,7 @@ This log records decisions for the Build Week implementation. [`BUILD_WEEK_PRD.m
 | BW-031 | Add a Runtime Reflex Gate that blocks tool calls violating sprout protections | Accepted |
 | BW-032 | Add a four-state judge-mode demo UI on Next.js | Accepted |
 | BW-033 | Serve get_task_context and the reflex gate over a real MCP stdio server | Accepted |
+| BW-034 | Wire the demo UI to live sprout extraction | Accepted |
 
 ## Detailed Decisions
 
@@ -316,6 +317,14 @@ This log records decisions for the Build Week implementation. [`BUILD_WEEK_PRD.m
 **Reason:** The delivery handler and reflex gate existed as definitions and pure handlers; to be usable by real agents they must be served over MCP. The stdio server makes MemoSprout a connectable MCP tool provider, so an agent can pull relevant validated experience before editing and check a planned edit against the protections.
 
 **Consequence:** `lib/mcp/{tools,seed,server}.ts` and `scripts/mcp-server.ts` (run via `pnpm mcp:serve`) provide the server; `@modelcontextprotocol/sdk` is added as a dependency. Verified model-free (8 tests) and via a live stdio handshake (`initialize` + `tools/list` return both tools). The registry is seeded with the idempotency and soft-delete sprouts; loading sprouts from a persistent store is a later step.
+
+### BW-034 — Wire the Demo UI to Live Sprout Extraction
+
+**Decision:** Wire the demo UI to live sprout extraction: a new `POST /api/sprouts/extract` route uses the generalized Experience Compiler (`compileExperience`, GPT-5.6) to turn evidence (scenario, task, failed-run summary, human correction) into a `CandidateSproutContent`, then compiles its `AGENTS.md` guidance; a `LiveExtractor` component in the Candidate screen lets the user pick a scenario and extract a live sprout.
+
+**Reason:** The UI was seeded-only (judge mode). Live wiring demonstrates the real Experience Compiler — correction → Candidate Sprout via the model — in the product surface, while the seeded judge mode remains the offline default that needs no API key.
+
+**Consequence:** `app/api/sprouts/extract/route.ts`, `components/demo/LiveExtractor.tsx`, and its integration into the Candidate step provide the live path; the route validates input with `experienceEvidenceSchema` and maps `ExperienceCompilationError` to HTTP errors. Live extraction requires `OPENAI_API_KEY`; the seeded walkthrough is unchanged.
 
 ## Deferred or Conditional Decisions
 

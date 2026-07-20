@@ -826,6 +826,21 @@ Evidence:
 - a live stdio handshake (`initialize` + `tools/list`) returns the server info and both tools;
 - `pnpm lint` and `pnpm typecheck` completed with zero errors and zero warnings; `pnpm test` passed 52 test files and 316 tests.
 
+### Live UI Wiring — Extract a Sprout From the UI
+
+Added:
+
+- a `POST /api/sprouts/extract` route (`app/api/sprouts/extract/route.ts`) that uses the generalized Experience Compiler (`compileExperience`, GPT-5.6) to turn evidence into a `CandidateSproutContent` and compiles its `AGENTS.md` guidance, validating input and mapping compilation errors to HTTP errors;
+- a `LiveExtractor` component (`components/demo/LiveExtractor.tsx`) — a scenario selector and "Extract with GPT-5.6" button that calls the route and displays the extracted sprout and compiled guidance — integrated into the Candidate step of the wizard.
+
+Changed:
+
+- the demo UI now has a live path (correction → Candidate Sprout via the model) in addition to the seeded judge mode, which remains the offline default.
+
+Evidence:
+
+- `pnpm lint`, `pnpm typecheck`, and `pnpm build` completed successfully, with `/api/sprouts/extract` registered as a dynamic route; `pnpm test` passed 52 test files and 316 tests.
+
 ## Entry Format for Future Work
 
 Future entries must use the date the change was completed and include only applicable sections:
