@@ -809,6 +809,23 @@ Evidence:
 
 - `pnpm lint`, `pnpm typecheck`, and `pnpm build` completed successfully, with `/` prerendered as a static page; `pnpm test` passed 51 test files and 308 tests.
 
+### MCP Stdio Server — get_task_context and check_tool_call
+
+Added:
+
+- a real MCP stdio server using `@modelcontextprotocol/sdk`: testable tool handlers (`lib/mcp/tools.ts`) for `get_task_context` and `check_tool_call`; a seeded demo registry and reflex gate (`lib/mcp/seed.ts`); the server wiring (`lib/mcp/server.ts`); and a stdio entry point (`scripts/mcp-server.ts`, run via `pnpm mcp:serve`);
+- the `@modelcontextprotocol/sdk` dependency;
+- model-free tests for the tool handlers, the seeded registry/gate, and server creation.
+
+Changed:
+
+- delivery and the reflex gate are now served over MCP, so a connected agent can pull relevant validated guidance before editing and check a planned edit against the protections.
+
+Evidence:
+
+- a live stdio handshake (`initialize` + `tools/list`) returns the server info and both tools;
+- `pnpm lint` and `pnpm typecheck` completed with zero errors and zero warnings; `pnpm test` passed 52 test files and 316 tests.
+
 ## Entry Format for Future Work
 
 Future entries must use the date the change was completed and include only applicable sections:

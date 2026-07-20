@@ -41,6 +41,7 @@ This log records decisions for the Build Week implementation. [`BUILD_WEEK_PRD.m
 | BW-030 | Add a Team Control Plane governing the sprout release lifecycle | Accepted |
 | BW-031 | Add a Runtime Reflex Gate that blocks tool calls violating sprout protections | Accepted |
 | BW-032 | Add a four-state judge-mode demo UI on Next.js | Accepted |
+| BW-033 | Serve get_task_context and the reflex gate over a real MCP stdio server | Accepted |
 
 ## Detailed Decisions
 
@@ -307,6 +308,14 @@ This log records decisions for the Build Week implementation. [`BUILD_WEEK_PRD.m
 **Reason:** The library layer (Validation Engine, Experience Compiler, delivery, ledger, router, control plane, reflex gate) needed a tangible surface. The four-screen flow demonstrates the MemoSprout loop end-to-end, and judge mode (seeded evidence, one-click progression) lets anyone walk the loop without live model calls or API keys.
 
 **Consequence:** `app/{layout.tsx,page.tsx,globals.css}`, `components/demo/{DemoWizard,screens}.tsx`, and `lib/demo/seeded-flow.ts` provide the UI; `next build` prerenders `/` as a static page. The UI is presentational over seeded data; wiring it to live extraction/evaluation is a later step.
+
+### BW-033 — Serve get_task_context and the Reflex Gate Over a Real MCP Stdio Server
+
+**Decision:** Add a real Model Context Protocol stdio server (using `@modelcontextprotocol/sdk`) that exposes two tools — `get_task_context` (returns the validated sprout guidance relevant to the files a task touches) and `check_tool_call` (the reflex gate allow/block/warn decision) — backed by a seeded `SproutRegistry` and `ReflexGate`. The tool-handling logic is separated from the transport so it is testable without the SDK.
+
+**Reason:** The delivery handler and reflex gate existed as definitions and pure handlers; to be usable by real agents they must be served over MCP. The stdio server makes MemoSprout a connectable MCP tool provider, so an agent can pull relevant validated experience before editing and check a planned edit against the protections.
+
+**Consequence:** `lib/mcp/{tools,seed,server}.ts` and `scripts/mcp-server.ts` (run via `pnpm mcp:serve`) provide the server; `@modelcontextprotocol/sdk` is added as a dependency. Verified model-free (8 tests) and via a live stdio handshake (`initialize` + `tools/list` return both tools). The registry is seeded with the idempotency and soft-delete sprouts; loading sprouts from a persistent store is a later step.
 
 ## Deferred or Conditional Decisions
 

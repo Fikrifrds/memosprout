@@ -19,6 +19,7 @@
     "phase2:verify": "tsx scripts/verify-phase2.ts",
     "convergence:config:setup": "tsx scripts/setup-convergence-config.ts",
     "convergence:design:verify": "tsx scripts/verify-convergence-design.ts",
+    "mcp:serve": "tsx scripts/mcp-server.ts",
     "phase3:live": "tsx scripts/generate-protection.ts",
     "phase3:verify": "tsx scripts/verify-phase3.ts",
     "phase4:baseline": "tsx scripts/capture-baseline.ts",
@@ -45,6 +46,7 @@
     "typecheck": "tsc --noEmit"
   },
   "dependencies": {
+    "@modelcontextprotocol/sdk": "^1.29.0",
     "next": "16.2.10",
     "openai": "6.48.0",
     "react": "19.2.7",
