@@ -49,6 +49,7 @@ This log records decisions for the Build Week implementation. [`BUILD_WEEK_PRD.m
 | BW-038 | Generalize delivery matching to arbitrary context attributes | Accepted |
 | BW-039 | Add flexible domain outcome metrics to the Outcome Ledger | Accepted |
 | BW-040 | Add a public product surface: landing page, dashboard, and docs | Accepted |
+| BW-041 | Store sprouts local-first and user-owned; JSON now, SQLite next, Postgres+pgvector at team scale | Accepted |
 
 ## Detailed Decisions
 
@@ -379,6 +380,14 @@ This log records decisions for the Build Week implementation. [`BUILD_WEEK_PRD.m
 **Reason:** The library layer and MCP server needed a tangible, understandable surface for a global audience. Clear English pages make the product demonstrable and usable without reading the code, and the dashboard makes the measured value (sprout lift, routing savings) visible.
 
 **Consequence:** `app/page.tsx` (landing), `app/demo/page.tsx` (wizard, moved), `app/dashboard/page.tsx`, `app/docs/page.tsx`, `components/SiteNav.tsx`, `lib/demo/dashboard-data.ts`, and a rewritten `README.md`. All four pages prerender as static content; the dashboard assembles its data from the library layer (seeded registry, a demo ledger, and the router).
+
+### BW-041 — Store Sprouts Local-First and User-Owned
+
+**Decision:** Sprouts are stored local-first and user-owned by default: on the user's file system at project level (`.memosprout/`, shareable as code via git) and/or user level (`~/.memosprout/`). The storage progresses JSON file (current MVP) → SQLite (local-first product) → PostgreSQL + pgvector (team/cloud tier). Embeddings and vector indexing are deferred until the library is large enough to need semantic retrieval; matching is deterministic (file-path scope + context attributes) until then. Full rationale in `docs/STORAGE_ARCHITECTURE.md`.
+
+**Reason:** Sprouts encode an organization's corrections and know-how, which is often sensitive, so the privacy-first default is that users store their own knowledge locally and nothing leaves their machine unless they opt into sharing. Deterministic matching is sufficient for the shipped scenarios, so embeddings would be premature complexity; SQLite is the right local step up from JSON; Postgres + pgvector is reserved for the team tier that needs a shared, governed library and semantic retrieval at scale.
+
+**Consequence:** The free/individual tier needs no database server or cloud (the current `SproutStore` JSON file plus in-memory `SproutRegistry` and deterministic matching). SQLite backing, embeddings/vector indexing, PostgreSQL + pgvector, and a shared community/team sprout library are documented future work, phased as local-first product then team/scale.
 
 ## Deferred or Conditional Decisions
 
