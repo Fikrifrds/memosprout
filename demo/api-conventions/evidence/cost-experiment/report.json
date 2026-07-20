@@ -1,0 +1,512 @@
+{
+  "version": "cost-experiment-report-v2",
+  "generatedAt": "2026-07-20T10:11:54.998Z",
+  "model": "gpt-5.4-mini",
+  "scenario": "api-conventions",
+  "task": "Implement the `listInvoices` route in `src/routes/invoices.ts`. It lists invoices for the authenticated tenant and supports the same paging query parameters as the other list endpoints in this API. Follow the conventions this repository already uses. Run `pnpm exec vitest run tests/invoices.test.ts` to check your work.",
+  "trialsPerCondition": 8,
+  "maxAttempts": 3,
+  "pricingUsdPerMTokens": {
+    "input": 0.75,
+    "output": 4.5
+  },
+  "conditions": {
+    "baseline": {
+      "trials": 8,
+      "successes": 8,
+      "attempts": 9,
+      "firstAttemptSuccesses": 7,
+      "inputTokens": 154803,
+      "outputTokens": 5902,
+      "totalTokens": 160705,
+      "meanTokens": 20088.125,
+      "medianTokens": 19102.5,
+      "stdDevTokens": 4865.406969837452,
+      "meanTokensOnSuccess": 20088.125,
+      "medianTokensOnSuccess": 19102.5,
+      "estimatedUsd": 0.14266125
+    },
+    "protected": {
+      "trials": 8,
+      "successes": 8,
+      "attempts": 8,
+      "firstAttemptSuccesses": 8,
+      "inputTokens": 137891,
+      "outputTokens": 4780,
+      "totalTokens": 142671,
+      "meanTokens": 17833.875,
+      "medianTokens": 18322.5,
+      "stdDevTokens": 911.217934963969,
+      "meanTokensOnSuccess": 17833.875,
+      "medianTokensOnSuccess": 18322.5,
+      "estimatedUsd": 0.12492825000000002
+    }
+  },
+  "tokenImpact": {
+    "baselineTokens": 20088.125,
+    "protectedTokens": 17833.875,
+    "savings": 2254.25,
+    "savingsRate": 0.11221803926449084
+  },
+  "trials": [
+    {
+      "condition": "baseline",
+      "trial": 1,
+      "success": true,
+      "attempts": [
+        {
+          "attempt": 1,
+          "oraclePassed": false,
+          "ordinaryPassed": false,
+          "policyViolation": false,
+          "violatedPaths": [],
+          "repositoryChangedPaths": [],
+          "usage": null,
+          "workerError": "The frontier worker exceeded the maximum number of tool-loop turns."
+        },
+        {
+          "attempt": 2,
+          "oraclePassed": true,
+          "ordinaryPassed": true,
+          "policyViolation": false,
+          "violatedPaths": [],
+          "repositoryChangedPaths": [
+            "src/routes/invoices.ts",
+            "tests/invoices.acceptance.test.ts"
+          ],
+          "usage": {
+            "inputTokens": 29834,
+            "outputTokens": 821,
+            "totalTokens": 30655
+          },
+          "workerError": null
+        }
+      ],
+      "totalUsage": {
+        "inputTokens": 29834,
+        "outputTokens": 821,
+        "totalTokens": 30655
+      }
+    },
+    {
+      "condition": "baseline",
+      "trial": 2,
+      "success": true,
+      "attempts": [
+        {
+          "attempt": 1,
+          "oraclePassed": true,
+          "ordinaryPassed": true,
+          "policyViolation": false,
+          "violatedPaths": [],
+          "repositoryChangedPaths": [
+            "src/routes/invoices.ts"
+          ],
+          "usage": {
+            "inputTokens": 18758,
+            "outputTokens": 718,
+            "totalTokens": 19476
+          },
+          "workerError": null
+        }
+      ],
+      "totalUsage": {
+        "inputTokens": 18758,
+        "outputTokens": 718,
+        "totalTokens": 19476
+      }
+    },
+    {
+      "condition": "baseline",
+      "trial": 3,
+      "success": true,
+      "attempts": [
+        {
+          "attempt": 1,
+          "oraclePassed": true,
+          "ordinaryPassed": true,
+          "policyViolation": false,
+          "violatedPaths": [],
+          "repositoryChangedPaths": [
+            "src/routes/invoices.ts"
+          ],
+          "usage": {
+            "inputTokens": 15067,
+            "outputTokens": 740,
+            "totalTokens": 15807
+          },
+          "workerError": null
+        }
+      ],
+      "totalUsage": {
+        "inputTokens": 15067,
+        "outputTokens": 740,
+        "totalTokens": 15807
+      }
+    },
+    {
+      "condition": "baseline",
+      "trial": 4,
+      "success": true,
+      "attempts": [
+        {
+          "attempt": 1,
+          "oraclePassed": true,
+          "ordinaryPassed": true,
+          "policyViolation": false,
+          "violatedPaths": [],
+          "repositoryChangedPaths": [
+            "src/routes/invoices.ts"
+          ],
+          "usage": {
+            "inputTokens": 18002,
+            "outputTokens": 727,
+            "totalTokens": 18729
+          },
+          "workerError": null
+        }
+      ],
+      "totalUsage": {
+        "inputTokens": 18002,
+        "outputTokens": 727,
+        "totalTokens": 18729
+      }
+    },
+    {
+      "condition": "baseline",
+      "trial": 5,
+      "success": true,
+      "attempts": [
+        {
+          "attempt": 1,
+          "oraclePassed": true,
+          "ordinaryPassed": true,
+          "policyViolation": false,
+          "violatedPaths": [],
+          "repositoryChangedPaths": [
+            "src/routes/invoices.ts"
+          ],
+          "usage": {
+            "inputTokens": 16340,
+            "outputTokens": 749,
+            "totalTokens": 17089
+          },
+          "workerError": null
+        }
+      ],
+      "totalUsage": {
+        "inputTokens": 16340,
+        "outputTokens": 749,
+        "totalTokens": 17089
+      }
+    },
+    {
+      "condition": "baseline",
+      "trial": 6,
+      "success": true,
+      "attempts": [
+        {
+          "attempt": 1,
+          "oraclePassed": true,
+          "ordinaryPassed": true,
+          "policyViolation": false,
+          "violatedPaths": [],
+          "repositoryChangedPaths": [
+            "src/routes/invoices.ts"
+          ],
+          "usage": {
+            "inputTokens": 15560,
+            "outputTokens": 695,
+            "totalTokens": 16255
+          },
+          "workerError": null
+        }
+      ],
+      "totalUsage": {
+        "inputTokens": 15560,
+        "outputTokens": 695,
+        "totalTokens": 16255
+      }
+    },
+    {
+      "condition": "baseline",
+      "trial": 7,
+      "success": true,
+      "attempts": [
+        {
+          "attempt": 1,
+          "oraclePassed": true,
+          "ordinaryPassed": true,
+          "policyViolation": false,
+          "violatedPaths": [],
+          "repositoryChangedPaths": [
+            "src/routes/invoices.ts"
+          ],
+          "usage": {
+            "inputTokens": 18807,
+            "outputTokens": 718,
+            "totalTokens": 19525
+          },
+          "workerError": null
+        }
+      ],
+      "totalUsage": {
+        "inputTokens": 18807,
+        "outputTokens": 718,
+        "totalTokens": 19525
+      }
+    },
+    {
+      "condition": "baseline",
+      "trial": 8,
+      "success": true,
+      "attempts": [
+        {
+          "attempt": 1,
+          "oraclePassed": true,
+          "ordinaryPassed": true,
+          "policyViolation": false,
+          "violatedPaths": [],
+          "repositoryChangedPaths": [
+            "src/routes/invoices.ts"
+          ],
+          "usage": {
+            "inputTokens": 22435,
+            "outputTokens": 734,
+            "totalTokens": 23169
+          },
+          "workerError": null
+        }
+      ],
+      "totalUsage": {
+        "inputTokens": 22435,
+        "outputTokens": 734,
+        "totalTokens": 23169
+      }
+    },
+    {
+      "condition": "protected",
+      "trial": 1,
+      "success": true,
+      "attempts": [
+        {
+          "attempt": 1,
+          "oraclePassed": true,
+          "ordinaryPassed": true,
+          "policyViolation": false,
+          "violatedPaths": [],
+          "repositoryChangedPaths": [
+            "src/routes/invoices.ts"
+          ],
+          "usage": {
+            "inputTokens": 16499,
+            "outputTokens": 595,
+            "totalTokens": 17094
+          },
+          "workerError": null
+        }
+      ],
+      "totalUsage": {
+        "inputTokens": 16499,
+        "outputTokens": 595,
+        "totalTokens": 17094
+      }
+    },
+    {
+      "condition": "protected",
+      "trial": 2,
+      "success": true,
+      "attempts": [
+        {
+          "attempt": 1,
+          "oraclePassed": true,
+          "ordinaryPassed": true,
+          "policyViolation": false,
+          "violatedPaths": [],
+          "repositoryChangedPaths": [
+            "src/routes/invoices.ts"
+          ],
+          "usage": {
+            "inputTokens": 15443,
+            "outputTokens": 578,
+            "totalTokens": 16021
+          },
+          "workerError": null
+        }
+      ],
+      "totalUsage": {
+        "inputTokens": 15443,
+        "outputTokens": 578,
+        "totalTokens": 16021
+      }
+    },
+    {
+      "condition": "protected",
+      "trial": 3,
+      "success": true,
+      "attempts": [
+        {
+          "attempt": 1,
+          "oraclePassed": true,
+          "ordinaryPassed": true,
+          "policyViolation": false,
+          "violatedPaths": [],
+          "repositoryChangedPaths": [
+            "src/routes/invoices.ts"
+          ],
+          "usage": {
+            "inputTokens": 17722,
+            "outputTokens": 607,
+            "totalTokens": 18329
+          },
+          "workerError": null
+        }
+      ],
+      "totalUsage": {
+        "inputTokens": 17722,
+        "outputTokens": 607,
+        "totalTokens": 18329
+      }
+    },
+    {
+      "condition": "protected",
+      "trial": 4,
+      "success": true,
+      "attempts": [
+        {
+          "attempt": 1,
+          "oraclePassed": true,
+          "ordinaryPassed": true,
+          "policyViolation": false,
+          "violatedPaths": [],
+          "repositoryChangedPaths": [
+            "src/routes/invoices.ts"
+          ],
+          "usage": {
+            "inputTokens": 17722,
+            "outputTokens": 594,
+            "totalTokens": 18316
+          },
+          "workerError": null
+        }
+      ],
+      "totalUsage": {
+        "inputTokens": 17722,
+        "outputTokens": 594,
+        "totalTokens": 18316
+      }
+    },
+    {
+      "condition": "protected",
+      "trial": 5,
+      "success": true,
+      "attempts": [
+        {
+          "attempt": 1,
+          "oraclePassed": true,
+          "ordinaryPassed": true,
+          "policyViolation": false,
+          "violatedPaths": [],
+          "repositoryChangedPaths": [
+            "src/routes/invoices.ts"
+          ],
+          "usage": {
+            "inputTokens": 17873,
+            "outputTokens": 593,
+            "totalTokens": 18466
+          },
+          "workerError": null
+        }
+      ],
+      "totalUsage": {
+        "inputTokens": 17873,
+        "outputTokens": 593,
+        "totalTokens": 18466
+      }
+    },
+    {
+      "condition": "protected",
+      "trial": 6,
+      "success": true,
+      "attempts": [
+        {
+          "attempt": 1,
+          "oraclePassed": true,
+          "ordinaryPassed": true,
+          "policyViolation": false,
+          "violatedPaths": [],
+          "repositoryChangedPaths": [
+            "src/routes/invoices.ts"
+          ],
+          "usage": {
+            "inputTokens": 16813,
+            "outputTokens": 603,
+            "totalTokens": 17416
+          },
+          "workerError": null
+        }
+      ],
+      "totalUsage": {
+        "inputTokens": 16813,
+        "outputTokens": 603,
+        "totalTokens": 17416
+      }
+    },
+    {
+      "condition": "protected",
+      "trial": 7,
+      "success": true,
+      "attempts": [
+        {
+          "attempt": 1,
+          "oraclePassed": true,
+          "ordinaryPassed": true,
+          "policyViolation": false,
+          "violatedPaths": [],
+          "repositoryChangedPaths": [
+            "src/routes/invoices.ts"
+          ],
+          "usage": {
+            "inputTokens": 17906,
+            "outputTokens": 609,
+            "totalTokens": 18515
+          },
+          "workerError": null
+        }
+      ],
+      "totalUsage": {
+        "inputTokens": 17906,
+        "outputTokens": 609,
+        "totalTokens": 18515
+      }
+    },
+    {
+      "condition": "protected",
+      "trial": 8,
+      "success": true,
+      "attempts": [
+        {
+          "attempt": 1,
+          "oraclePassed": true,
+          "ordinaryPassed": true,
+          "policyViolation": false,
+          "violatedPaths": [],
+          "repositoryChangedPaths": [
+            "src/routes/invoices.ts"
+          ],
+          "usage": {
+            "inputTokens": 17913,
+            "outputTokens": 601,
+            "totalTokens": 18514
+          },
+          "workerError": null
+        }
+      ],
+      "totalUsage": {
+        "inputTokens": 17913,
+        "outputTokens": 601,
+        "totalTokens": 18514
+      }
+    }
+  ]
+}

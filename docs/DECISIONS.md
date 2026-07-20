@@ -52,6 +52,8 @@ This log records decisions for the Build Week implementation. [`BUILD_WEEK_PRD.m
 | BW-041 | Store sprouts local-first and user-owned; JSON now, SQLite next, Postgres+pgvector at team scale | Accepted |
 | BW-042 | Deliver free-first via the MCP server, led by MCP registries and open source | Accepted |
 | BW-043 | Treat sprouts as conditional rules with applicability, precedence, and project detection | Accepted |
+| BW-044 | Measure tokens-to-success in the Outcome Ledger (cost-reduction positioning reassessed by BW-045) | Reassessed |
+| BW-045 | Drop the token-cost-reducer positioning after live measurement; preserve the assets | Accepted |
 
 ## Detailed Decisions
 
@@ -406,6 +408,22 @@ This log records decisions for the Build Week implementation. [`BUILD_WEEK_PRD.m
 **Reason:** A rich pre-built and community library only stays correct across diverse projects if sprouts are contextual and overridable. The same guidance ("edit the schema, regenerate") is right for a schema-first codegen project and wrong for one that hand-writes its client. Applicability conditions keep irrelevant sprouts inactive, precedence lets a user's own corrections override generic defaults, selective retrieval avoids dumping a large library into context, and project detection delivers value before the user has made any correction.
 
 **Consequence:** Building on the existing `scopePaths`, `contextMatch`, and retrieval, the architecture adds a `source`/precedence field on sprouts, richer applicability conditions, project detection (patterns, heuristics, explicit `.memosprout/config`, optional LLM analysis), and precedence-based resolution in delivery. Phased: precedence + basic applicability in the MVP; richer applicability, project detection, and a curated pre-built library next; semantic retrieval, LLM-assisted detection, and a community library later. Documented honest challenges: project detection is hard, the pre-built library is a curation burden, and subtle semantic conflicts can slip past precedence.
+
+### BW-044 — Position MemoSprout as a Token-Cost Reducer and Measure Tokens-to-Success
+
+**Decision:** Position token-cost reduction as a first-class value proposition alongside quality lift, and measure it with a standard `tokens_to_success` metric — the total tokens consumed from task start until the task passes its oracle, including all retries — recorded in the Outcome Ledger's `metrics` map and compared baseline vs protected via `OutcomeLedger.tokenImpact`. Full thesis in `docs/TOKEN_ECONOMICS.md`.
+
+**Reason:** Model intelligence is no longer the practical bottleneck — developers adopt the newest models — but token consumption is: sessions burn millions of tokens and plan limits drive developers to $100–$200 tiers. Most of those tokens are wasted on retries and re-exploration whose root cause is the local-knowledge gap, which no model can close by being smarter and which is exactly the gap sprouts fill. A few-hundred-token sprout that prevents a retry cycle saves tokens at a 100–1000× ratio, and the Cost–Intelligence Router converts the convergence result (0% → 100%) into direct model-cost savings. Honest scope: MemoSprout cuts wasted tokens, not baseline tokens, and the savings claim remains a hypothesis until tokens-to-success is measured on live runs.
+
+**Consequence:** `lib/ledger/schema.ts` defines the `tokens_to_success` metric name (added to the coding domain vocabulary), `lib/ledger/ledger.ts` adds `tokenImpact(scenario)` (baseline vs protected average tokens, savings, savings rate), the dashboard shows token impact per scenario on illustrative demo data, and the landing page leads with the cost story. The live cost experiment (real measured tokens-to-success, translated into plan-tier terms) is the documented next step.
+
+### BW-045 — Drop the Token-Cost-Reducer Positioning After Live Measurement; Preserve the Assets
+
+**Decision:** Based on live measurement, drop the token-cost-reducer positioning (BW-044). The honest, measured claim is "more predictable cost" (variance reduction), not "a smaller bill," and even that is established only on synthetic fixtures. The `tokens_to_success` metric and `tokenImpact` remain in the Outcome Ledger as a measurement tool. The broader product premise is placed under reassessment, and the durable technical assets are preserved independent of the product's direction. Full record in `docs/TOKEN_ECONOMICS.md`.
+
+**Reason:** Two live experiments on gpt-5.4-mini measured 9.2% (idempotency, 3 trials) and 11.2% (api-conventions, 8 trials) mean tokens-to-success savings. The first run had reported 64%; that was a harness bug — the oracle wrote the held-out acceptance test into the repository on every baseline attempt and the worker was blamed for the file the oracle created — and it was found, fixed (violation detection now hashes guarded files before and after each turn), and disclosed. The corrected mean saving is modest, and the 11.2% is driven partly by one outlier baseline run that exhausted its turn budget. Modern models find knowledge that is discoverable from the code (baseline succeeded 8/8), so sprouts add little there. A ~10% saving does not move anyone from a $200 plan to a $100 plan and must not be presented as if it does. Strategically, MemoSprout was built from a name and a technical capability rather than from an experienced problem, which is why its positioning narrowed each time it was tested honestly; the originating quota problem turned out to be solved by documentation plus an agent that finds the docs itself, not by a memory layer.
+
+**Consequence:** Stop positioning MemoSprout as a token-cost reducer; the landing-page cost story must not imply a plan-tier reduction. The `tokens_to_success` metric and `tokenImpact` remain as honest measurement. The product direction is open. The technical assets — the Validation Engine, the oracle framework, and the experiment harness that detected and disclosed its own bug — are preserved and remain valuable as standalone tools, open-source contributions, or components for a real problem once one is identified.
 
 ## Deferred or Conditional Decisions
 

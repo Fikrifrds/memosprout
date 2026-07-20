@@ -36,7 +36,11 @@ distributed and adopted.
    the user's agent).
 5. **Content hook** — the convergence result ("a validated sprout lifts a cheap model from 0% to
    100% on a knowledge-dependent task") is a genuine, empirical story for a blog post, developer
-   communities, and social channels — not empty marketing.
+   communities, and social channels — not empty marketing. A second hook is token economics:
+   most session tokens are wasted on retries and re-exploration caused by missing project-local
+   knowledge, and MemoSprout measures the reduction as `tokens_to_success` (see
+   `TOKEN_ECONOMICS.md`) — once measured on live runs, "your agent bill drops" is a pitch that
+   reaches every agent user, including those on frontier models.
 6. **Agent ecosystem integrations** — plugins or extensions for MCP-capable coding agents,
    built per ecosystem, to meet users where they already work.
 

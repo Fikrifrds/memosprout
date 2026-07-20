@@ -1,0 +1,290 @@
+[
+  {
+    "version": "outcome-record-v1",
+    "outcomeId": "outcome_3afcc47614eb0cc5",
+    "scenario": "api-conventions",
+    "domain": "coding",
+    "taskId": "api-conventions-list-invoices",
+    "model": "gpt-5.4-mini",
+    "sproutIds": [],
+    "condition": "baseline",
+    "success": true,
+    "metrics": {
+      "tokens_to_success": 30655,
+      "attempts": 2,
+      "input_tokens": 29834,
+      "output_tokens": 821
+    },
+    "recordedAt": "2026-07-20T10:11:54.998Z"
+  },
+  {
+    "version": "outcome-record-v1",
+    "outcomeId": "outcome_c152e755571383dd",
+    "scenario": "api-conventions",
+    "domain": "coding",
+    "taskId": "api-conventions-list-invoices",
+    "model": "gpt-5.4-mini",
+    "sproutIds": [],
+    "condition": "baseline",
+    "success": true,
+    "metrics": {
+      "tokens_to_success": 19476,
+      "attempts": 1,
+      "input_tokens": 18758,
+      "output_tokens": 718
+    },
+    "recordedAt": "2026-07-20T10:11:54.998Z"
+  },
+  {
+    "version": "outcome-record-v1",
+    "outcomeId": "outcome_dcb7700baf597b6c",
+    "scenario": "api-conventions",
+    "domain": "coding",
+    "taskId": "api-conventions-list-invoices",
+    "model": "gpt-5.4-mini",
+    "sproutIds": [],
+    "condition": "baseline",
+    "success": true,
+    "metrics": {
+      "tokens_to_success": 15807,
+      "attempts": 1,
+      "input_tokens": 15067,
+      "output_tokens": 740
+    },
+    "recordedAt": "2026-07-20T10:11:54.998Z"
+  },
+  {
+    "version": "outcome-record-v1",
+    "outcomeId": "outcome_8db992868c53785a",
+    "scenario": "api-conventions",
+    "domain": "coding",
+    "taskId": "api-conventions-list-invoices",
+    "model": "gpt-5.4-mini",
+    "sproutIds": [],
+    "condition": "baseline",
+    "success": true,
+    "metrics": {
+      "tokens_to_success": 18729,
+      "attempts": 1,
+      "input_tokens": 18002,
+      "output_tokens": 727
+    },
+    "recordedAt": "2026-07-20T10:11:54.998Z"
+  },
+  {
+    "version": "outcome-record-v1",
+    "outcomeId": "outcome_c1f9cad8d6b44955",
+    "scenario": "api-conventions",
+    "domain": "coding",
+    "taskId": "api-conventions-list-invoices",
+    "model": "gpt-5.4-mini",
+    "sproutIds": [],
+    "condition": "baseline",
+    "success": true,
+    "metrics": {
+      "tokens_to_success": 17089,
+      "attempts": 1,
+      "input_tokens": 16340,
+      "output_tokens": 749
+    },
+    "recordedAt": "2026-07-20T10:11:54.998Z"
+  },
+  {
+    "version": "outcome-record-v1",
+    "outcomeId": "outcome_49e4f7de7e92aecd",
+    "scenario": "api-conventions",
+    "domain": "coding",
+    "taskId": "api-conventions-list-invoices",
+    "model": "gpt-5.4-mini",
+    "sproutIds": [],
+    "condition": "baseline",
+    "success": true,
+    "metrics": {
+      "tokens_to_success": 16255,
+      "attempts": 1,
+      "input_tokens": 15560,
+      "output_tokens": 695
+    },
+    "recordedAt": "2026-07-20T10:11:54.998Z"
+  },
+  {
+    "version": "outcome-record-v1",
+    "outcomeId": "outcome_651b17263cf32362",
+    "scenario": "api-conventions",
+    "domain": "coding",
+    "taskId": "api-conventions-list-invoices",
+    "model": "gpt-5.4-mini",
+    "sproutIds": [],
+    "condition": "baseline",
+    "success": true,
+    "metrics": {
+      "tokens_to_success": 19525,
+      "attempts": 1,
+      "input_tokens": 18807,
+      "output_tokens": 718
+    },
+    "recordedAt": "2026-07-20T10:11:54.998Z"
+  },
+  {
+    "version": "outcome-record-v1",
+    "outcomeId": "outcome_129232e2d6c281c7",
+    "scenario": "api-conventions",
+    "domain": "coding",
+    "taskId": "api-conventions-list-invoices",
+    "model": "gpt-5.4-mini",
+    "sproutIds": [],
+    "condition": "baseline",
+    "success": true,
+    "metrics": {
+      "tokens_to_success": 23169,
+      "attempts": 1,
+      "input_tokens": 22435,
+      "output_tokens": 734
+    },
+    "recordedAt": "2026-07-20T10:11:54.998Z"
+  },
+  {
+    "version": "outcome-record-v1",
+    "outcomeId": "outcome_4b311460100b9bab",
+    "scenario": "api-conventions",
+    "domain": "coding",
+    "taskId": "api-conventions-list-invoices",
+    "model": "gpt-5.4-mini",
+    "sproutIds": [],
+    "condition": "protected",
+    "success": true,
+    "metrics": {
+      "tokens_to_success": 17094,
+      "attempts": 1,
+      "input_tokens": 16499,
+      "output_tokens": 595
+    },
+    "recordedAt": "2026-07-20T10:11:54.998Z"
+  },
+  {
+    "version": "outcome-record-v1",
+    "outcomeId": "outcome_a5a4cfb5b2ea0e94",
+    "scenario": "api-conventions",
+    "domain": "coding",
+    "taskId": "api-conventions-list-invoices",
+    "model": "gpt-5.4-mini",
+    "sproutIds": [],
+    "condition": "protected",
+    "success": true,
+    "metrics": {
+      "tokens_to_success": 16021,
+      "attempts": 1,
+      "input_tokens": 15443,
+      "output_tokens": 578
+    },
+    "recordedAt": "2026-07-20T10:11:54.998Z"
+  },
+  {
+    "version": "outcome-record-v1",
+    "outcomeId": "outcome_9cafa7863fc030c0",
+    "scenario": "api-conventions",
+    "domain": "coding",
+    "taskId": "api-conventions-list-invoices",
+    "model": "gpt-5.4-mini",
+    "sproutIds": [],
+    "condition": "protected",
+    "success": true,
+    "metrics": {
+      "tokens_to_success": 18329,
+      "attempts": 1,
+      "input_tokens": 17722,
+      "output_tokens": 607
+    },
+    "recordedAt": "2026-07-20T10:11:54.998Z"
+  },
+  {
+    "version": "outcome-record-v1",
+    "outcomeId": "outcome_7e8cd9142f231178",
+    "scenario": "api-conventions",
+    "domain": "coding",
+    "taskId": "api-conventions-list-invoices",
+    "model": "gpt-5.4-mini",
+    "sproutIds": [],
+    "condition": "protected",
+    "success": true,
+    "metrics": {
+      "tokens_to_success": 18316,
+      "attempts": 1,
+      "input_tokens": 17722,
+      "output_tokens": 594
+    },
+    "recordedAt": "2026-07-20T10:11:54.998Z"
+  },
+  {
+    "version": "outcome-record-v1",
+    "outcomeId": "outcome_3bfac4bf89a626b2",
+    "scenario": "api-conventions",
+    "domain": "coding",
+    "taskId": "api-conventions-list-invoices",
+    "model": "gpt-5.4-mini",
+    "sproutIds": [],
+    "condition": "protected",
+    "success": true,
+    "metrics": {
+      "tokens_to_success": 18466,
+      "attempts": 1,
+      "input_tokens": 17873,
+      "output_tokens": 593
+    },
+    "recordedAt": "2026-07-20T10:11:54.998Z"
+  },
+  {
+    "version": "outcome-record-v1",
+    "outcomeId": "outcome_b80b00a637da5d3b",
+    "scenario": "api-conventions",
+    "domain": "coding",
+    "taskId": "api-conventions-list-invoices",
+    "model": "gpt-5.4-mini",
+    "sproutIds": [],
+    "condition": "protected",
+    "success": true,
+    "metrics": {
+      "tokens_to_success": 17416,
+      "attempts": 1,
+      "input_tokens": 16813,
+      "output_tokens": 603
+    },
+    "recordedAt": "2026-07-20T10:11:54.998Z"
+  },
+  {
+    "version": "outcome-record-v1",
+    "outcomeId": "outcome_37c29398c6340697",
+    "scenario": "api-conventions",
+    "domain": "coding",
+    "taskId": "api-conventions-list-invoices",
+    "model": "gpt-5.4-mini",
+    "sproutIds": [],
+    "condition": "protected",
+    "success": true,
+    "metrics": {
+      "tokens_to_success": 18515,
+      "attempts": 1,
+      "input_tokens": 17906,
+      "output_tokens": 609
+    },
+    "recordedAt": "2026-07-20T10:11:54.998Z"
+  },
+  {
+    "version": "outcome-record-v1",
+    "outcomeId": "outcome_117363f34e1ef91f",
+    "scenario": "api-conventions",
+    "domain": "coding",
+    "taskId": "api-conventions-list-invoices",
+    "model": "gpt-5.4-mini",
+    "sproutIds": [],
+    "condition": "protected",
+    "success": true,
+    "metrics": {
+      "tokens_to_success": 18514,
+      "attempts": 1,
+      "input_tokens": 17913,
+      "output_tokens": 601
+    },
+    "recordedAt": "2026-07-20T10:11:54.998Z"
+  }
+]

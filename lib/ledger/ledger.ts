@@ -2,7 +2,7 @@ import { readFile, stat, writeFile } from "node:fs/promises";
 
 import { z } from "zod";
 
-import { outcomeRecordSchema, type OutcomeRecord } from "@/lib/ledger/schema";
+import { outcomeRecordSchema, TOKENS_TO_SUCCESS, type OutcomeRecord } from "@/lib/ledger/schema";
 
 export interface OutcomeFilter {
   scenario?: string;
@@ -20,6 +20,13 @@ export interface SproutImpact {
 export interface ScenarioOutcomeSummary extends SproutImpact {
   scenario: string;
   records: number;
+}
+
+export interface TokenImpact {
+  baselineTokens: number;
+  protectedTokens: number;
+  savings: number;
+  savingsRate: number;
 }
 
 export class OutcomeLedger {
@@ -59,6 +66,25 @@ export class OutcomeLedger {
     const baselineRate = this.successRate({ scenario, condition: "baseline" });
     const protectedRate = this.successRate({ scenario, condition: "protected" });
     return { baselineRate, protectedRate, lift: protectedRate - baselineRate };
+  }
+
+  tokenImpact(scenario: string): TokenImpact | null {
+    const baselineTokens = this.averageMetric(TOKENS_TO_SUCCESS, {
+      scenario,
+      condition: "baseline",
+    });
+    const protectedTokens = this.averageMetric(TOKENS_TO_SUCCESS, {
+      scenario,
+      condition: "protected",
+    });
+    if (baselineTokens === null || protectedTokens === null) return null;
+    const savings = baselineTokens - protectedTokens;
+    return {
+      baselineTokens,
+      protectedTokens,
+      savings,
+      savingsRate: baselineTokens === 0 ? 0 : savings / baselineTokens,
+    };
   }
 
   summarizeByScenario(): ScenarioOutcomeSummary[] {

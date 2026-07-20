@@ -41,6 +41,7 @@
     "phase4:v2:worker:calibrate-v2": "tsx scripts/run-phase4-v2-calibration-v2.ts",
     "phase4:v2:worker:calibrate:recover-v1": "tsx scripts/launch-phase4-v2-calibration-recovery-v1.ts",
     "phase4:v2:worker:preflight": "tsx scripts/run-phase4-v2-preflight.ts",
+    "cost:experiment": "tsx --env-file=.env scripts/run-cost-experiment.ts",
     "test": "vitest run",
     "test:watch": "vitest",
     "typecheck": "tsc --noEmit"

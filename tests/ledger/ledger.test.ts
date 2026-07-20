@@ -9,7 +9,11 @@ import {
   loadOutcomeLedger,
   saveOutcomeLedger,
 } from "@/lib/ledger/ledger";
-import { outcomeMetricsForDomain, type OutcomeRecord } from "@/lib/ledger/schema";
+import {
+  outcomeMetricsForDomain,
+  TOKENS_TO_SUCCESS,
+  type OutcomeRecord,
+} from "@/lib/ledger/schema";
 
 const tempDirs: string[] = [];
 
@@ -149,5 +153,75 @@ describe("domain outcome metrics", () => {
     const ledger = new OutcomeLedger();
     ledger.append(makeRecord({ metrics: { csat: 5 } }));
     expect(ledger.averageMetric("conversion")).toBeNull();
+  });
+});
+
+describe("token impact (tokens-to-success)", () => {
+  it("includes tokens_to_success in the coding metric vocabulary", () => {
+    expect(outcomeMetricsForDomain("coding")).toContain(TOKENS_TO_SUCCESS);
+  });
+
+  it("computes baseline vs protected token averages and savings", () => {
+    const ledger = new OutcomeLedger();
+    ledger.append(
+      makeRecord({
+        condition: "baseline",
+        success: false,
+        metrics: { [TOKENS_TO_SUCCESS]: 400_000 },
+      }),
+    );
+    ledger.append(
+      makeRecord({
+        condition: "baseline",
+        success: false,
+        metrics: { [TOKENS_TO_SUCCESS]: 200_000 },
+      }),
+    );
+    ledger.append(
+      makeRecord({ condition: "protected", metrics: { [TOKENS_TO_SUCCESS]: 60_000 } }),
+    );
+
+    expect(ledger.tokenImpact("idempotency")).toEqual({
+      baselineTokens: 300_000,
+      protectedTokens: 60_000,
+      savings: 240_000,
+      savingsRate: 0.8,
+    });
+  });
+
+  it("returns null when either condition lacks token data", () => {
+    const ledger = new OutcomeLedger();
+    expect(ledger.tokenImpact("idempotency")).toBeNull();
+
+    ledger.append(
+      makeRecord({
+        condition: "baseline",
+        success: false,
+        metrics: { [TOKENS_TO_SUCCESS]: 100_000 },
+      }),
+    );
+    expect(ledger.tokenImpact("idempotency")).toBeNull();
+  });
+
+  it("ignores records without the metric when averaging", () => {
+    const ledger = new OutcomeLedger();
+    ledger.append(
+      makeRecord({
+        condition: "baseline",
+        success: false,
+        metrics: { [TOKENS_TO_SUCCESS]: 100_000 },
+      }),
+    );
+    ledger.append(makeRecord({ condition: "baseline", success: false }));
+    ledger.append(
+      makeRecord({ condition: "protected", metrics: { [TOKENS_TO_SUCCESS]: 50_000 } }),
+    );
+
+    expect(ledger.tokenImpact("idempotency")).toEqual({
+      baselineTokens: 100_000,
+      protectedTokens: 50_000,
+      savings: 50_000,
+      savingsRate: 0.5,
+    });
   });
 });

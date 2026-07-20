@@ -1,0 +1,24 @@
+{
+  "type": "object",
+  "properties": {
+    "version": {
+      "type": "string",
+      "const": "1"
+    },
+    "taskId": {
+      "type": "string",
+      "enum": ["api-conventions-list-invoices"]
+    },
+    "summary": {
+      "type": "string"
+    },
+    "commandsRun": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    }
+  },
+  "required": ["version", "taskId", "summary", "commandsRun"],
+  "additionalProperties": false
+}

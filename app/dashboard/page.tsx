@@ -96,6 +96,40 @@ export default function DashboardPage() {
         </section>
 
         <section className="mt-10">
+          <h2 className="text-lg font-semibold">Token impact (tokens-to-success)</h2>
+          <p className="mt-1 text-sm text-slate-600">
+            Total tokens from task start until the oracle passes, including retries.
+            Illustrative demo data — the live cost experiment replaces these numbers.
+          </p>
+          <div className="mt-3 overflow-hidden rounded-xl border border-slate-200 bg-white">
+            <table className="w-full text-sm">
+              <thead className="border-b border-slate-200 text-left text-slate-500">
+                <tr>
+                  <th className="px-4 py-2 font-medium">Scenario</th>
+                  <th className="px-4 py-2 font-medium">Without sprout</th>
+                  <th className="px-4 py-2 font-medium">With sprout</th>
+                  <th className="px-4 py-2 font-medium">Savings</th>
+                </tr>
+              </thead>
+              <tbody>
+                {data.tokenImpacts.map((impact) => (
+                  <tr key={impact.scenario} className="border-b border-slate-100">
+                    <td className="px-4 py-2">{impact.scenario}</td>
+                    <td className="px-4 py-2 text-slate-500">
+                      {impact.baselineTokens.toLocaleString("en-US")}
+                    </td>
+                    <td className="px-4 py-2 font-medium text-emerald-600">
+                      {impact.protectedTokens.toLocaleString("en-US")}
+                    </td>
+                    <td className="px-4 py-2 font-semibold">-{pct(impact.savingsRate)}</td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        </section>
+
+        <section className="mt-10">
           <h2 className="text-lg font-semibold">Cost–Intelligence routing</h2>
           <div className="mt-3 overflow-hidden rounded-xl border border-slate-200 bg-white">
             <table className="w-full text-sm">

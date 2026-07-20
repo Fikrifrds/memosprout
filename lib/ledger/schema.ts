@@ -18,8 +18,12 @@ export const outcomeRecordSchema = z
 
 export type OutcomeRecord = z.infer<typeof outcomeRecordSchema>;
 
+// Total tokens consumed from task start until the task passes its oracle, including all
+// retries and corrections. Compared baseline vs protected to measure token savings.
+export const TOKENS_TO_SUCCESS = "tokens_to_success";
+
 export const domainOutcomeDefinitions = {
-  coding: ["tests_passed", "regression", "review_comments"],
+  coding: ["tests_passed", "regression", "review_comments", TOKENS_TO_SUCCESS],
   support: ["resolution", "escalation", "csat"],
   sales: ["reply", "conversion", "spam_complaint"],
   operations: ["completion", "override", "sla_violation"],

@@ -1,0 +1,116 @@
+[
+  {
+    "version": "outcome-record-v1",
+    "outcomeId": "outcome_03b8189525b370e2",
+    "scenario": "idempotency",
+    "domain": "coding",
+    "taskId": "idempotency-implement-handler",
+    "model": "gpt-5.4-mini",
+    "sproutIds": [],
+    "condition": "baseline",
+    "success": true,
+    "metrics": {
+      "tokens_to_success": 10185,
+      "attempts": 1,
+      "input_tokens": 9664,
+      "output_tokens": 521
+    },
+    "recordedAt": "2026-07-20T07:44:52.528Z"
+  },
+  {
+    "version": "outcome-record-v1",
+    "outcomeId": "outcome_dd48ead1cc50008f",
+    "scenario": "idempotency",
+    "domain": "coding",
+    "taskId": "idempotency-implement-handler",
+    "model": "gpt-5.4-mini",
+    "sproutIds": [],
+    "condition": "baseline",
+    "success": true,
+    "metrics": {
+      "tokens_to_success": 25756,
+      "attempts": 2,
+      "input_tokens": 24635,
+      "output_tokens": 1121
+    },
+    "recordedAt": "2026-07-20T07:44:52.528Z"
+  },
+  {
+    "version": "outcome-record-v1",
+    "outcomeId": "outcome_346770f49c662dcc",
+    "scenario": "idempotency",
+    "domain": "coding",
+    "taskId": "idempotency-implement-handler",
+    "model": "gpt-5.4-mini",
+    "sproutIds": [],
+    "condition": "baseline",
+    "success": true,
+    "metrics": {
+      "tokens_to_success": 22300,
+      "attempts": 2,
+      "input_tokens": 21128,
+      "output_tokens": 1172
+    },
+    "recordedAt": "2026-07-20T07:44:52.528Z"
+  },
+  {
+    "version": "outcome-record-v1",
+    "outcomeId": "outcome_37dfa6cd9c3208f6",
+    "scenario": "idempotency",
+    "domain": "coding",
+    "taskId": "idempotency-implement-handler",
+    "model": "gpt-5.4-mini",
+    "sproutIds": [
+      "sprout_3f7c9a21b8e04d65"
+    ],
+    "condition": "protected",
+    "success": true,
+    "metrics": {
+      "tokens_to_success": 23207,
+      "attempts": 1,
+      "input_tokens": 22431,
+      "output_tokens": 776
+    },
+    "recordedAt": "2026-07-20T07:44:52.528Z"
+  },
+  {
+    "version": "outcome-record-v1",
+    "outcomeId": "outcome_5b7205dadeaf4923",
+    "scenario": "idempotency",
+    "domain": "coding",
+    "taskId": "idempotency-implement-handler",
+    "model": "gpt-5.4-mini",
+    "sproutIds": [
+      "sprout_3f7c9a21b8e04d65"
+    ],
+    "condition": "protected",
+    "success": true,
+    "metrics": {
+      "tokens_to_success": 15295,
+      "attempts": 1,
+      "input_tokens": 14662,
+      "output_tokens": 633
+    },
+    "recordedAt": "2026-07-20T07:44:52.528Z"
+  },
+  {
+    "version": "outcome-record-v1",
+    "outcomeId": "outcome_9beb17eefa031393",
+    "scenario": "idempotency",
+    "domain": "coding",
+    "taskId": "idempotency-implement-handler",
+    "model": "gpt-5.4-mini",
+    "sproutIds": [
+      "sprout_3f7c9a21b8e04d65"
+    ],
+    "condition": "protected",
+    "success": true,
+    "metrics": {
+      "tokens_to_success": 14400,
+      "attempts": 1,
+      "input_tokens": 13801,
+      "output_tokens": 599
+    },
+    "recordedAt": "2026-07-20T07:44:52.528Z"
+  }
+]

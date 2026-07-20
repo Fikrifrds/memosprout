@@ -11,8 +11,12 @@ export function SiteNav() {
   return (
     <nav className="border-b border-slate-200 bg-white">
       <div className="mx-auto flex max-w-4xl items-center justify-between px-4 py-3">
-        <Link href="/" className="text-base font-semibold tracking-tight">
-          MemoSprout
+        <Link
+          href="/"
+          className="text-base font-semibold lowercase tracking-tight"
+          aria-label="MemoSprout home"
+        >
+          memosprout
         </Link>
         <div className="flex gap-5 text-sm">
           {links.map((link) => (

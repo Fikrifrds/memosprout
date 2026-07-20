@@ -7,7 +7,7 @@ import { z } from "zod";
 
 import {
   convergenceWorkerOutputSchema,
-  type ConvergenceWorkerOutput,
+  type WorkerOutput,
   type WorkerAdapter,
   type WorkerTurnEvidence,
   type WorkerTurnOptions,
@@ -46,6 +46,28 @@ export class FrontierWorkerError extends Error {
     this.name = "FrontierWorkerError";
     this.code = code;
   }
+}
+
+/**
+ * Build the tool set for a scenario whose task ids differ from the idempotency scenario's.
+ * `frontierTools` below is the frozen idempotency instance, kept so existing callers and
+ * their recorded evidence are unaffected.
+ */
+export function buildFrontierTools(taskIds: readonly string[]) {
+  return frontierTools.map((tool) =>
+    tool.name === "submit_result"
+      ? {
+          ...tool,
+          parameters: {
+            ...tool.parameters,
+            properties: {
+              ...tool.parameters.properties,
+              taskId: { type: "string", enum: [...taskIds] },
+            },
+          },
+        }
+      : tool,
+  );
 }
 
 export const frontierTools = [
@@ -112,12 +134,21 @@ const frontierFunctionCallSchema = z
   })
   .passthrough();
 
+const frontierUsageSchema = z
+  .object({
+    input_tokens: z.number().int().nonnegative(),
+    output_tokens: z.number().int().nonnegative(),
+    total_tokens: z.number().int().nonnegative(),
+  })
+  .passthrough();
+
 const frontierResponseSchema = z
   .object({
     id: z.string().min(1),
     model: z.string().min(1),
     status: z.string().min(1),
     output: z.array(z.object({ type: z.string() }).passthrough()),
+    usage: frontierUsageSchema.optional(),
   })
   .passthrough();
 
@@ -263,6 +294,10 @@ export interface FrontierWorkerOptions {
   apiKey?: string;
   maxTurns?: number;
   commandTimeoutMs?: number;
+  /** Tool set override, for scenarios with different task ids (see buildFrontierTools). */
+  tools?: ReadonlyArray<Record<string, unknown>>;
+  /** Structured-output validator, defaults to the idempotency worker-output schema. */
+  validateOutput?: (value: unknown) => WorkerOutput;
 }
 
 const defaultInstructions =
@@ -298,8 +333,10 @@ export class FrontierApiWorkerAdapter implements WorkerAdapter {
     const traceEvents: Array<Record<string, unknown>> = [];
     const commandExecutions: CommandExecution[] = [];
     let threadId: string | null = null;
-    let finalOutput: ConvergenceWorkerOutput | null = null;
+    let finalOutput: WorkerOutput | null = null;
     let turnCompleted = false;
+    const usage = { inputTokens: 0, outputTokens: 0, totalTokens: 0 };
+    let usageObserved = false;
 
     try {
       outer: for (let turn = 0; turn < maxTurns; turn += 1) {
@@ -307,10 +344,16 @@ export class FrontierApiWorkerAdapter implements WorkerAdapter {
           model: this.model,
           instructions,
           input,
-          tools: frontierTools,
+          tools: this.options.tools ?? frontierTools,
         });
         const response = frontierResponseSchema.parse(raw);
         threadId = response.id;
+        if (response.usage) {
+          usageObserved = true;
+          usage.inputTokens += response.usage.input_tokens;
+          usage.outputTokens += response.usage.output_tokens;
+          usage.totalTokens += response.usage.total_tokens;
+        }
         if (response.status !== "completed") {
           break;
         }
@@ -336,13 +379,14 @@ export class FrontierApiWorkerAdapter implements WorkerAdapter {
           });
 
           if (call.name === "submit_result") {
-            const parsedOutput = convergenceWorkerOutputSchema.safeParse(
-              JSON.parse(call.arguments),
-            );
-            if (!parsedOutput.success) {
-              throw new FrontierWorkerError("malformed_output", { cause: parsedOutput.error });
+            const validate =
+              this.options.validateOutput ??
+              ((value: unknown) => convergenceWorkerOutputSchema.parse(value));
+            try {
+              finalOutput = validate(JSON.parse(call.arguments));
+            } catch (validationError) {
+              throw new FrontierWorkerError("malformed_output", { cause: validationError });
             }
-            finalOutput = parsedOutput.data;
             input.push({
               type: "function_call_output",
               call_id: call.call_id,
@@ -387,6 +431,7 @@ export class FrontierApiWorkerAdapter implements WorkerAdapter {
         stdout: combinedStdout,
         stderr: combinedStderr,
         finalOutput,
+        usage: usageObserved ? usage : null,
       };
     } catch (error) {
       if (error instanceof FrontierWorkerError) {

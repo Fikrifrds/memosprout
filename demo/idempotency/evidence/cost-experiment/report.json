@@ -1,0 +1,242 @@
+{
+  "version": "cost-experiment-report-v1",
+  "generatedAt": "2026-07-20T07:44:52.528Z",
+  "model": "gpt-5.4-mini",
+  "scenario": "idempotency",
+  "trialsPerCondition": 3,
+  "maxAttempts": 3,
+  "pricingUsdPerMTokens": {
+    "input": 0.75,
+    "output": 4.5
+  },
+  "conditions": {
+    "baseline": {
+      "successes": 3,
+      "trials": 3,
+      "attempts": 5,
+      "inputTokens": 55427,
+      "outputTokens": 2814,
+      "totalTokens": 58241,
+      "estimatedUsd": 0.05423325
+    },
+    "protected": {
+      "successes": 3,
+      "trials": 3,
+      "attempts": 3,
+      "inputTokens": 50894,
+      "outputTokens": 2008,
+      "totalTokens": 52902,
+      "estimatedUsd": 0.0472065
+    }
+  },
+  "tokenImpact": {
+    "baselineTokens": 19413.666666666668,
+    "protectedTokens": 17634,
+    "savings": 1779.6666666666679,
+    "savingsRate": 0.09167081609175673
+  },
+  "trials": [
+    {
+      "condition": "baseline",
+      "trial": 1,
+      "success": true,
+      "attempts": [
+        {
+          "attempt": 1,
+          "oraclePassed": true,
+          "ordinaryPassed": true,
+          "policyViolation": false,
+          "violatedPaths": [],
+          "repositoryChangedPaths": [
+            "src/webhook-handler.ts"
+          ],
+          "usage": {
+            "inputTokens": 9664,
+            "outputTokens": 521,
+            "totalTokens": 10185
+          },
+          "workerError": null
+        }
+      ],
+      "totalUsage": {
+        "inputTokens": 9664,
+        "outputTokens": 521,
+        "totalTokens": 10185
+      }
+    },
+    {
+      "condition": "baseline",
+      "trial": 2,
+      "success": true,
+      "attempts": [
+        {
+          "attempt": 1,
+          "oraclePassed": false,
+          "ordinaryPassed": true,
+          "policyViolation": false,
+          "violatedPaths": [],
+          "repositoryChangedPaths": [
+            "src/webhook-handler.ts"
+          ],
+          "usage": {
+            "inputTokens": 14940,
+            "outputTokens": 557,
+            "totalTokens": 15497
+          },
+          "workerError": null
+        },
+        {
+          "attempt": 2,
+          "oraclePassed": true,
+          "ordinaryPassed": true,
+          "policyViolation": false,
+          "violatedPaths": [],
+          "repositoryChangedPaths": [
+            "src/webhook-handler.ts",
+            "tests/idempotency.acceptance.test.ts"
+          ],
+          "usage": {
+            "inputTokens": 9695,
+            "outputTokens": 564,
+            "totalTokens": 10259
+          },
+          "workerError": null
+        }
+      ],
+      "totalUsage": {
+        "inputTokens": 24635,
+        "outputTokens": 1121,
+        "totalTokens": 25756
+      }
+    },
+    {
+      "condition": "baseline",
+      "trial": 3,
+      "success": true,
+      "attempts": [
+        {
+          "attempt": 1,
+          "oraclePassed": false,
+          "ordinaryPassed": true,
+          "policyViolation": false,
+          "violatedPaths": [],
+          "repositoryChangedPaths": [
+            "src/webhook-handler.ts"
+          ],
+          "usage": {
+            "inputTokens": 11354,
+            "outputTokens": 599,
+            "totalTokens": 11953
+          },
+          "workerError": null
+        },
+        {
+          "attempt": 2,
+          "oraclePassed": true,
+          "ordinaryPassed": true,
+          "policyViolation": false,
+          "violatedPaths": [],
+          "repositoryChangedPaths": [
+            "src/webhook-handler.ts",
+            "tests/idempotency.acceptance.test.ts"
+          ],
+          "usage": {
+            "inputTokens": 9774,
+            "outputTokens": 573,
+            "totalTokens": 10347
+          },
+          "workerError": null
+        }
+      ],
+      "totalUsage": {
+        "inputTokens": 21128,
+        "outputTokens": 1172,
+        "totalTokens": 22300
+      }
+    },
+    {
+      "condition": "protected",
+      "trial": 1,
+      "success": true,
+      "attempts": [
+        {
+          "attempt": 1,
+          "oraclePassed": true,
+          "ordinaryPassed": true,
+          "policyViolation": false,
+          "violatedPaths": [],
+          "repositoryChangedPaths": [
+            "src/webhook-handler.ts"
+          ],
+          "usage": {
+            "inputTokens": 22431,
+            "outputTokens": 776,
+            "totalTokens": 23207
+          },
+          "workerError": null
+        }
+      ],
+      "totalUsage": {
+        "inputTokens": 22431,
+        "outputTokens": 776,
+        "totalTokens": 23207
+      }
+    },
+    {
+      "condition": "protected",
+      "trial": 2,
+      "success": true,
+      "attempts": [
+        {
+          "attempt": 1,
+          "oraclePassed": true,
+          "ordinaryPassed": true,
+          "policyViolation": false,
+          "violatedPaths": [],
+          "repositoryChangedPaths": [
+            "src/webhook-handler.ts"
+          ],
+          "usage": {
+            "inputTokens": 14662,
+            "outputTokens": 633,
+            "totalTokens": 15295
+          },
+          "workerError": null
+        }
+      ],
+      "totalUsage": {
+        "inputTokens": 14662,
+        "outputTokens": 633,
+        "totalTokens": 15295
+      }
+    },
+    {
+      "condition": "protected",
+      "trial": 3,
+      "success": true,
+      "attempts": [
+        {
+          "attempt": 1,
+          "oraclePassed": true,
+          "ordinaryPassed": true,
+          "policyViolation": false,
+          "violatedPaths": [],
+          "repositoryChangedPaths": [
+            "src/webhook-handler.ts"
+          ],
+          "usage": {
+            "inputTokens": 13801,
+            "outputTokens": 599,
+            "totalTokens": 14400
+          },
+          "workerError": null
+        }
+      ],
+      "totalUsage": {
+        "inputTokens": 13801,
+        "outputTokens": 599,
+        "totalTokens": 14400
+      }
+    }
+  ]
+}

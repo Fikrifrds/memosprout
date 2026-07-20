@@ -15,6 +15,23 @@ export const convergenceWorkerOutputSchema = z
 
 export type ConvergenceWorkerOutput = z.infer<typeof convergenceWorkerOutputSchema>;
 
+/**
+ * The same shape with an unconstrained task id, for scenarios outside the convergence
+ * experiment that reuse the worker adapter.
+ */
+export interface WorkerOutput {
+  version: "1";
+  taskId: string;
+  summary: string;
+  commandsRun: string[];
+}
+
+export interface WorkerTokenUsage {
+  inputTokens: number;
+  outputTokens: number;
+  totalTokens: number;
+}
+
 export interface WorkerTurnEvidence {
   command: string;
   exitCode: number;
@@ -23,7 +40,8 @@ export interface WorkerTurnEvidence {
   events: CodexEvent[];
   stdout: string;
   stderr: string;
-  finalOutput: ConvergenceWorkerOutput | null;
+  finalOutput: WorkerOutput | null;
+  usage?: WorkerTokenUsage | null;
 }
 
 export interface WorkerTurnOptions {

@@ -1,5 +1,5 @@
-import { OutcomeLedger } from "@/lib/ledger/ledger";
-import type { OutcomeRecord } from "@/lib/ledger/schema";
+import { OutcomeLedger, type TokenImpact } from "@/lib/ledger/ledger";
+import { TOKENS_TO_SUCCESS, type OutcomeRecord } from "@/lib/ledger/schema";
 import { seedDemoRegistry } from "@/lib/mcp/seed";
 import { routePortfolio, type PortfolioRouting } from "@/lib/router/router";
 import type { ScenarioOutcomeSummary } from "@/lib/ledger/ledger";
@@ -39,10 +39,15 @@ export const scenarioCatalog: ScenarioInfo[] = [
   },
 ];
 
+export interface ScenarioTokenImpact extends TokenImpact {
+  scenario: string;
+}
+
 export interface DashboardData {
   scenarios: ScenarioInfo[];
   sprouts: ValidatedSprout[];
   scenarioSummaries: ScenarioOutcomeSummary[];
+  tokenImpacts: ScenarioTokenImpact[];
   routing: PortfolioRouting;
 }
 
@@ -66,9 +71,25 @@ export function buildDashboardData(): DashboardData {
     };
   };
 
+  // Illustrative demo values: baseline runs are expensive because failures force retries;
+  // protected runs succeed on the first try.
   for (let i = 0; i < 3; i += 1) {
-    ledger.append(record({ scenario: "idempotency", condition: "baseline", success: false }));
-    ledger.append(record({ scenario: "idempotency", condition: "protected", success: true }));
+    ledger.append(
+      record({
+        scenario: "idempotency",
+        condition: "baseline",
+        success: false,
+        metrics: { [TOKENS_TO_SUCCESS]: 420_000 },
+      }),
+    );
+    ledger.append(
+      record({
+        scenario: "idempotency",
+        condition: "protected",
+        success: true,
+        metrics: { [TOKENS_TO_SUCCESS]: 60_000 },
+      }),
+    );
   }
   for (let i = 0; i < 3; i += 1) {
     ledger.append(
@@ -77,6 +98,7 @@ export function buildDashboardData(): DashboardData {
         sproutIds: ["sprout_8c2e5a71d90f3b64"],
         condition: "baseline",
         success: false,
+        metrics: { [TOKENS_TO_SUCCESS]: 310_000 },
       }),
     );
     ledger.append(
@@ -85,14 +107,20 @@ export function buildDashboardData(): DashboardData {
         sproutIds: ["sprout_8c2e5a71d90f3b64"],
         condition: "protected",
         success: true,
+        metrics: { [TOKENS_TO_SUCCESS]: 55_000 },
       }),
     );
   }
 
+  const demoScenarios = ["idempotency", "soft-delete"];
   return {
     scenarios: scenarioCatalog,
     sprouts: registry.list(),
     scenarioSummaries: ledger.summarizeByScenario(),
-    routing: routePortfolio(ledger, ["idempotency", "soft-delete"]),
+    tokenImpacts: demoScenarios.flatMap((scenario) => {
+      const impact = ledger.tokenImpact(scenario);
+      return impact === null ? [] : [{ scenario, ...impact }];
+    }),
+    routing: routePortfolio(ledger, demoScenarios),
   };
 }
