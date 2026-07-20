@@ -9,7 +9,7 @@ import {
   loadOutcomeLedger,
   saveOutcomeLedger,
 } from "@/lib/ledger/ledger";
-import type { OutcomeRecord } from "@/lib/ledger/schema";
+import { outcomeMetricsForDomain, type OutcomeRecord } from "@/lib/ledger/schema";
 
 const tempDirs: string[] = [];
 
@@ -123,5 +123,31 @@ describe("outcome ledger persistence", () => {
     tempDirs.push(dir);
     const loaded = await loadOutcomeLedger(join(dir, "missing.json"));
     expect(loaded.size).toBe(0);
+  });
+});
+
+describe("domain outcome metrics", () => {
+  it("defines outcome metrics per domain", () => {
+    expect(outcomeMetricsForDomain("support")).toContain("csat");
+    expect(outcomeMetricsForDomain("coding")).toContain("tests_passed");
+    expect(outcomeMetricsForDomain("sales")).toContain("conversion");
+    expect(outcomeMetricsForDomain("operations")).toContain("sla_violation");
+  });
+
+  it("averages a domain metric across matching records", () => {
+    const ledger = new OutcomeLedger();
+    ledger.append(
+      makeRecord({ domain: "support", scenario: "refund", metrics: { csat: 4 } }),
+    );
+    ledger.append(
+      makeRecord({ domain: "support", scenario: "refund", metrics: { csat: 2 } }),
+    );
+    expect(ledger.averageMetric("csat", { scenario: "refund" })).toBe(3);
+  });
+
+  it("returns null when no record carries the metric", () => {
+    const ledger = new OutcomeLedger();
+    ledger.append(makeRecord({ metrics: { csat: 5 } }));
+    expect(ledger.averageMetric("conversion")).toBeNull();
   });
 });

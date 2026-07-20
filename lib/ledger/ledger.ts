@@ -71,6 +71,14 @@ export class OutcomeLedger {
         ...this.sproutImpact(scenario),
       }));
   }
+
+  averageMetric(metricName: string, filter: OutcomeFilter = {}): number | null {
+    const values = this.query(filter)
+      .map((record) => record.metrics?.[metricName])
+      .filter((value): value is number => typeof value === "number");
+    if (values.length === 0) return null;
+    return values.reduce((sum, value) => sum + value, 0) / values.length;
+  }
 }
 
 export async function loadOutcomeLedger(path: string): Promise<OutcomeLedger> {

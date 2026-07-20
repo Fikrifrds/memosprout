@@ -873,6 +873,22 @@ Evidence:
 - the trap tests show each naive implementation fails its acceptance suite while the correct implementation passes;
 - `pnpm lint` and `pnpm typecheck` completed with zero errors and zero warnings; `pnpm test` passed 55 test files and 327 tests.
 
+### Multi-Domain Phases B–D — Generalize Oracle, Delivery, and Outcome Metrics
+
+Added:
+
+- Phase B: two oracle types beyond code test suites — `StructuredCheckOracle` (deterministic field checks on a JSON output artifact) and `RubricJudgeOracle` (an injectable judge, live `createOpenAIJudgeTransport` or mock, against a rubric) — in `lib/eval/engine/oracles.ts`;
+- Phase C: context-based delivery — `ValidatedSprout.contextMatch`, `contextMatches`, and `get_task_context`/MCP tool support for an arbitrary `context` object alongside `filePaths` (backward compatible);
+- Phase D: flexible domain outcome metrics — `OutcomeRecord.domain` + `metrics`, `domainOutcomeDefinitions`/`outcomeMetricsForDomain` (coding/support/sales/operations), and `OutcomeLedger.averageMetric`.
+
+Changed:
+
+- the engine, delivery, and ledger now generalize toward non-coding domains while remaining backward compatible with the coding scenarios.
+
+Evidence:
+
+- `pnpm lint` and `pnpm typecheck` completed with zero errors and zero warnings; `pnpm test` passed 56 test files and 340 tests, including the new oracle, context-matching, and domain-metric tests.
+
 ## Entry Format for Future Work
 
 Future entries must use the date the change was completed and include only applicable sections:

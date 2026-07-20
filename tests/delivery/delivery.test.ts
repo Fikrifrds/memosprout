@@ -6,6 +6,7 @@ import {
   deliveryAdapters,
 } from "@/lib/delivery/adapters";
 import {
+  contextMatches,
   getTaskContext,
   getTaskContextToolDefinition,
   matchSprouts,
@@ -99,7 +100,8 @@ describe("getTaskContext", () => {
 
   it("exposes an MCP tool definition named get_task_context", () => {
     expect(getTaskContextToolDefinition.name).toBe("get_task_context");
-    expect(getTaskContextToolDefinition.inputSchema.required).toEqual(["filePaths"]);
+    expect(getTaskContextToolDefinition.inputSchema.properties.filePaths).toBeDefined();
+    expect(getTaskContextToolDefinition.inputSchema.properties.context).toBeDefined();
   });
 });
 
@@ -125,5 +127,49 @@ describe("delivery adapters", () => {
   it("registers both adapters by id", () => {
     expect(deliveryAdapters["agents-md"]?.targetFile).toBe("AGENTS.md");
     expect(deliveryAdapters["claude-code"]?.targetFile).toBe("CLAUDE.md");
+  });
+});
+
+describe("context-based delivery (multi-domain)", () => {
+  const refundSprout: ValidatedSprout = {
+    sproutId: "sprout_aaaaaaaaaaaaaaa1",
+    scenario: "support-refund",
+    guidance: "Refund only within 30 days and with a valid receipt.",
+    scopePaths: [],
+    contextMatch: { domain: "support", ticketType: "refund" },
+  };
+
+  function registryWithRefundSprout(): SproutRegistry {
+    const registry = new SproutRegistry();
+    registry.add(refundSprout);
+    return registry;
+  }
+
+  it("contextMatches requires every key to match", () => {
+    expect(contextMatches({ a: "1", b: "2" }, { a: "1", b: "2", c: "3" })).toBe(true);
+    expect(contextMatches({ a: "1", b: "2" }, { a: "1", b: "x" })).toBe(false);
+  });
+
+  it("matches a sprout by context attributes", () => {
+    const result = getTaskContext(registryWithRefundSprout(), {
+      context: { domain: "support", ticketType: "refund" },
+    });
+    expect(result.sprouts.map((sprout) => sprout.scenario)).toEqual(["support-refund"]);
+  });
+
+  it("does not match when the context differs", () => {
+    const result = getTaskContext(registryWithRefundSprout(), {
+      context: { domain: "support", ticketType: "billing" },
+    });
+    expect(result.sprouts).toEqual([]);
+  });
+
+  it("still matches coding sprouts by file path", () => {
+    const result = getTaskContext(makeRegistry(), { filePaths: ["src/webhook-handler.ts"] });
+    expect(result.sprouts.map((sprout) => sprout.scenario)).toEqual(["idempotency"]);
+  });
+
+  it("requires at least filePaths or context", () => {
+    expect(() => getTaskContext(makeRegistry(), {})).toThrow();
   });
 });

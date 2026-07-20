@@ -45,6 +45,9 @@ This log records decisions for the Build Week implementation. [`BUILD_WEEK_PRD.m
 | BW-034 | Wire the demo UI to live sprout extraction | Accepted |
 | BW-035 | Persist the MCP server's sprout registry to a file-backed store | Accepted |
 | BW-036 | Add tenant-isolation and secret-handling scenarios to prove engine generalization | Accepted |
+| BW-037 | Generalize the oracle beyond code test suites (structured-check and rubric-judge) | Accepted |
+| BW-038 | Generalize delivery matching to arbitrary context attributes | Accepted |
+| BW-039 | Add flexible domain outcome metrics to the Outcome Ledger | Accepted |
 
 ## Detailed Decisions
 
@@ -343,6 +346,30 @@ This log records decisions for the Build Week implementation. [`BUILD_WEEK_PRD.m
 **Reason:** Multi-domain expansion (Phase A) begins by proving the Validation Engine generalizes across diverse coding knowledge traps, not just idempotency and soft-delete. Both new scenarios run through the unchanged engine, confirming the `ScenarioDefinition` abstraction holds.
 
 **Consequence:** `demo/tenant-isolation/` and `demo/secret-handling/` (templates, acceptance suites, schemas), `lib/scenario/{tenant-isolation,secret-handling}.ts`, and trap tests bring the total to four scenarios, all validated by the same engine. The naive implementations are intentionally wrong (and lint-clean) so the acceptance suites discriminate naive from correct.
+
+### BW-037 — Generalize the Oracle Beyond Code Test Suites
+
+**Decision:** Add two oracle types alongside the acceptance-suite oracle, both implementing `ScenarioOracle`: `StructuredCheckOracle` (reads a JSON output artifact from the repository and runs deterministic field checks) and `RubricJudgeOracle` (reads a text output artifact and asks an injectable judge — live `createOpenAIJudgeTransport` or a mock — whether it satisfies a rubric).
+
+**Reason:** Non-coding domains (support, sales) are validated by structured outputs or rubric judgments, not code test suites. These oracles decouple "validation" from "code tests" while reusing the same `ScenarioOracle` interface, so the engine can validate non-code agent output without changes.
+
+**Consequence:** `lib/eval/engine/oracles.ts` provides both oracles and the `JudgeTransport` abstraction; demonstrated model-free (structured checks pass/fail with field reporting; rubric judge via a mock transport).
+
+### BW-038 — Generalize Delivery Matching to Arbitrary Context Attributes
+
+**Decision:** Generalize `get_task_context` matching so a sprout matches either by file-path scope (existing) or by arbitrary context attributes (new): a sprout may carry an optional `contextMatch` (key-value pairs), and the tool input accepts an optional `context` object in addition to `filePaths`.
+
+**Reason:** Coding sprouts match by file paths, but non-coding sprouts match by context (ticket type, domain, customer tier). Generalizing the match key lets the same delivery mechanism serve any domain.
+
+**Consequence:** `ValidatedSprout` gains an optional `contextMatch` (and `scopePaths` may now be empty); `getTaskContext`/`contextMatches` and the MCP tool definition support `context`; backward compatible with file-path matching, demonstrated for a support-refund sprout matched by `{ domain, ticketType }`.
+
+### BW-039 — Add Flexible Domain Outcome Metrics to the Outcome Ledger
+
+**Decision:** Extend `OutcomeRecord` with an optional `domain` and a flexible `metrics` map (`Record<string, number>`), add `domainOutcomeDefinitions` (coding/support/sales/operations metric vocabularies from the Full PRD) with `outcomeMetricsForDomain`, and add `OutcomeLedger.averageMetric` to aggregate a named metric over a filter.
+
+**Reason:** Different domains measure outcomes differently (CSAT, conversion, SLA violations). A flexible metrics map plus a domain vocabulary lets the ledger capture and aggregate domain-specific outcomes without schema changes per domain.
+
+**Consequence:** `lib/ledger/schema.ts` and `lib/ledger/ledger.ts` provide the extended record, domain vocabularies, and metric aggregation; demonstrated model-free (per-domain vocabularies, averaging a metric, null when absent).
 
 ## Deferred or Conditional Decisions
 
