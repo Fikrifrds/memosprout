@@ -1,7 +1,5 @@
 import Link from "next/link";
 
-import { GitHubLink } from "@/components/GitHubLink";
-
 const links = [
   { href: "/", label: "Home" },
   { href: "/docs", label: "Docs" },
@@ -31,7 +29,6 @@ export function SiteNav() {
               {link.label}
             </Link>
           ))}
-          <GitHubLink compact />
         </div>
       </div>
     </nav>

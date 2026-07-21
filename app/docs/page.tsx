@@ -1,4 +1,5 @@
 import { CodeBlock } from "@/components/CodeBlock";
+import { GitHubLink } from "@/components/GitHubLink";
 import { SiteNav } from "@/components/SiteNav";
 
 export const metadata = {
@@ -291,11 +292,15 @@ ctx = requests.post(f"{BASE}/context", headers=HEAD,
           </p>
         </Section>
 
-        <footer className="mt-12 border-t border-slate-200 py-6 text-center text-xs text-slate-400">
-          Deeper reference lives in the repository:{" "}
-          <code>docs/PROVIDERS.md</code> (every LLM provider),{" "}
-          <code>docs/ARCHITECTURE.md</code> (internals),{" "}
-          <code>docs/INTEGRATION_EXAMPLES.md</code> (frameworks and other languages).
+        <footer className="mt-12 border-t border-slate-200 py-8 text-center">
+          <p className="text-xs text-slate-400">
+            Deeper reference lives in the repository: <code>docs/PROVIDERS.md</code> (every LLM
+            provider), <code>docs/ARCHITECTURE.md</code> (internals),{" "}
+            <code>docs/INTEGRATION_EXAMPLES.md</code> (frameworks and other languages).
+          </p>
+          <div className="mt-4 flex justify-center">
+            <GitHubLink />
+          </div>
         </footer>
       </main>
     </>
