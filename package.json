@@ -51,6 +51,7 @@
   "sideEffects": false,
   "scripts": {
     "build": "next build",
+    "deploy:site": "bash scripts/deploy-site.sh",
     "build:lib": "tsup",
     "prepublishOnly": "pnpm build:lib",
     "dev": "next dev",
