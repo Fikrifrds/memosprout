@@ -27,6 +27,10 @@ jobs:
 
     steps:
       - uses: actions/checkout@v4
+        with:
+          # Some eval tests inspect git history and build-week tags, which a
+          # default shallow checkout does not fetch.
+          fetch-depth: 0
 
       # Version comes from the "packageManager" field in package.json.
       - uses: pnpm/action-setup@v4
