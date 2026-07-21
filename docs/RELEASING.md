@@ -27,23 +27,50 @@ Access Token**:
 
 | Setting | Value |
 |---|---|
-| Packages | Only `memosprout` |
-| Permissions | Read and write |
+| Token name | `memosprout-ci` |
+| **Bypass two-factor authentication (2FA)** | **Checked** — see below |
+| Allowed IP ranges | Leave empty (Actions runners use rotating IPs) |
+| Packages → Permissions | **Read and write** |
+| Packages → selection | Only `memosprout` |
+| Organizations | No access |
 | Expiration | 90 days (set a calendar reminder to rotate) |
-| Organizations | None |
 
 Copy the token — npm shows it once.
+
+> **Why "Bypass 2FA" must be checked.** CI has no human to type a 2FA code,
+> so publishing fails without it. This does not weaken your account: 2FA
+> still guards login and manual operations. The token stays safe because it
+> is scoped to one package, expires in 90 days, and lives only as an
+> encrypted GitHub secret.
+
+> **Before the first release**, `memosprout` does not exist on npm yet, so
+> it cannot be selected in the package list. Choose **All packages** for the
+> first publish, then create a replacement token scoped to `memosprout`,
+> update the `NPM_TOKEN` secret, and revoke the broad one.
 
 > Use a **granular** token, not a classic "Automation" token. If it leaks,
 > the blast radius is one package instead of everything you own.
 
 ### 3. Add the token to GitHub
 
-Repository → **Settings** → **Secrets and variables** → **Actions** →
-**New repository secret**:
+With the GitHub CLI (prompts for the token so it never lands in shell
+history):
 
-- Name: `NPM_TOKEN`
-- Value: the token from step 2
+```bash
+gh secret set NPM_TOKEN --repo Fikrifrds/memosprout
+```
+
+Or in the browser: Repository → **Settings** → **Secrets and variables** →
+**Actions** → **New repository secret**, name `NPM_TOKEN`.
+
+The name must be exactly `NPM_TOKEN` — a typo surfaces later as a
+confusing npm authentication error, not as a missing-secret error.
+
+Verify it landed:
+
+```bash
+gh secret list --repo Fikrifrds/memosprout   # values are never shown
+```
 
 ### 4. Verify the workflow permissions
 
