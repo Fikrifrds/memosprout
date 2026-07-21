@@ -702,6 +702,7 @@ export {
 export { FeedbackStore } from "@/lib/feedback/store";
 export { OutcomeTracker, type OutcomeReport, type OutcomeEvent } from "@/lib/outcome/tracker";
 export { AuditLog, type AuditEntry } from "@/lib/audit/log";
+export { createApiServer, type ApiServerOptions } from "@/lib/api/server";
 export { matchesWrongPattern, normalizeText } from "@/lib/correction/matching";
 export { semanticCheck } from "@/lib/llm/semantic-check";
 export { atomicWriteFile, Mutex } from "@/lib/store/atomic";

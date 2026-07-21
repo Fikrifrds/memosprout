@@ -300,7 +300,26 @@ app.post("/chat", async (req, res) => {
 
 ## Use from Python, PHP, Go, or any language
 
-Run the built-in REST API server and call it over HTTP:
+Run the built-in REST API server and call it over HTTP. Start it from a
+few lines of Node:
+
+```typescript
+// server.mjs — node server.mjs
+import { MemoSprout, createApiServer } from "memosprout";
+
+const ms = new MemoSprout("./corrections", {
+  llm: { provider: "deepseek", apiKey: process.env.LLM_KEY },
+});
+
+createApiServer(ms, 3456, {
+  apiKey: process.env.MEMOSPROUT_API_KEY, // required to expose it
+  // host: "0.0.0.0",                     // needs apiKey to be set
+  // corsOrigin: "https://your-app.com",
+  // rateLimitPerMinute: 120,
+});
+```
+
+Or from a clone of this repo, configured entirely by environment:
 
 ```bash
 MEMOSPROUT_API_KEY=your-secret-key \
