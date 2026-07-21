@@ -354,6 +354,80 @@ pnpm cli match <query>                     Find relevant corrections
 
 ---
 
+## Outcome Tracking (from v1 Outcome Ledger)
+
+Every correction interaction is tracked:
+
+```
+ms.context("refund policy")
+  → tracker.trackContextServed([corr_abc], "support", "refund policy")
+
+ms.check("Refund takes 3 days")
+  → tracker.trackBlockTriggered(corr_abc, "support")
+
+ms.approve("corr_abc")
+  → tracker.trackApproval("corr_abc", "support")
+
+ms.remove("corr_abc")
+  → tracker.trackDeprecation("corr_abc", "support")
+```
+
+Report:
+
+```typescript
+const report = await ms.report("support");
+// {
+//   totalQueries: 142,
+//   correctionsServed: 89,
+//   blocksTriggered: 12,
+//   correctionsApproved: 5,
+//   correctionsDeprecated: 1,
+//   topCorrections: [
+//     { correctionId: "corr_abc", timesServed: 45, timesBlocked: 8 },
+//     ...
+//   ],
+// }
+```
+
+This proves corrections actually help — not just an assumption.
+
+---
+
+## Audit Trail (from v1 Control Plane)
+
+Every lifecycle action is recorded:
+
+```typescript
+const history = await ms.audit("corr_abc");
+// [
+//   { action: "approved", actor: "admin", reason: "Approved from suggested", timestamp: "..." },
+//   { action: "revalidated", actor: "coding-oracle:corr_abc", reason: "...", timestamp: "..." },
+//   { action: "deprecated", actor: "admin", reason: "Removed by user", timestamp: "..." },
+// ]
+```
+
+Stored in `corrections/audit.json`. Full history, queryable per correction.
+
+---
+
+## Oracle Validation (from v1 Validation Engine)
+
+Corrections can be validated against a domain-specific oracle:
+
+```typescript
+const adapter = new CodingAdapter();
+adapter.registerScenario(idempotencyScenario);
+ms.setAdapter(adapter);
+
+const result = await ms.validate("corr_abc");
+// { passed: true, detail: "Correction targets scenario 'idempotency'..." }
+```
+
+The oracle is defined by the DomainAdapter. For coding: test suites.
+For RAG/chat: document verification. For finance: regulation checks.
+
+---
+
 ## Module Map
 
 ```
@@ -367,12 +441,16 @@ lib/
 ├── feedback/
 │   ├── schema.ts               # FeedbackRecord Zod schema
 │   └── store.ts                # Feedback store + summarization
+├── outcome/
+│   └── tracker.ts              # Outcome tracking (from v1 Outcome Ledger)
+├── audit/
+│   └── log.ts                  # Audit trail (from v1 Control Plane)
 ├── llm/
 │   ├── provider.ts             # 10 providers, OpenAI + Anthropic formats
-│   └── extractor.ts            # LLM classification + extraction
+│   └── extractor.ts            # LLM 3-way classification + extraction
 ├── adapter/
-│   ├── types.ts                # DomainAdapter interface
-│   └── coding.ts               # CodingAdapter (built-in)
+│   ├── types.ts                # DomainAdapter interface + Oracle
+│   └── coding.ts               # CodingAdapter (built-in, uses v1 scenarios)
 ├── api/
 │   └── server.ts               # REST API server
 ├── cli/
@@ -380,16 +458,16 @@ lib/
 ├── domain/
 │   ├── ids.ts                  # Deterministic ID generation
 │   └── schemas.ts              # Legacy schemas (eval framework)
-├── eval/                       # Validation Engine (legacy + reusable)
-├── ledger/                     # Outcome Ledger
-├── control-plane/              # Lifecycle management
-├── reflex/                     # Protection Gate
-├── router/                     # Cost-Intelligence Router
-├── compiler/                   # Experience Compiler
-├── delivery/                   # Delivery system
+├── eval/                       # v1 Validation Engine (used by CodingAdapter)
+├── ledger/                     # v1 Outcome Ledger (reference)
+├── control-plane/              # v1 lifecycle management (reference)
+├── reflex/                     # v1 Protection Gate (reference)
+├── router/                     # v1 Cost-Intelligence Router (reference)
+├── compiler/                   # v1 Experience Compiler (reference)
+├── delivery/                   # v1 delivery system (reference)
 ├── mcp/                        # MCP server
-├── okf/                        # OKF render/validate
-├── openai/                     # OpenAI extraction (legacy)
-├── codex/                      # Codex adapter (legacy)
-└── scenario/                   # Scenario definitions (coding)
+├── okf/                        # v1 OKF render/validate (reference)
+├── openai/                     # v1 OpenAI extraction (reference)
+├── codex/                      # v1 Codex adapter (reference)
+└── scenario/                   # Scenario definitions (used by CodingAdapter)
 ```

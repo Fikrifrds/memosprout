@@ -1,7 +1,9 @@
+import { AuditLog, type AuditEntry } from "@/lib/audit/log";
 import { CorrectionStore } from "@/lib/correction/store";
 import { feedbackRecordSchema, type FeedbackRecord, type FeedbackSummary } from "@/lib/feedback/schema";
 import { FeedbackStore } from "@/lib/feedback/store";
 import { createDeterministicId } from "@/lib/domain/ids";
+import { OutcomeTracker, type OutcomeReport } from "@/lib/outcome/tracker";
 import {
   correctionRecordSchema,
   type CorrectionFilter,
@@ -100,20 +102,29 @@ export interface ConflictResult {
 export class MemoSprout {
   private readonly store: CorrectionStore;
   private readonly feedbackStore: FeedbackStore;
+  private readonly tracker: OutcomeTracker;
+  private readonly auditLog: AuditLog;
   private readonly llmConfig: LLMProviderConfig | null;
   private readonly approvalRequired: boolean;
   private readonly autoActivateThreshold: number;
   private ready = false;
   private sourceHashProvider: SourceHashProvider | null = null;
+  private adapter: import("@/lib/adapter/types").DomainAdapter | null = null;
 
   constructor(directory: string = "corrections", options: MemoSproutOptions = {}) {
     this.store = new CorrectionStore(directory);
     this.feedbackStore = new FeedbackStore(`${directory}/feedback`);
+    this.tracker = new OutcomeTracker(`${directory}/outcomes.json`);
+    this.auditLog = new AuditLog(`${directory}/audit.json`);
     this.llmConfig = options.llm
       ? resolveProviderConfig(options.llm)
       : null;
     this.approvalRequired = options.approvalRequired ?? false;
     this.autoActivateThreshold = options.autoActivateThreshold ?? 0.5;
+  }
+
+  setAdapter(adapter: import("@/lib/adapter/types").DomainAdapter): void {
+    this.adapter = adapter;
   }
 
   setSourceHashProvider(provider: SourceHashProvider): void {
@@ -124,6 +135,8 @@ export class MemoSprout {
     if (!this.ready) {
       await this.store.init();
       await this.feedbackStore.init();
+      await this.tracker.init();
+      await this.auditLog.init();
       this.ready = true;
     }
   }
@@ -229,6 +242,39 @@ export class MemoSprout {
     return this.feedbackStore.summarize(domain);
   }
 
+  async report(domain?: string): Promise<OutcomeReport> {
+    await this.ensureReady();
+    return this.tracker.report(domain);
+  }
+
+  async audit(correctionId: string): Promise<AuditEntry[]> {
+    await this.ensureReady();
+    return this.auditLog.history(correctionId);
+  }
+
+  async validate(correctionId: string): Promise<{ passed: boolean; detail: string }> {
+    await this.ensureReady();
+    const correction = this.store.get(correctionId);
+    if (!correction) {
+      return { passed: false, detail: `Correction "${correctionId}" not found.` };
+    }
+    if (!this.adapter) {
+      return { passed: false, detail: "No domain adapter configured. Use ms.setAdapter() first." };
+    }
+    const oracle = this.adapter.createOracle(correction);
+    const result = await oracle.evaluate(correction);
+
+    if (result.passed) {
+      await this.auditLog.record({
+        correctionId,
+        action: "revalidated",
+        actor: oracle.id,
+        reason: result.detail,
+      });
+    }
+    return result;
+  }
+
   async context(query: string, domain?: string): Promise<ContextResult> {
     await this.ensureReady();
 
@@ -268,6 +314,14 @@ export class MemoSprout {
       ...lines,
     ].join("\n");
 
+    if (fresh.length > 0) {
+      await this.tracker.trackContextServed(
+        fresh.map((c) => c.correctionId),
+        domain,
+        query,
+      );
+    }
+
     return { corrections: fresh, context, staleSkipped };
   }
 
@@ -290,6 +344,10 @@ export class MemoSprout {
         correct: correction.correctAnswer,
         source: correction.sourceRef,
       }));
+
+    for (const match of matched) {
+      await this.tracker.trackBlockTriggered(match.id, domain);
+    }
 
     return {
       ok: matched.length === 0,
@@ -341,6 +399,13 @@ export class MemoSprout {
       deprecatedReason: "Removed by user",
     });
     await this.store.save(deprecated);
+    await this.auditLog.record({
+      correctionId,
+      action: "deprecated",
+      actor: "admin",
+      reason: "Removed by user",
+    });
+    await this.tracker.trackDeprecation(correctionId, correction.domain);
   }
 
   async processMessage(
@@ -418,6 +483,13 @@ export class MemoSprout {
       validatedAt: new Date().toISOString(),
     });
     await this.store.save(approved);
+    await this.auditLog.record({
+      correctionId,
+      action: "approved",
+      actor: "admin",
+      reason: `Approved from ${correction.status}`,
+    });
+    await this.tracker.trackApproval(correctionId, correction.domain);
     return approved;
   }
 
@@ -541,3 +613,5 @@ export {
   type FeedbackSummary,
 } from "@/lib/feedback/schema";
 export { FeedbackStore } from "@/lib/feedback/store";
+export { OutcomeTracker, type OutcomeReport, type OutcomeEvent } from "@/lib/outcome/tracker";
+export { AuditLog, type AuditEntry } from "@/lib/audit/log";
