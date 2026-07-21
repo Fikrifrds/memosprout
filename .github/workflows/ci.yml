@@ -11,7 +11,7 @@ jobs:
     name: Typecheck, test, audit
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v5
         with:
           # Some eval tests inspect git history and build-week tags, which a
           # default shallow checkout does not fetch.
@@ -20,7 +20,7 @@ jobs:
       # Version comes from the "packageManager" field in package.json.
       - uses: pnpm/action-setup@v4
 
-      - uses: actions/setup-node@v4
+      - uses: actions/setup-node@v5
         with:
           node-version: 22
           cache: pnpm
