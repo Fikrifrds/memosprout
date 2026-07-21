@@ -17,7 +17,9 @@ export function SiteNav() {
           aria-label="MemoSprout home"
         >
           <SproutMark />
-          memo<span className="text-teal-700">sprout</span>
+          <span>
+            memo<span className="text-teal-700">sprout</span>
+          </span>
         </Link>
         <div className="flex items-center gap-5 text-sm">
           {links.map((link) => (
@@ -36,26 +38,31 @@ export function SiteNav() {
   );
 }
 
-/** The "m" of memosprout drawn as two sprouting stems, with a seed above. */
+/**
+ * A sprout: a curved stem carrying two asymmetric leaves, seed at the tip.
+ * The asymmetry keeps the silhouette legible at favicon size, where a
+ * symmetric mark collapses into a blob.
+ */
 export function SproutMark({ className = "h-6 w-6" }: { className?: string }) {
   return (
     <svg viewBox="0 0 64 64" className={className} aria-hidden="true">
-      <rect width="64" height="64" rx="15" fill="#134E4A" />
+      <rect width="64" height="64" rx="16" fill="#134E4A" />
       <path
-        d="M18 46V33c0-4.4 3.1-7.6 7-7.6s7 3.2 7 7.6v13"
-        stroke="#5EEAD4"
-        strokeWidth="5.5"
+        d="M31 50V34c0-5.5 1.6-9.8 4-13"
+        stroke="#99F6E4"
+        strokeWidth="3.4"
         strokeLinecap="round"
         fill="none"
       />
       <path
-        d="M32 46V33c0-4.4 3.1-7.6 7-7.6s7 3.2 7 7.6v13"
-        stroke="#5EEAD4"
-        strokeWidth="5.5"
-        strokeLinecap="round"
-        fill="none"
+        d="M31 38c-1.4-6.4-6.6-11.4-12-11.6-2.6-.1-3.6 2-2.3 4.4C19.4 35.6 25.6 38.6 31 38Z"
+        fill="#2DD4BF"
       />
-      <circle cx="39" cy="17" r="3.6" fill="#FBBF24" />
+      <path
+        d="M33 34c1-7.8 7.2-14 13.4-14.2 3-.1 4.2 2.4 2.7 5.2C45.9 31.4 39.2 35 33 34Z"
+        fill="#5EEAD4"
+      />
+      <circle cx="36.5" cy="18.5" r="3.1" fill="#FBBF24" />
     </svg>
   );
 }
