@@ -54,6 +54,7 @@
     "test": "vitest run",
     "test:watch": "vitest",
     "test:live": "tsx scripts/smoke-live-llm.ts",
+    "audit:package": "node scripts/audit-package.mjs",
     "api": "tsx scripts/api-server.ts",
     "cli": "tsx bin/memosprout.ts",
     "mcp:serve": "tsx scripts/mcp-server.ts",

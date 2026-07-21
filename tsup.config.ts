@@ -33,7 +33,9 @@ export default defineConfig([
     entry: { index: "lib/index.ts" },
     format: ["esm", "cjs"],
     dts: true,
-    sourcemap: true,
+    // Source maps embed the full TypeScript source (sourcesContent) and
+    // would more than double the install size. The source is on GitHub.
+    sourcemap: false,
     clean: true,
     target: "es2022",
     platform: "node",
@@ -46,7 +48,9 @@ export default defineConfig([
     entry: { cli: "bin/memosprout.ts" },
     format: ["esm"],
     dts: false,
-    sourcemap: true,
+    // Source maps embed the full TypeScript source (sourcesContent) and
+    // would more than double the install size. The source is on GitHub.
+    sourcemap: false,
     clean: false,
     target: "es2022",
     platform: "node",
