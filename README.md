@@ -435,6 +435,28 @@ blindly:
   staleness, storage, adapters
 - [docs/INTEGRATION_EXAMPLES.md](docs/INTEGRATION_EXAMPLES.md) — framework
   and cross-language integration recipes
+- [docs/RELEASING.md](docs/RELEASING.md) — how releases are published
+  (GitHub Actions with npm provenance)
+
+## Supply-chain safety
+
+This package installs onto your machine, so it is built to be verifiable:
+
+- **Published only from GitHub Actions with npm provenance** — a
+  Sigstore-signed attestation ties every release to the exact repository,
+  commit, and workflow that built it. Verify with
+  `npm view memosprout dist.attestations`.
+- **No install-time scripts.** Nothing executes when you `npm install`.
+- **No shell execution.** The shipped code contains no `child_process`,
+  `eval`, or `vm` usage.
+- **Two runtime dependencies** (`yaml`, `zod`), both pinned exactly, both
+  with no install scripts of their own.
+- **No telemetry.** Without an LLM configured it makes zero network calls;
+  with one, it talks only to the endpoint you chose, and your API key
+  travels only in the `Authorization` header.
+
+Run `pnpm audit:package` to verify all of the above against the actual
+tarball yourself.
 
 ## Development
 

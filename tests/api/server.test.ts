@@ -18,6 +18,7 @@ async function request(
   path: string,
   body?: unknown,
   headers: Record<string, string> = {},
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any -- test helper reads arbitrary response shapes
 ): Promise<{ status: number; json: any }> {
   const res = await fetch(`${baseUrl}${path}`, {
     method,

@@ -43,6 +43,11 @@
   "files": [
     "dist"
   ],
+  "publishConfig": {
+    "access": "public",
+    "provenance": true,
+    "registry": "https://registry.npmjs.org/"
+  },
   "sideEffects": false,
   "scripts": {
     "build": "next build",

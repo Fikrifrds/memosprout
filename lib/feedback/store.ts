@@ -78,7 +78,7 @@ export class FeedbackStore {
     }
 
     return [...byTopic.entries()]
-      .map(([topic, records]) => ({
+      .map(([, records]) => ({
         topic: records[0].topic,
         count: records.length,
         latestMessage: records[0].message,

@@ -13,7 +13,9 @@ export default defineConfig([
   globalIgnores([
     ".next/**",
     "coverage/**",
-    "demo/generated-files/template/coverage/**",
-    "demo/generated-files/template/node_modules/**",
+    // Build output — generated, not authored.
+    "dist/**",
+    // Demo fixtures are sample projects, not part of the package.
+    "demo/**",
   ]),
 ]);
