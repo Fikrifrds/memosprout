@@ -9,17 +9,34 @@ export function isExpired(correction: CorrectionRecord, now: Date = new Date()):
   return new Date(correction.expiresAt).getTime() < now.getTime();
 }
 
+/**
+ * Does an incoming correction contradict an existing active one?
+ *
+ * Two shapes count as a conflict:
+ * 1. Same wrong pattern, different correct answer — two answers claiming
+ *    to fix the same mistake. Without this, both stay active and the AI
+ *    is handed contradictory "verified" facts.
+ * 2. Chained supersede — the existing correct answer is now the wrong
+ *    pattern (or vice versa), with a different answer.
+ */
 export function detectConflict(
   existing: CorrectionRecord,
   incoming: { wrongPattern: string; correctAnswer: string },
 ): boolean {
   if (existing.status !== "active") return false;
-  const sameTopic =
-    existing.correctAnswer.toLowerCase() === incoming.wrongPattern.toLowerCase() ||
-    existing.wrongPattern.toLowerCase() === incoming.correctAnswer.toLowerCase();
-  const differentAnswer =
-    existing.correctAnswer.toLowerCase() !== incoming.correctAnswer.toLowerCase();
-  return sameTopic && differentAnswer;
+
+  const existingWrong = existing.wrongPattern.toLowerCase();
+  const existingCorrect = existing.correctAnswer.toLowerCase();
+  const incomingWrong = incoming.wrongPattern.toLowerCase();
+  const incomingCorrect = incoming.correctAnswer.toLowerCase();
+
+  if (existingCorrect === incomingCorrect) return false;
+
+  const sameWrongPattern = existingWrong === incomingWrong;
+  const chainedSupersede =
+    existingCorrect === incomingWrong || existingWrong === incomingCorrect;
+
+  return sameWrongPattern || chainedSupersede;
 }
 
 export async function checkSourceChanged(

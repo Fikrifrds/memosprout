@@ -81,6 +81,20 @@ describe("Staleness detection", () => {
       expect(conflict).toBe(false);
     });
 
+    it("detects two different answers for the same wrong pattern", () => {
+      // Without this, both stay active and context() injects two
+      // contradictory "verified" answers into the AI prompt.
+      const existing = makeCorrection({
+        wrongPattern: "Annual leave is 12 days",
+        correctAnswer: "Annual leave is 15 days",
+      });
+      const conflict = detectConflict(existing, {
+        wrongPattern: "Annual leave is 12 days",
+        correctAnswer: "Annual leave is 20 days",
+      });
+      expect(conflict).toBe(true);
+    });
+
     it("no conflict for non-active corrections", () => {
       const existing = makeCorrection({
         status: "deprecated",
