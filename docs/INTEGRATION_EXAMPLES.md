@@ -585,20 +585,32 @@ def answer(question: str) -> str:
 
 ## API Reference
 
-| Endpoint | Method | Body | Description |
+| Endpoint | Method | Body / Query | Description |
 |---|---|---|---|
-| `/correct` | POST | `{ wrong, correct, keywords?, domain?, source? }` | Capture a correction |
+| `/correct` | POST | `{ wrong, correct, keywords?, domain?, source?, role?, by? }` | Capture a correction |
+| `/process` | POST | `{ message, previousAnswer, domain? }` | LLM detect + extract (correction/feedback/none) |
 | `/context` | POST | `{ query, domain? }` | Get corrections for a query |
 | `/check` | POST | `{ answer, domain? }` | Check an answer |
+| `/feedback` | POST | `{ topic, message, domain?, by?, role? }` | Capture a feedback signal |
+| `/feedback/summary` | GET | `?domain=` | Aggregate feedback by topic |
+| `/report` | GET | `?domain=` | Outcome tracking report |
+| `/refresh-staleness` | POST | — | Re-evaluate corrections for staleness |
 | `/corrections` | GET | `?status=&domain=&keyword=` | List corrections |
 | `/corrections/:id` | GET | — | Get one correction |
+| `/corrections/:id/audit` | GET | — | Correction audit trail |
+| `/corrections/:id/validate` | POST | — | Validate against oracle |
+| `/corrections/:id/approve` | POST | — | Approve a correction |
 | `/corrections/:id` | DELETE | — | Deprecate a correction |
 | `/health` | GET | — | Health check |
 
-Start the API server:
+Start the API server (with LLM config to enable `/process`):
 
 ```bash
+MEMOSPROUT_LLM_PROVIDER=deepseek \
+MEMOSPROUT_LLM_API_KEY=sk-... \
 pnpm api                          # default: port 3456
-MEMOSPROUT_PORT=8080 pnpm api     # custom port
-MEMOSPROUT_DIR=./data pnpm api    # custom corrections directory
 ```
+
+Environment variables: `MEMOSPROUT_PORT`, `MEMOSPROUT_DIR`,
+`MEMOSPROUT_LLM_PROVIDER`, `MEMOSPROUT_LLM_API_KEY`,
+`MEMOSPROUT_LLM_BASE_URL`, `MEMOSPROUT_LLM_MODEL`.

@@ -76,6 +76,55 @@ export function createApiServer(ms: MemoSprout, port: number = 3456): void {
         return;
       }
 
+      // POST /process — LLM-powered detection + extraction (correction | feedback | none)
+      if (method === "POST" && path === "/process") {
+        const body = await readBody(req);
+        const result = await ms.processMessage(
+          String(body.message ?? ""),
+          String(body.previousAnswer ?? ""),
+          body.domain ? String(body.domain) : undefined,
+        );
+        json(res, 200, result);
+        return;
+      }
+
+      // POST /feedback — capture a feedback signal (not a correction)
+      if (method === "POST" && path === "/feedback") {
+        const body = await readBody(req);
+        const record = await ms.feedback({
+          topic: String(body.topic ?? ""),
+          message: String(body.message ?? ""),
+          domain: body.domain ? String(body.domain) : undefined,
+          by: body.by ? String(body.by) : undefined,
+          role: body.role ? (String(body.role) as never) : undefined,
+        });
+        json(res, 201, record);
+        return;
+      }
+
+      // GET /feedback/summary — aggregate feedback signals by topic
+      if (method === "GET" && path === "/feedback/summary") {
+        const domain = url.searchParams.get("domain") ?? undefined;
+        const summary = await ms.feedbackSummary(domain);
+        json(res, 200, { summary });
+        return;
+      }
+
+      // GET /report — outcome tracking report
+      if (method === "GET" && path === "/report") {
+        const domain = url.searchParams.get("domain") ?? undefined;
+        const report = await ms.report(domain);
+        json(res, 200, report);
+        return;
+      }
+
+      // POST /refresh-staleness — re-evaluate all corrections for staleness
+      if (method === "POST" && path === "/refresh-staleness") {
+        const result = await ms.refreshStaleness();
+        json(res, 200, result);
+        return;
+      }
+
       // GET /corrections — list corrections
       if (method === "GET" && path === "/corrections") {
         const status = url.searchParams.get("status") ?? undefined;
@@ -90,24 +139,45 @@ export function createApiServer(ms: MemoSprout, port: number = 3456): void {
         return;
       }
 
-      // GET /corrections/:id — get one correction
-      if (method === "GET" && path.startsWith("/corrections/")) {
-        const id = path.split("/")[2];
-        const correction = await ms.get(id);
-        if (!correction) {
-          json(res, 404, { error: "Correction not found." });
+      // /corrections/:id and sub-resources (/audit, /validate, /approve)
+      if (path.startsWith("/corrections/")) {
+        const segments = path.split("/").filter(Boolean); // ["corrections", id, sub?]
+        const id = segments[1];
+        const sub = segments[2];
+
+        if (method === "GET" && sub === "audit") {
+          const history = await ms.audit(id);
+          json(res, 200, { history });
           return;
         }
-        json(res, 200, correction);
-        return;
-      }
 
-      // DELETE /corrections/:id — deprecate a correction
-      if (method === "DELETE" && path.startsWith("/corrections/")) {
-        const id = path.split("/")[2];
-        await ms.remove(id);
-        json(res, 200, { deprecated: id });
-        return;
+        if (method === "POST" && sub === "validate") {
+          const result = await ms.validate(id);
+          json(res, 200, result);
+          return;
+        }
+
+        if (method === "POST" && sub === "approve") {
+          const correction = await ms.approve(id);
+          json(res, 200, correction);
+          return;
+        }
+
+        if (method === "GET" && !sub) {
+          const correction = await ms.get(id);
+          if (!correction) {
+            json(res, 404, { error: "Correction not found." });
+            return;
+          }
+          json(res, 200, correction);
+          return;
+        }
+
+        if (method === "DELETE" && !sub) {
+          await ms.remove(id);
+          json(res, 200, { deprecated: id });
+          return;
+        }
       }
 
       // GET /health
@@ -126,10 +196,20 @@ export function createApiServer(ms: MemoSprout, port: number = 3456): void {
 
   server.listen(port, () => {
     console.log(`MemoSprout API server running at http://localhost:${port}`);
-    console.log(`  POST /correct     — capture a correction`);
-    console.log(`  POST /context     — get corrections for a query`);
-    console.log(`  POST /check       — check an answer`);
-    console.log(`  GET  /corrections — list corrections`);
-    console.log(`  GET  /health      — health check`);
+    console.log(`  POST /correct                  — capture a correction`);
+    console.log(`  POST /process                  — LLM detect + extract (correction|feedback|none)`);
+    console.log(`  POST /context                  — get corrections for a query`);
+    console.log(`  POST /check                    — check an answer`);
+    console.log(`  POST /feedback                 — capture a feedback signal`);
+    console.log(`  GET  /feedback/summary         — aggregate feedback by topic`);
+    console.log(`  GET  /report                   — outcome tracking report`);
+    console.log(`  POST /refresh-staleness        — re-evaluate corrections for staleness`);
+    console.log(`  GET  /corrections              — list corrections`);
+    console.log(`  GET  /corrections/:id          — get one correction`);
+    console.log(`  GET  /corrections/:id/audit    — correction audit trail`);
+    console.log(`  POST /corrections/:id/validate — validate against oracle`);
+    console.log(`  POST /corrections/:id/approve  — approve a correction`);
+    console.log(`  DELETE /corrections/:id        — deprecate a correction`);
+    console.log(`  GET  /health                   — health check`);
   });
 }

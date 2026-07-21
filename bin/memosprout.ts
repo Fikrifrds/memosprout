@@ -1,5 +1,3 @@
-#!/usr/bin/env tsx
-
 import { join } from "node:path";
 
 import { CodingAdapter } from "@/lib/adapter/coding";

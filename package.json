@@ -1,26 +1,66 @@
 {
   "name": "memosprout",
   "version": "0.2.0",
-  "private": true,
   "type": "module",
   "description": "Domain-agnostic correction intelligence engine. Capture, validate, and deliver corrections to AI outputs.",
+  "license": "MIT",
+  "keywords": [
+    "ai",
+    "llm",
+    "rag",
+    "chatbot",
+    "corrections",
+    "knowledge",
+    "agent",
+    "memory"
+  ],
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/Fikrifrds/memosprout.git"
+  },
   "engines": {
-    "node": ">=24 <25",
-    "pnpm": ">=11 <12"
+    "node": ">=20"
   },
   "packageManager": "pnpm@11.9.0",
+  "main": "./dist/index.cjs",
+  "module": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "exports": {
+    ".": {
+      "import": {
+        "types": "./dist/index.d.ts",
+        "default": "./dist/index.js"
+      },
+      "require": {
+        "types": "./dist/index.d.cts",
+        "default": "./dist/index.cjs"
+      }
+    }
+  },
+  "bin": {
+    "memosprout": "./dist/cli.js"
+  },
+  "files": [
+    "dist"
+  ],
+  "sideEffects": false,
   "scripts": {
     "build": "next build",
-    "check:generated": "pnpm --dir demo/generated-files/template check:generated",
-    "api": "tsx scripts/api-server.ts",
-    "cli": "tsx bin/memosprout.ts",
-    "convergence:config:setup": "tsx scripts/setup-convergence-config.ts",
-    "convergence:design:verify": "tsx scripts/verify-convergence-design.ts",
-    "cost:experiment": "tsx --env-file=.env scripts/run-cost-experiment.ts",
-    "demo": "vitest run tests/scenario demo/generated-files/template/tests --reporter=verbose",
+    "build:lib": "tsup",
+    "prepublishOnly": "pnpm build:lib",
     "dev": "next dev",
     "lint": "eslint .",
+    "typecheck": "tsc --noEmit",
+    "test": "vitest run",
+    "test:watch": "vitest",
+    "api": "tsx scripts/api-server.ts",
+    "cli": "tsx bin/memosprout.ts",
     "mcp:serve": "tsx scripts/mcp-server.ts",
+    "check:generated": "pnpm --dir demo/generated-files/template check:generated",
+    "demo": "vitest run tests/scenario demo/generated-files/template/tests --reporter=verbose",
+    "cost:experiment": "tsx --env-file=.env scripts/run-cost-experiment.ts",
+    "convergence:config:setup": "tsx scripts/setup-convergence-config.ts",
+    "convergence:design:verify": "tsx scripts/verify-convergence-design.ts",
     "phase2:live": "tsx --env-file=.env scripts/generate-live-candidate.ts",
     "phase2:verify": "tsx scripts/verify-phase2.ts",
     "phase3:live": "tsx scripts/generate-protection.ts",
@@ -43,29 +83,27 @@
     "phase4:v2:worker:calibrate": "tsx scripts/run-phase4-v2-calibration.ts",
     "phase4:v2:worker:calibrate-v2": "tsx scripts/run-phase4-v2-calibration-v2.ts",
     "phase4:v2:worker:calibrate:recover-v1": "tsx scripts/launch-phase4-v2-calibration-recovery-v1.ts",
-    "phase4:v2:worker:preflight": "tsx scripts/run-phase4-v2-preflight.ts",
-    "test": "vitest run",
-    "test:watch": "vitest",
-    "typecheck": "tsc --noEmit"
+    "phase4:v2:worker:preflight": "tsx scripts/run-phase4-v2-preflight.ts"
   },
   "dependencies": {
-    "@modelcontextprotocol/sdk": "^1.29.0",
-    "next": "16.2.10",
-    "openai": "6.48.0",
-    "react": "19.2.7",
-    "react-dom": "19.2.7",
     "yaml": "2.9.0",
     "zod": "4.4.3"
   },
   "devDependencies": {
+    "@modelcontextprotocol/sdk": "^1.29.0",
     "@types/node": "24.13.3",
     "@types/react": "19.2.17",
     "@types/react-dom": "19.2.3",
     "autoprefixer": "10.5.4",
     "eslint": "9.39.5",
     "eslint-config-next": "16.2.10",
+    "next": "16.2.10",
+    "openai": "6.48.0",
     "postcss": "8.5.19",
+    "react": "19.2.7",
+    "react-dom": "19.2.7",
     "tailwindcss": "3.4.19",
+    "tsup": "8.5.1",
     "tsx": "4.21.0",
     "typescript": "5.9.3",
     "vitest": "4.1.10"

@@ -325,18 +325,43 @@ Supported providers:
 
 ## REST API
 
+For non-Node backends (Python, PHP, Go, etc.), run the REST API server
+and call it over HTTP. Start with LLM config to enable `/process`:
+
 ```
-POST /correct     { wrong, correct, keywords?, domain?, source?, role? }
-POST /context     { query, domain? }
-POST /check       { answer, domain? }
-GET  /corrections ?status=&domain=&keyword=
+MEMOSPROUT_LLM_PROVIDER=deepseek \
+MEMOSPROUT_LLM_API_KEY=sk-... \
+pnpm api                          # default port 3456
+```
+
+Endpoints:
+
+```
+POST /correct                  { wrong, correct, keywords?, domain?, source?, role?, by? }
+POST /process                  { message, previousAnswer, domain? }  → LLM detect+extract
+POST /context                  { query, domain? }
+POST /check                    { answer, domain? }
+POST /feedback                 { topic, message, domain?, by?, role? }
+GET  /feedback/summary         ?domain=
+GET  /report                   ?domain=
+POST /refresh-staleness
+GET  /corrections              ?status=&domain=&keyword=
 GET  /corrections/:id
+GET  /corrections/:id/audit
+POST /corrections/:id/validate
+POST /corrections/:id/approve
 DELETE /corrections/:id
 GET  /health
 
-Start: pnpm api (default port 3456)
-Config: MEMOSPROUT_PORT, MEMOSPROUT_DIR
+Config: MEMOSPROUT_PORT, MEMOSPROUT_DIR,
+        MEMOSPROUT_LLM_PROVIDER, MEMOSPROUT_LLM_API_KEY,
+        MEMOSPROUT_LLM_BASE_URL, MEMOSPROUT_LLM_MODEL
 ```
+
+The REST API exposes the full MemoSprout surface, so backend users get
+the same capabilities as the Node library — including LLM-powered
+detection (`/process`), feedback signals, outcome reports, audit trail,
+and oracle validation.
 
 ---
 
