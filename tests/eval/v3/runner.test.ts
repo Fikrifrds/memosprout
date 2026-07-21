@@ -1,4 +1,4 @@
-import { mkdtemp, readFile, rm, writeFile } from "node:fs/promises";
+import { mkdir, mkdtemp, readFile, rm, writeFile } from "node:fs/promises";
 import { join } from "node:path";
 
 import { afterEach, describe, expect, it } from "vitest";
@@ -37,6 +37,9 @@ const passingTests: TestRunner = async () => ({ exitCode: 0, stdout: "", stderr:
 const failingTests: TestRunner = async () => ({ exitCode: 1, stdout: "", stderr: "failed" });
 
 async function makeEvidenceDirectory(): Promise<string> {
+  // .memosprout-local/ is gitignored, so it does not exist on a clean
+  // checkout (CI). Create it before mkdtemp rather than assuming it.
+  await mkdir(join(root, ".memosprout-local"), { recursive: true });
   const dir = await mkdtemp(join(root, ".memosprout-local", "convergence-runner-test-"));
   tempDirs.push(dir);
   return dir;
