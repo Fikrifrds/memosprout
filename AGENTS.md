@@ -26,25 +26,22 @@ primary target domain.
 
 Key documents:
 
-- `docs/MEMOSPROUT_V2_BREAKDOWN.md` — v2 implementation plan with
+- `docs/ARCHITECTURE.md` — full technical architecture with flow charts
+- `docs/MEMOSPROUT_V2_BREAKDOWN.md` — implementation plan with
   domain-agnostic adapter architecture
-- `docs/QUALITYGATE_ARCHITECTURE.md` — explored multi-model quality
-  escalation architecture (reference only, not the active direction)
-- `docs/DECISIONS.md` — historical decisions from the Build Week
-  implementation
-- `docs/BUILD_WEEK_CHANGELOG.md` — historical changelog
+- `docs/INTEGRATION_EXAMPLES.md` — integration examples for 9
+  languages and frameworks
 
-Long-term context (does not expand current scope):
+Historical reference (archived, does not define current scope):
 
-- `docs/prd/FULL_PRD.md`
-- `docs/prd/BUILD_WEEK_PRD.md`
-- `docs/strategy/Intelligence_Amplification_and_Operational_Distillation_PRD.md`
+- `docs/archive/` — Build Week changelog, decisions, PRDs, and
+  experiment data
 
 When documents conflict, use this priority order:
 
 1. Direct user instructions
-2. `docs/MEMOSPROUT_V2_BREAKDOWN.md`
-3. `docs/DECISIONS.md`
+2. `docs/ARCHITECTURE.md`
+3. `docs/MEMOSPROUT_V2_BREAKDOWN.md`
 4. Other documentation
 
 ## Required stack

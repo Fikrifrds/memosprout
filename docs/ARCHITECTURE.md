@@ -499,16 +499,15 @@ lib/
 ├── domain/
 │   ├── ids.ts                  # Deterministic ID generation
 │   └── schemas.ts              # Legacy schemas (eval framework)
-├── eval/                       # v1 Validation Engine (used by CodingAdapter)
-├── ledger/                     # v1 Outcome Ledger (reference)
-├── control-plane/              # v1 lifecycle management (reference)
-├── reflex/                     # v1 Protection Gate (reference)
-├── router/                     # v1 Cost-Intelligence Router (reference)
-├── compiler/                   # v1 Experience Compiler (reference)
-├── delivery/                   # v1 delivery system (reference)
+├── eval/                       # Validation Engine (used by CodingAdapter)
 ├── mcp/                        # MCP server
-├── okf/                        # v1 OKF render/validate (reference)
-├── openai/                     # v1 OpenAI extraction (reference)
-├── codex/                      # v1 Codex adapter (reference)
-└── scenario/                   # Scenario definitions (used by CodingAdapter)
+├── scenario/                   # Scenario definitions (used by CodingAdapter)
+├── ledger/                     # Outcome Ledger (historical)
+├── control-plane/              # Lifecycle management (historical)
+├── reflex/                     # Protection Gate (historical)
+├── router/                     # Cost-Intelligence Router (historical)
+├── compiler/                   # Experience Compiler (historical)
+├── delivery/                   # Delivery system (historical)
+├── okf/                        # OKF render/validate (historical)
+└── codex/                      # Codex adapter (historical)
 ```
