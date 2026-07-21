@@ -118,6 +118,17 @@ describe("knowledge-drift oracle", () => {
     expect(gradeAnswer(testCase, "Please check with HR.").passed).toBe(false);
   });
 
+  it("passes an answer that names the stale fact only to reject it", () => {
+    const answer =
+      "Employees get 18 days of annual leave, not the 12 days stated in the older handbook.";
+    expect(gradeAnswer(testCase, answer).passed).toBe(true);
+  });
+
+  it("still fails an answer that asserts the stale fact alongside the current one", () => {
+    const answer = "Employees get 18 days of annual leave. Employees get 12 days of annual leave.";
+    expect(gradeAnswer(testCase, answer).passed).toBe(false);
+  });
+
   it("matches on word boundaries, not substrings", () => {
     expect(containsPhrase("112 days of leave", "12 days")).toBe(false);
   });

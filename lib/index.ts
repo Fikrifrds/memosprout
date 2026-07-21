@@ -20,7 +20,7 @@ import {
   type LLMProviderConfig,
 } from "@/lib/llm/provider";
 import { extractCorrection } from "@/lib/llm/extractor";
-import { matchesWrongPattern } from "@/lib/correction/matching";
+import { wrongPatternMatchScore } from "@/lib/correction/matching";
 import { Mutex } from "@/lib/store/atomic";
 
 export interface MemoSproutOptions {
@@ -385,9 +385,22 @@ export class MemoSprout {
         correction.staleness === "fresh" && !isExpiredByDate(correction),
     );
 
-    const lexical = fresh.filter((correction) =>
-      matchesWrongPattern(answer, correction.wrongPattern),
-    );
+    // Ranked, because callers act on corrections[0] — an arbitrary
+    // ordering there means a block can answer a question nobody asked.
+    const lexical = fresh
+      .map((correction) => ({
+        correction,
+        score: wrongPatternMatchScore(answer, correction.wrongPattern),
+      }))
+      .filter((scored) => scored.score > 0)
+      // Equal scores go to the more specific pattern: "3 business days"
+      // and "3 days" both match, but the longer one is the real claim.
+      .sort(
+        (a, b) =>
+          b.score - a.score ||
+          b.correction.wrongPattern.length - a.correction.wrongPattern.length,
+      )
+      .map((scored) => scored.correction);
 
     let semantic: CorrectionRecord[] = [];
     if (this.semanticCheckEnabled && this.llmConfig) {

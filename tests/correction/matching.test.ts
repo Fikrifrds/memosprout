@@ -1,6 +1,10 @@
 import { describe, expect, it } from "vitest";
 
-import { matchesWrongPattern, normalizeText } from "@/lib/correction/matching";
+import {
+  matchesWrongPattern,
+  normalizeText,
+  wrongPatternMatchScore,
+} from "@/lib/correction/matching";
 
 describe("normalizeText", () => {
   it("lowercases, strips punctuation, collapses whitespace", () => {
@@ -53,5 +57,64 @@ describe("matchesWrongPattern", () => {
   it("handles empty pattern safely", () => {
     expect(matchesWrongPattern("anything", "")).toBe(false);
     expect(matchesWrongPattern("anything", "!!!")).toBe(false);
+  });
+});
+
+describe("matchesWrongPattern across sentences", () => {
+  const pattern = "New hires serve a probation period of 3 months";
+
+  it("does not borrow a number from a different fact in the answer", () => {
+    // The "3" belongs to "3 approvers". Both statements are correct, so
+    // blocking here would replace a right answer with a wrong one.
+    expect(
+      matchesWrongPattern(
+        "New vendors require 3 approvers before onboarding. " +
+          "New hires serve a probation period of 6 months.",
+        pattern,
+      ),
+    ).toBe(false);
+  });
+
+  it("still matches when one sentence does assert the wrong fact", () => {
+    expect(
+      matchesWrongPattern(
+        "New vendors require 3 approvers before onboarding. " +
+          "A probation period of 3 months applies to new hires.",
+        pattern,
+      ),
+    ).toBe(true);
+  });
+
+  it("keeps decimals intact when splitting sentences", () => {
+    expect(
+      matchesWrongPattern(
+        "Private car use is reimbursed at EUR 0.58 per kilometre.",
+        "Private car use is reimbursed at EUR 0.58 per kilometre",
+      ),
+    ).toBe(true);
+  });
+});
+
+describe("wrongPatternMatchScore", () => {
+  const pattern = "Full-time employees accrue 12 days of annual leave";
+
+  it("scores a verbatim hit above a partial one", () => {
+    const verbatim = wrongPatternMatchScore(
+      "Full-time employees accrue 12 days of annual leave.",
+      pattern,
+    );
+    // Same claim, one token short of the pattern — a weaker match, and so
+    // ranked below a correction the answer states outright.
+    const partial = wrongPatternMatchScore(
+      "Full-time staff accrue 12 days of annual leave.",
+      pattern,
+    );
+    expect(verbatim).toBe(1);
+    expect(partial).toBeGreaterThan(0);
+    expect(partial).toBeLessThan(verbatim);
+  });
+
+  it("scores zero when the pattern is absent", () => {
+    expect(wrongPatternMatchScore("Full-time employees accrue 18 days.", pattern)).toBe(0);
   });
 });

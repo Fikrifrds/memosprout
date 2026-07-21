@@ -37,27 +37,44 @@ a measurement meant to be believed should not carry a judge's error bar.
 | Metric | Result |
 |---|---|
 | Baseline accuracy (drift) | 0% (0/20) |
-| Protected, context injection only | 75% (15/20) |
+| Protected, context injection only | 100% (20/20) |
 | Protected, with the `check()` gate | **100% (20/20)** |
 | Retrieval recall | 100% |
 | Retrieval precision | 61% |
 | Control accuracy, baseline → protected | 100% → 100% |
 | False blocks on control cases | 0 |
+| Harmful blocks | 0 |
 | Regressions | none |
 
-Both halves of the design earn their place: context injection alone
-leaves 5 of 20 wrong, and the gate catches every one of them. Nine
-answers were blocked in total — 5 genuine saves, 4 answers that were
-already correct and got replaced by a correction that happened to say the
-same thing.
+Read the two protected rows together: on this benchmark **context
+injection does all the work, and the `check()` gate adds nothing.** A
+capable model given the correction in its system prompt applies it every
+time. The gate fired on 4 answers and changed no outcome.
 
-## Known weakness this benchmark exposes
+That is not an argument for deleting the gate — it is an argument that
+this benchmark does not yet measure it. The gate earns its place against
+a model that ignores injected context, which the offline
+`stub-stubborn` test covers and no live case here does. Measuring it
+honestly needs a weaker model or a longer-context setting where
+injected instructions get lost. Until that exists, the claim this
+benchmark supports is about delivery, not about the gate.
 
-`check()` matches an answer against **every** active correction in the
-domain, not the ones relevant to the question, and the numeric guard in
-`matchesWrongPattern` only requires the disputed number to appear
-*somewhere* in the answer. A multi-fact answer therefore trips unrelated
-wrong patterns:
+Retrieval precision of 61% means `context()` injects roughly one useful
+correction for every two it serves. It costs tokens rather than accuracy
+here, but it is the number to watch as a store grows past 40 records.
+
+## Known weakness this benchmark exposed
+
+The first run of this benchmark reported 100% only because two failures
+cancelled out: `check()` blocked answers that were already correct, and
+the substituted correction happened to be right. Two bugs, one in the
+product and one in the oracle, both since fixed.
+
+**In the product.** `check()` matched an answer against every active
+correction in the domain, and the numeric guard in
+`matchesWrongPattern` only required the disputed number to appear
+*somewhere* in the answer. A multi-fact answer therefore tripped
+unrelated wrong patterns:
 
 ```
 answer  "New vendors require 3 approvers before onboarding.
@@ -65,13 +82,19 @@ answer  "New vendors require 3 approvers before onboarding.
 pattern "New hires serve a probation period of 3 months"   → blocked
 ```
 
-Both facts are correct; the "3" from `3 approvers` satisfies the numeric
+Both facts are correct; the "3" from `3 approvers` satisfied the numeric
 guard for the probation pattern. On a block the pipeline serves
-`corrections[0]`, which may be about an entirely different topic — so a
-correct answer is replaced by a wrong one. The report tracks this as
-`harmfulBlocks`. It is zero on the short single-fact answers here and
-rises with answer length; the offline test
-`tests/eval/knowledge-drift.test.ts` reproduces it deliberately.
+`corrections[0]`, so a correct answer was replaced by an off-topic one.
+Token overlap is now scored one sentence at a time, and `check()` ranks
+its matches so `corrections[0]` is the strongest rather than an
+arbitrary one. The report tracks any recurrence as `harmfulBlocks`.
+
+**In the oracle.** Grading rejected any answer containing the stale
+phrase, including answers that named it only to reject it — "16 weeks,
+not the 8 weeks stated in the older version" was scored wrong. The
+oracle now ignores a forbidden phrase governed by a contrast cue. This
+is what moved context-injection accuracy from an apparent 75% to its
+real 100%.
 
 ## Extending it
 
