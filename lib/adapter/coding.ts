@@ -74,9 +74,44 @@ export class CodingAdapter implements DomainAdapter {
             detail: `No scenario registered for "${scenarioId}". Cannot validate correction without a test suite.`,
           };
         }
+
+        const issues: string[] = [];
+
+        const mentionsGuardedPath = scenario.guardedPaths.some(
+          (path) =>
+            correction.wrongPattern.toLowerCase().includes(path.toLowerCase()) ||
+            correction.correctAnswer.toLowerCase().includes(path.toLowerCase()) ||
+            correction.trigger.keywords.some((k) => k.toLowerCase().includes(path.toLowerCase())),
+        );
+        if (!mentionsGuardedPath && scenario.guardedPaths.length > 0) {
+          issues.push(
+            `Correction does not reference any guarded path (${scenario.guardedPaths.join(", ")}). ` +
+            `A coding correction should relate to the protected files.`,
+          );
+        }
+
+        if (correction.wrongPattern.toLowerCase() === correction.correctAnswer.toLowerCase()) {
+          issues.push("Wrong pattern and correct answer are identical. Correction has no effect.");
+        }
+
+        if (correction.correctAnswer.length < 10) {
+          issues.push("Correct answer is too short to be a meaningful coding instruction.");
+        }
+
+        if (issues.length > 0) {
+          return {
+            passed: false,
+            detail: `Validation failed for scenario "${scenario.id}": ${issues.join(" ")}`,
+          };
+        }
+
         return {
           passed: true,
-          detail: `Correction targets scenario "${scenario.id}" with ${scenario.guardedPaths.length} guarded paths.`,
+          detail:
+            `Correction validated against scenario "${scenario.id}" ` +
+            `(${scenario.guardedPaths.length} guarded paths, ` +
+            `acceptance test: ${scenario.acceptanceTestPath}). ` +
+            `Correction references guarded content and provides a distinct correct answer.`,
         };
       },
     };

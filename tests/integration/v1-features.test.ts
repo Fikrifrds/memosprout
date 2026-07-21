@@ -140,8 +140,9 @@ describe("Oracle validation via adapter", () => {
 
   it("validates a correction against the oracle", async () => {
     const correction = await ms.correct({
-      wrong: "Skip idempotency check",
-      correct: "Check for duplicate event IDs",
+      wrong: "Edit src/payment-store.ts without idempotency check",
+      correct: "Add duplicate event ID check in src/payment-store.ts before processing",
+      keywords: ["src/payment-store.ts"],
       entities: ["idempotency"],
     });
 
@@ -152,8 +153,9 @@ describe("Oracle validation via adapter", () => {
 
   it("fails validation for unknown scenario", async () => {
     const correction = await ms.correct({
-      wrong: "w",
-      correct: "c",
+      wrong: "Edit src/payment-store.ts without checking",
+      correct: "Add proper validation in src/payment-store.ts before processing",
+      keywords: ["src/payment-store.ts"],
       entities: ["nonexistent"],
     });
 
@@ -172,8 +174,9 @@ describe("Oracle validation via adapter", () => {
 
   it("records revalidation in audit trail", async () => {
     const correction = await ms.correct({
-      wrong: "w",
-      correct: "c",
+      wrong: "Edit src/payment-store.ts without idempotency check",
+      correct: "Add duplicate event ID check in src/payment-store.ts before processing",
+      keywords: ["src/payment-store.ts"],
       entities: ["idempotency"],
     });
 

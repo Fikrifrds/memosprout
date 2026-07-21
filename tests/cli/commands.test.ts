@@ -97,8 +97,9 @@ describe("CLI commands", () => {
     it("validates a correction with a known scenario", async () => {
       const correction = await commandAdd(store, {
         domain: "coding",
-        wrongPattern: "Skip idempotency check",
-        correctAnswer: "Check for duplicate event IDs",
+        wrongPattern: "Edit src/payment-store.ts without idempotency check",
+        correctAnswer: "Add duplicate event ID check in src/payment-store.ts before processing",
+        keywords: ["src/payment-store.ts"],
         entities: ["idempotency"],
       });
 
@@ -122,8 +123,9 @@ describe("CLI commands", () => {
     it("activates a validated correction", async () => {
       const correction = await commandAdd(store, {
         domain: "coding",
-        wrongPattern: "wrong",
-        correctAnswer: "right",
+        wrongPattern: "Edit src/payment-store.ts without checking duplicates",
+        correctAnswer: "Add duplicate event ID check in src/payment-store.ts before processing",
+        keywords: ["src/payment-store.ts"],
         entities: ["idempotency"],
       });
       await commandValidate(store, adapter, correction.correctionId);
@@ -149,9 +151,9 @@ describe("CLI commands", () => {
     it("blocks an answer matching a known-wrong pattern", async () => {
       const correction = await commandAdd(store, {
         domain: "coding",
-        wrongPattern: "edit generated files directly",
-        correctAnswer: "modify schema and regenerate",
-        keywords: ["generated"],
+        wrongPattern: "edit src/payment-store.ts directly without idempotency",
+        correctAnswer: "add duplicate event ID check in src/payment-store.ts",
+        keywords: ["generated", "src/payment-store.ts"],
         entities: ["idempotency"],
       });
       await commandValidate(store, adapter, correction.correctionId);
@@ -159,20 +161,20 @@ describe("CLI commands", () => {
 
       const result = commandCheck(
         store,
-        "how do I update the API client?",
-        "You can edit generated files directly",
+        "how do I update the payment handler?",
+        "You can edit src/payment-store.ts directly without idempotency checks",
       );
       expect(result.blocked).toBe(true);
       expect(result.matchedCorrections).toHaveLength(1);
-      expect(result.matchedCorrections[0].correctAnswer).toBe("modify schema and regenerate");
+      expect(result.matchedCorrections[0].correctAnswer).toBe("add duplicate event ID check in src/payment-store.ts");
     });
 
     it("allows an answer that does not match", async () => {
       const correction = await commandAdd(store, {
         domain: "coding",
-        wrongPattern: "edit generated files directly",
-        correctAnswer: "modify schema and regenerate",
-        keywords: ["generated"],
+        wrongPattern: "edit src/payment-store.ts directly without idempotency",
+        correctAnswer: "add duplicate event ID check in src/payment-store.ts",
+        keywords: ["generated", "src/payment-store.ts"],
         entities: ["idempotency"],
       });
       await commandValidate(store, adapter, correction.correctionId);
@@ -180,8 +182,8 @@ describe("CLI commands", () => {
 
       const result = commandCheck(
         store,
-        "how do I update the API client?",
-        "Modify the schema and regenerate",
+        "how do I update the payment handler?",
+        "Add a duplicate event ID check before processing",
       );
       expect(result.blocked).toBe(false);
     });
@@ -191,9 +193,9 @@ describe("CLI commands", () => {
     it("finds relevant corrections and builds context", async () => {
       const correction = await commandAdd(store, {
         domain: "coding",
-        wrongPattern: "wrong",
-        correctAnswer: "right",
-        keywords: ["idempotency", "webhook"],
+        wrongPattern: "skip idempotency check in src/payment-store.ts",
+        correctAnswer: "add duplicate event ID check in src/payment-store.ts",
+        keywords: ["idempotency", "webhook", "src/payment-store.ts"],
         entities: ["idempotency"],
       });
       await commandValidate(store, adapter, correction.correctionId);
@@ -201,8 +203,8 @@ describe("CLI commands", () => {
 
       const result = commandMatch(store, adapter, "implement webhook idempotency");
       expect(result.corrections).toHaveLength(1);
-      expect(result.context).toContain("Do NOT: wrong");
-      expect(result.context).toContain("Instead: right");
+      expect(result.context).toContain("Do NOT: skip idempotency check");
+      expect(result.context).toContain("Instead: add duplicate event ID check");
     });
   });
 });

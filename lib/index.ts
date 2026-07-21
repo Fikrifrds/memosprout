@@ -258,10 +258,21 @@ export class MemoSprout {
     if (!correction) {
       return { passed: false, detail: `Correction "${correctionId}" not found.` };
     }
-    if (!this.adapter) {
-      return { passed: false, detail: "No domain adapter configured. Use ms.setAdapter() first." };
+
+    let oracle: import("@/lib/adapter/types").Oracle;
+
+    if (this.adapter) {
+      oracle = this.adapter.createOracle(correction);
+    } else if (this.llmConfig) {
+      const { createSourceOracle } = await import("@/lib/adapter/source-oracle");
+      oracle = createSourceOracle(this.llmConfig, correction);
+    } else {
+      return {
+        passed: false,
+        detail: "No domain adapter or LLM configured. Use ms.setAdapter() or configure llm in constructor.",
+      };
     }
-    const oracle = this.adapter.createOracle(correction);
+
     const result = await oracle.evaluate(correction);
 
     if (result.passed) {
@@ -595,6 +606,7 @@ export type {
   ProtectionResult,
 } from "@/lib/adapter/types";
 export { CodingAdapter } from "@/lib/adapter/coding";
+export { createSourceOracle } from "@/lib/adapter/source-oracle";
 export {
   callLLM,
   resolveProviderConfig,
