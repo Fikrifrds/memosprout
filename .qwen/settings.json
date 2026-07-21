@@ -1,0 +1,17 @@
+{
+  "permissions": {
+    "allow": [
+      "Agent(Explore)",
+      "Bash(pnpm *)",
+      "Bash(test *)",
+      "Bash(git *)",
+      "Bash(mkdir *)",
+      "Bash(sleep *)",
+      "Bash(node *)",
+      "Bash(ls *)",
+      "Bash(timeout *)",
+      "Bash(rm *)"
+    ]
+  },
+  "$version": 4
+}

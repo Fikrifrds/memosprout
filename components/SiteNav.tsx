@@ -1,4 +1,3 @@
-import Image from "next/image";
 import Link from "next/link";
 
 const links = [
@@ -12,19 +11,10 @@ export function SiteNav() {
       <div className="mx-auto flex max-w-4xl items-center justify-between px-4 py-3">
         <Link
           href="/"
-          className="flex items-center gap-2.5"
+          className="text-base font-bold lowercase tracking-tight"
           aria-label="MemoSprout home"
         >
-          <Image
-            src="/logo.png"
-            alt="MemoSprout logo"
-            width={30}
-            height={30}
-            className="h-[30px] w-[30px]"
-          />
-          <span className="text-base font-semibold lowercase tracking-tight">
-            memosprout
-          </span>
+          memo<span className="text-emerald-600">sprout</span>
         </Link>
         <div className="flex gap-5 text-sm">
           {links.map((link) => (
