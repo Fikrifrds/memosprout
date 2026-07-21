@@ -1,37 +1,38 @@
 import Link from "next/link";
 
+import { FlowAnimation } from "@/components/FlowAnimation";
 import { SiteNav } from "@/components/SiteNav";
 
 export const metadata = {
   title: "MemoSprout — Correct once. Improve every interaction.",
   description:
-    "MemoSprout captures corrections to AI outputs, validates them, and delivers them to every " +
-    "future interaction — so a mistake fixed once never happens again.",
+    "MemoSprout captures corrections to AI outputs, gates them, and delivers them to every " +
+    "future interaction — so a mistake fixed once stops coming back.",
 };
 
 const steps = [
   {
     title: "Capture the correction",
-    body: "When AI gets it wrong and a human fixes it — in a chatbot, a code review, a report — MemoSprout records what was wrong and what is right.",
+    body: "When AI gets it wrong and a human fixes it — in a chatbot, a code review, a report — MemoSprout records what was wrong and what is right. One call detects the correction in a message and extracts the fields.",
   },
   {
-    title: "Validate it",
-    body: "Not every correction is correct. The Validation Engine checks each one against a domain-specific oracle before it is trusted. Bad corrections are quarantined, not deployed.",
+    title: "Gate it before it counts",
+    body: "Not every correction is correct. Corrections from customers wait for approval, and extracted ones need high confidence to go live. A correction that contradicts an active one quarantines the old record. You can also validate against a domain oracle — source documents, test suites, regulations.",
   },
   {
     title: "Store it as portable knowledge",
-    body: "Validated corrections are stored as Markdown with structured metadata — human-readable, git-versionable, and portable across any AI platform.",
+    body: "Active corrections are stored as Markdown with structured metadata — human-readable, git-versionable, and portable across any AI platform. No database, no lock-in.",
   },
   {
     title: "Deliver it just-in-time",
-    body: "When a similar question or task appears, the relevant correction is injected into the AI's context — and known-wrong answers are blocked before they reach the user, including paraphrased and translated ones.",
+    body: "When a similar question appears, the relevant correction is injected into the AI's context — and known-wrong answers are blocked before they reach the user, including reworded and translated ones.",
   },
 ];
 
 const capabilities = [
   {
     title: "Catches rewording, not just exact matches",
-    body: "Blocking works on normalized, word-boundary matching plus token overlap — so reordered and repunctuated wrong answers are caught. Turn on semantic checking and paraphrases and translations are caught too, while already-corrected answers are never blocked by mistake.",
+    body: "Blocking uses normalized, word-boundary matching plus token overlap, so reordered and repunctuated wrong answers are caught without an LLM. Enable semantic checking and paraphrases and translations are caught too. Numbers must match exactly, so an already-corrected answer is not blocked by mistake.",
   },
   {
     title: "Eleven LLM providers, one interface",
@@ -51,29 +52,29 @@ const domains = [
   {
     name: "Enterprise chat & RAG",
     example:
-      "User asks about leave policy, chatbot answers with outdated numbers. User corrects it once. Every future answer is right.",
+      "A chatbot answers a leave-policy question with outdated numbers. Someone corrects it once, and that correction is injected into every future answer on the topic.",
   },
   {
     name: "Coding agents",
     example:
-      "An agent edits a generated file directly. A reviewer corrects it. The agent never makes that mistake again — on any model.",
+      "An agent edits a generated file directly. A reviewer corrects it, and the correction travels with the codebase — not with one model or one session.",
   },
   {
     name: "Finance & compliance",
     example:
-      "An analyst catches a wrong tax rate in an AI-generated report. The correction is validated against current regulation and applied to all future reports.",
+      "An analyst catches a wrong tax rate in an AI-generated report. The correction records the regulation it came from, and later reports are checked against it.",
   },
   {
     name: "Customer support",
     example:
-      "A supervisor corrects a refund timeline. The correction is verified against the latest SOP and delivered to every agent's suggested responses.",
+      "A supervisor corrects a refund timeline, citing the current SOP. Agents' suggested responses carry the corrected answer from then on.",
   },
 ];
 
 const principles = [
   {
     title: "Corrections are verified, not blindly trusted",
-    body: "A user correction could be wrong or malicious. MemoSprout validates every correction against a domain-specific oracle — source documents, test suites, regulations — before it goes live.",
+    body: "A user correction could be wrong or malicious. Customer corrections wait for approval, extracted ones need high confidence, and contradictions are quarantined — plus you can validate against a domain oracle: source documents, test suites, regulations.",
   },
   {
     title: "Your data never leaves your infrastructure",
@@ -103,9 +104,9 @@ export default function HomePage() {
           </h1>
           <p className="mx-auto mt-5 max-w-2xl text-lg text-slate-600">
             AI makes mistakes. Humans fix them. But the fix lives and dies in one session —
-            tomorrow, the same mistake happens again. MemoSprout captures corrections, validates
-            them, and delivers them to every future interaction. Across any domain, any model,
-            any platform.
+            tomorrow, the same mistake comes back. MemoSprout captures corrections, gates them
+            before they count, and delivers them to every future interaction. Across any domain,
+            any model, any platform.
           </p>
           <div className="mt-8 flex justify-center gap-3">
             <Link
@@ -131,6 +132,17 @@ export default function HomePage() {
             the same error, AI reports with outdated figures. The fix is always the same — a
             human corrects it — and the fix is always lost.
           </p>
+        </section>
+
+        <section className="border-t border-slate-200 py-14">
+          <h2 className="text-center text-2xl font-bold tracking-tight">
+            One correction, end to end
+          </h2>
+          <p className="mx-auto mt-3 max-w-xl text-center text-sm text-slate-600">
+            Follow a single mistake from the moment it is corrected to the moment it stops
+            reaching users.
+          </p>
+          <FlowAnimation />
         </section>
 
         <section className="border-t border-slate-200 py-14">

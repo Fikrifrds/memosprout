@@ -2,8 +2,9 @@
 
 **Correct once. Improve every interaction.**
 
-MemoSprout captures corrections to AI outputs, validates them, and delivers
-them to every future interaction — so a mistake fixed once never happens again.
+MemoSprout captures corrections to AI outputs, gates them before they count,
+and delivers them to every future interaction — so a mistake fixed once stops
+coming back.
 
 Works with any AI system: RAG pipelines, chatbots, coding agents, report
 generators. Any domain where AI produces outputs that humans verify.
