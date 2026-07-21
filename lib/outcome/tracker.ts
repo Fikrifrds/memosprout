@@ -1,7 +1,8 @@
-import { readFile, stat, writeFile } from "node:fs/promises";
-import { join } from "node:path";
+import { readFile, stat } from "node:fs/promises";
 
 import { z } from "zod";
+
+import { atomicWriteFile, Mutex } from "@/lib/store/atomic";
 
 export const outcomeEventSchema = z
   .object({
@@ -36,6 +37,7 @@ export type OutcomeReport = z.infer<typeof outcomeReportSchema>;
 
 export class OutcomeTracker {
   private events: OutcomeEvent[] = [];
+  private readonly writeLock = new Mutex();
 
   constructor(private readonly filePath: string) {}
 
@@ -49,52 +51,60 @@ export class OutcomeTracker {
     }
   }
 
+  /** Oldest events are dropped beyond this cap so the file (rewritten
+   * wholesale on each event) cannot grow unboundedly. */
+  private static readonly MAX_EVENTS = 50_000;
+
   private async persist(): Promise<void> {
-    await writeFile(this.filePath, `${JSON.stringify(this.events, null, 2)}\n`, "utf8");
+    if (this.events.length > OutcomeTracker.MAX_EVENTS) {
+      this.events = this.events.slice(-OutcomeTracker.MAX_EVENTS);
+    }
+    await atomicWriteFile(this.filePath, `${JSON.stringify(this.events, null, 2)}\n`);
+  }
+
+  private async append(events: OutcomeEvent[]): Promise<void> {
+    await this.writeLock.run(async () => {
+      this.events.push(...events);
+      await this.persist();
+    });
   }
 
   async trackContextServed(correctionIds: string[], domain?: string, query?: string): Promise<void> {
-    for (const correctionId of correctionIds) {
-      this.events.push(outcomeEventSchema.parse({
-        type: "context_served",
-        correctionId,
-        domain,
-        query,
-        timestamp: new Date().toISOString(),
-      }));
-    }
-    await this.persist();
+    await this.append(correctionIds.map((correctionId) => outcomeEventSchema.parse({
+      type: "context_served",
+      correctionId,
+      domain,
+      query,
+      timestamp: new Date().toISOString(),
+    })));
   }
 
   async trackBlockTriggered(correctionId: string, domain?: string, query?: string): Promise<void> {
-    this.events.push(outcomeEventSchema.parse({
+    await this.append([outcomeEventSchema.parse({
       type: "block_triggered",
       correctionId,
       domain,
       query,
       timestamp: new Date().toISOString(),
-    }));
-    await this.persist();
+    })]);
   }
 
   async trackApproval(correctionId: string, domain?: string): Promise<void> {
-    this.events.push(outcomeEventSchema.parse({
+    await this.append([outcomeEventSchema.parse({
       type: "correction_approved",
       correctionId,
       domain,
       timestamp: new Date().toISOString(),
-    }));
-    await this.persist();
+    })]);
   }
 
   async trackDeprecation(correctionId: string, domain?: string): Promise<void> {
-    this.events.push(outcomeEventSchema.parse({
+    await this.append([outcomeEventSchema.parse({
       type: "correction_deprecated",
       correctionId,
       domain,
       timestamp: new Date().toISOString(),
-    }));
-    await this.persist();
+    })]);
   }
 
   report(domain?: string): OutcomeReport {

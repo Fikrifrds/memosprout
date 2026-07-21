@@ -115,7 +115,7 @@ LLM returns confidence score (0.0 – 1.0)
      yes │           │ no
          ▼           ▼
     ┌────────┐  ┌──────────────────────┐
-    │SUGGESTED│  │ confidence >= 0.5?   │
+    │SUGGESTED│  │ confidence >= 0.8?   │
     │(always)│  └────┬────────────┬────┘
     └────────┘   yes │            │ no
                     ▼            ▼
@@ -317,7 +317,7 @@ interface DomainAdapter {
 
 Supported providers:
   openai, anthropic, deepseek, qwen, kimi,
-  minimax, groq, together, openrouter, ollama,
+  minimax, groq, togetherai, openrouter, ollama,
   + any custom OpenAI-compatible endpoint
 ```
 

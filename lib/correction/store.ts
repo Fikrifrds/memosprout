@@ -1,5 +1,8 @@
-import { mkdir, readFile, readdir, writeFile } from "node:fs/promises";
+import { mkdir, readFile, readdir } from "node:fs/promises";
 import { join } from "node:path";
+
+import { atomicWriteFile, Mutex } from "@/lib/store/atomic";
+import { normalizeText } from "@/lib/correction/matching";
 
 import {
   correctionFilename,
@@ -14,6 +17,7 @@ import {
 
 export class CorrectionStore {
   private readonly corrections = new Map<string, CorrectionRecord>();
+  private readonly writeLock = new Mutex();
   private initialized = false;
 
   constructor(private readonly directory: string) {}
@@ -48,10 +52,12 @@ export class CorrectionStore {
 
   async save(correction: CorrectionRecord): Promise<void> {
     const record = correctionRecordSchema.parse(correction);
-    await mkdir(this.directory, { recursive: true });
-    const markdown = renderCorrectionMarkdown(record);
-    await writeFile(join(this.directory, correctionFilename(record.correctionId)), markdown, "utf8");
-    this.corrections.set(record.correctionId, record);
+    await this.writeLock.run(async () => {
+      await mkdir(this.directory, { recursive: true });
+      const markdown = renderCorrectionMarkdown(record);
+      await atomicWriteFile(join(this.directory, correctionFilename(record.correctionId)), markdown);
+      this.corrections.set(record.correctionId, record);
+    });
   }
 
   get(correctionId: string): CorrectionRecord | undefined {
@@ -83,22 +89,42 @@ export class CorrectionStore {
   }
 
   match(query: string, domain?: string): CorrectionRecord[] {
-    const tokens = query.toLowerCase().split(/\s+/);
+    const normalizedQuery = normalizeText(query);
+    const tokens = normalizedQuery.split(" ");
+    const tokenSet = new Set(tokens);
     const active = this.list({ status: "active", domain });
 
     return active
       .map((correction) => {
         let score = 0;
         for (const keyword of correction.trigger.keywords) {
-          if (tokens.some((token) => token.includes(keyword.toLowerCase()))) {
-            score += 2;
-          }
+          const needle = keyword.toLowerCase();
+          // Short keywords must match a token exactly — substring matching
+          // on 1-2 char keywords would match nearly every query.
+          const hit =
+            needle.length >= 3
+              ? tokens.some((token) => token.includes(needle))
+              : tokenSet.has(needle);
+          if (hit) score += 2;
         }
         for (const entity of correction.trigger.entities) {
-          if (query.toLowerCase().includes(entity.toLowerCase())) {
+          if (normalizedQuery.includes(entity.toLowerCase())) {
             score += 3;
           }
         }
+        // Content fallback: corrections stay findable even when trigger
+        // keywords were never set at capture time. Requires at least two
+        // overlapping tokens so a single shared word is not enough.
+        const contentTokens = new Set(
+          `${normalizeText(correction.wrongPattern)} ${normalizeText(correction.correctAnswer)}`
+            .split(" ")
+            .filter((token) => token.length >= 3),
+        );
+        let contentHits = 0;
+        for (const token of tokenSet) {
+          if (token.length >= 3 && contentTokens.has(token)) contentHits += 1;
+        }
+        if (contentHits >= 2) score += contentHits;
         return { correction, score };
       })
       .filter((entry) => entry.score > 0)

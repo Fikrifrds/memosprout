@@ -86,7 +86,11 @@ const ms = new MemoSprout("./corrections", {
             </table>
           </div>
           <p className="text-xs text-slate-400">
-            Also supported: kimi, minimax, together. Custom endpoints via baseUrl.
+            Also supported: kimi, xiaomi, minimax, togetherai. Custom/self-hosted endpoints: use
+            provider <code>openai-compatible</code> or <code>anthropic-compatible</code> with
+            an explicit <code>baseUrl</code> + <code>model</code>. Unsupported provider names
+            throw a clear error listing valid options — see <code>docs/PROVIDERS.md</code> for
+            per-provider setup, keys, and caveats.
           </p>
         </Section>
 
@@ -111,6 +115,15 @@ const ms = new MemoSprout("./corrections", {
   return answer;
 }`}</Code>
           <p>That&apos;s it. Corrections are captured, validated, and delivered automatically.</p>
+          <p>
+            <code>check()</code> catches literal, reworded, and reordered wrong answers out of
+            the box. Enable <code>semanticCheck: true</code> to also catch paraphrases and
+            translations via your LLM:
+          </p>
+          <Code>{`const ms = new MemoSprout("./corrections", {
+  llm: { provider: "deepseek", apiKey: "sk-..." },
+  semanticCheck: true,  // catches "twelve days of yearly vacation"
+});`}</Code>
         </Section>
 
         {/* Manual corrections */}
@@ -157,14 +170,23 @@ const ms = new MemoSprout("./corrections", {
 
           <h3 className="font-semibold">Can customers poison the knowledge base?</h3>
           <p>
-            No. Customer input is stored as feedback signals, never as corrections. Only
-            agents/admins can create corrections that affect AI answers.
+            Guardrails prevent it. Manual corrections from customers are always saved as{" "}
+            <code>suggested</code> and need approval. LLM-extracted corrections auto-activate
+            only above a 0.8 confidence threshold — set <code>approvalRequired: true</code> to
+            require manual approval for everything.
           </p>
 
           <h3 className="font-semibold">Does it require an LLM?</h3>
           <p>
             Only for automatic detection. You can add corrections manually via{" "}
             <code>ms.correct()</code> or the CLI without any LLM.
+          </p>
+
+          <h3 className="font-semibold">Is the REST API secured?</h3>
+          <p>
+            Yes. The API server binds to localhost by default and refuses to expose itself
+            without <code>MEMOSPROUT_API_KEY</code> set. Requests authenticate via{" "}
+            <code>Authorization: Bearer</code> or <code>x-api-key</code>.
           </p>
 
           <h3 className="font-semibold">Where does data live?</h3>

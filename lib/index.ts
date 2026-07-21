@@ -20,13 +20,30 @@ import {
   type LLMProviderConfig,
 } from "@/lib/llm/provider";
 import { extractCorrection } from "@/lib/llm/extractor";
+import { matchesWrongPattern } from "@/lib/correction/matching";
+import { Mutex } from "@/lib/store/atomic";
 
 export interface MemoSproutOptions {
   llm?: {
+    /**
+     * One of the supported providers (see docs/PROVIDERS.md): openai,
+     * anthropic, deepseek, qwen, kimi, xiaomi, minimax, groq,
+     * togetherai, openrouter, ollama — or, for custom/self-hosted
+     * endpoints,
+     * "openai-compatible" / "anthropic-compatible" (these require
+     * baseUrl + model). Unsupported names throw an LLMError.
+     */
     provider?: string;
+    /**
+     * Endpoint URL. Required for "openai-compatible" /
+     * "anthropic-compatible"; optional override for named providers.
+     * Must speak the wire format of the chosen provider.
+     */
     baseUrl?: string;
     apiKey: string;
     model?: string;
+    /** Request timeout in ms. Default: 30000. */
+    timeoutMs?: number;
   };
   /**
    * When true, all corrections require manual approval before going active.
@@ -36,9 +53,17 @@ export interface MemoSproutOptions {
   /**
    * Minimum confidence for auto-activation. Corrections below this
    * threshold are saved as "suggested" and need manual approval.
-   * Default: 0.5
+   * Default: 0.8 — auto-activating extracted corrections writes directly
+   * into the knowledge base, so the bar is deliberately high.
    */
   autoActivateThreshold?: number;
+  /**
+   * When true and an LLM is configured, check() falls back to an LLM
+   * semantic pass for corrections that lexical matching did not catch —
+   * catching paraphrased or translated wrong answers. Costs one LLM call
+   * per check() with unmatched active corrections. Default: false.
+   */
+  semanticCheck?: boolean;
 }
 
 export interface ProcessResult {
@@ -107,7 +132,14 @@ export class MemoSprout {
   private readonly llmConfig: LLMProviderConfig | null;
   private readonly approvalRequired: boolean;
   private readonly autoActivateThreshold: number;
+  private readonly semanticCheckEnabled: boolean;
   private ready = false;
+  /**
+   * Serializes read-modify-write operations (confirmCount bumps, status
+   * transitions) so concurrent requests cannot lose updates. The store's
+   * own lock only serializes file writes, not the read-modify-write cycle.
+   */
+  private readonly opLock = new Mutex();
   private sourceHashProvider: SourceHashProvider | null = null;
   private adapter: import("@/lib/adapter/types").DomainAdapter | null = null;
 
@@ -120,7 +152,8 @@ export class MemoSprout {
       ? resolveProviderConfig(options.llm)
       : null;
     this.approvalRequired = options.approvalRequired ?? false;
-    this.autoActivateThreshold = options.autoActivateThreshold ?? 0.5;
+    this.autoActivateThreshold = options.autoActivateThreshold ?? 0.8;
+    this.semanticCheckEnabled = options.semanticCheck ?? false;
   }
 
   setAdapter(adapter: import("@/lib/adapter/types").DomainAdapter): void {
@@ -143,7 +176,10 @@ export class MemoSprout {
 
   async correct(options: CorrectOptions): Promise<CorrectionRecord> {
     await this.ensureReady();
+    return this.opLock.run(() => this.correctUnlocked(options));
+  }
 
+  private async correctUnlocked(options: CorrectOptions): Promise<CorrectionRecord> {
     const domain = options.domain ?? "general";
     const role = options.role ?? "agent";
     const isTrustedSource = role === "agent" || role === "admin" || role === "system";
@@ -212,7 +248,10 @@ export class MemoSprout {
 
   async feedback(options: FeedbackOptions): Promise<FeedbackRecord> {
     await this.ensureReady();
+    return this.opLock.run(() => this.feedbackUnlocked(options));
+  }
 
+  private async feedbackUnlocked(options: FeedbackOptions): Promise<FeedbackRecord> {
     const feedbackId = createDeterministicId(
       "fb",
       `${options.domain ?? "general"}:${options.topic}:${options.message}`,
@@ -346,15 +385,35 @@ export class MemoSprout {
         correction.staleness === "fresh" && !isExpiredByDate(correction),
     );
 
-    const matched = fresh
-      .filter((correction) =>
-        answer.toLowerCase().includes(correction.wrongPattern.toLowerCase()),
-      )
-      .map((correction) => ({
-        id: correction.correctionId,
-        correct: correction.correctAnswer,
-        source: correction.sourceRef,
-      }));
+    const lexical = fresh.filter((correction) =>
+      matchesWrongPattern(answer, correction.wrongPattern),
+    );
+
+    let semantic: CorrectionRecord[] = [];
+    if (this.semanticCheckEnabled && this.llmConfig) {
+      const unmatched = fresh.filter((c) => !lexical.includes(c));
+      if (unmatched.length > 0) {
+        const { semanticCheck } = await import("@/lib/llm/semantic-check");
+        const matchedIds = new Set(
+          await semanticCheck(
+            this.llmConfig,
+            answer,
+            unmatched.map((c) => ({
+              id: c.correctionId,
+              wrongPattern: c.wrongPattern,
+              correctAnswer: c.correctAnswer,
+            })),
+          ),
+        );
+        semantic = unmatched.filter((c) => matchedIds.has(c.correctionId));
+      }
+    }
+
+    const matched = [...lexical, ...semantic].map((correction) => ({
+      id: correction.correctionId,
+      correct: correction.correctAnswer,
+      source: correction.sourceRef,
+    }));
 
     for (const match of matched) {
       await this.tracker.trackBlockTriggered(match.id, domain);
@@ -401,6 +460,10 @@ export class MemoSprout {
 
   async remove(correctionId: string): Promise<void> {
     await this.ensureReady();
+    return this.opLock.run(() => this.removeUnlocked(correctionId));
+  }
+
+  private async removeUnlocked(correctionId: string): Promise<void> {
     const correction = this.store.get(correctionId);
     if (!correction) return;
     const deprecated = correctionRecordSchema.parse({
@@ -477,6 +540,10 @@ export class MemoSprout {
 
   async approve(correctionId: string): Promise<CorrectionRecord> {
     await this.ensureReady();
+    return this.opLock.run(() => this.approveUnlocked(correctionId));
+  }
+
+  private async approveUnlocked(correctionId: string): Promise<CorrectionRecord> {
     const correction = this.store.get(correctionId);
     if (!correction) {
       throw new Error(`Correction "${correctionId}" not found.`);
@@ -509,7 +576,13 @@ export class MemoSprout {
     status: "active" | "suggested",
   ): Promise<CorrectionRecord> {
     await this.ensureReady();
+    return this.opLock.run(() => this.correctWithStatusUnlocked(options, status));
+  }
 
+  private async correctWithStatusUnlocked(
+    options: CorrectOptions,
+    status: "active" | "suggested",
+  ): Promise<CorrectionRecord> {
     const domain = options.domain ?? "general";
 
     if (status === "active") {
@@ -611,6 +684,8 @@ export {
   callLLM,
   resolveProviderConfig,
   knownProviders,
+  LLMError,
+  extractJsonPayload,
   type LLMProviderConfig,
 } from "@/lib/llm/provider";
 export {
@@ -627,3 +702,6 @@ export {
 export { FeedbackStore } from "@/lib/feedback/store";
 export { OutcomeTracker, type OutcomeReport, type OutcomeEvent } from "@/lib/outcome/tracker";
 export { AuditLog, type AuditEntry } from "@/lib/audit/log";
+export { matchesWrongPattern, normalizeText } from "@/lib/correction/matching";
+export { semanticCheck } from "@/lib/llm/semantic-check";
+export { atomicWriteFile, Mutex } from "@/lib/store/atomic";

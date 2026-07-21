@@ -1,6 +1,8 @@
-import { readFile, stat, writeFile } from "node:fs/promises";
+import { readFile, stat } from "node:fs/promises";
 
 import { z } from "zod";
+
+import { atomicWriteFile, Mutex } from "@/lib/store/atomic";
 
 export const auditEntrySchema = z
   .object({
@@ -24,6 +26,7 @@ export type AuditEntry = z.infer<typeof auditEntrySchema>;
 
 export class AuditLog {
   private entries: AuditEntry[] = [];
+  private readonly writeLock = new Mutex();
 
   constructor(private readonly filePath: string) {}
 
@@ -37,16 +40,25 @@ export class AuditLog {
     }
   }
 
+  /** Oldest entries are dropped beyond this cap so the file (rewritten
+   * wholesale on each record) cannot grow unboundedly. */
+  private static readonly MAX_ENTRIES = 50_000;
+
   private async persist(): Promise<void> {
-    await writeFile(this.filePath, `${JSON.stringify(this.entries, null, 2)}\n`, "utf8");
+    if (this.entries.length > AuditLog.MAX_ENTRIES) {
+      this.entries = this.entries.slice(-AuditLog.MAX_ENTRIES);
+    }
+    await atomicWriteFile(this.filePath, `${JSON.stringify(this.entries, null, 2)}\n`);
   }
 
   async record(entry: Omit<AuditEntry, "timestamp">): Promise<void> {
-    this.entries.push(auditEntrySchema.parse({
-      ...entry,
-      timestamp: new Date().toISOString(),
-    }));
-    await this.persist();
+    await this.writeLock.run(async () => {
+      this.entries.push(auditEntrySchema.parse({
+        ...entry,
+        timestamp: new Date().toISOString(),
+      }));
+      await this.persist();
+    });
   }
 
   history(correctionId: string): AuditEntry[] {

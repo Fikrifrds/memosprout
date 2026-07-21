@@ -85,6 +85,8 @@ describe("CorrectionStore", () => {
     await store.save(makeCorrection({
       correctionId: "corr_match2",
       trigger: { keywords: ["tenant", "isolation"], entities: ["tenant-isolation"] },
+      wrongPattern: "Share tenant data across accounts",
+      correctAnswer: "Scope every query by tenant id",
     }));
 
     const matches = store.match("I need to edit the generated client file");

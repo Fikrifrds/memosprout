@@ -1,41 +1,143 @@
-import { createServer, type IncomingMessage, type ServerResponse } from "node:http";
+import { createServer, type IncomingMessage, type Server, type ServerResponse } from "node:http";
+import { timingSafeEqual } from "node:crypto";
 
 import { MemoSprout } from "@/lib/index";
+
+export interface ApiServerOptions {
+  /**
+   * API key required on every request (except /health and CORS preflight),
+   * sent as `Authorization: Bearer <key>` or `x-api-key: <key>`.
+   * Defaults to MEMOSPROUT_API_KEY. Without a key the server refuses to
+   * bind to non-loopback hosts.
+   */
+  apiKey?: string;
+  /** Allowed CORS origin. Defaults to MEMOSPROUT_CORS_ORIGIN, else "*". */
+  corsOrigin?: string;
+  /** Host to bind. Defaults to MEMOSPROUT_HOST, else 127.0.0.1. */
+  host?: string;
+  /**
+   * Max requests per minute per API key (or per IP when unauthenticated).
+   * Defaults to MEMOSPROUT_RATE_LIMIT, else 120. Set 0 to disable.
+   */
+  rateLimitPerMinute?: number;
+}
+
+class HttpError extends Error {
+  constructor(readonly status: number, message: string) {
+    super(message);
+  }
+}
 
 function json(res: ServerResponse, status: number, body: unknown): void {
   res.writeHead(status, { "Content-Type": "application/json" });
   res.end(JSON.stringify(body, null, 2));
 }
 
+const MAX_BODY_BYTES = 1_000_000; // 1 MB — corrections are short text, not uploads.
+
 function readBody(req: IncomingMessage): Promise<Record<string, unknown>> {
   return new Promise((resolve, reject) => {
-    let data = "";
-    req.on("data", (chunk: Buffer) => (data += chunk.toString()));
+    let size = 0;
+    const chunks: Buffer[] = [];
+    let rejected = false;
+    req.on("data", (chunk: Buffer) => {
+      if (rejected) return; // drain & discard the rest so the 413 can be sent
+      size += chunk.length;
+      if (size > MAX_BODY_BYTES) {
+        rejected = true;
+        chunks.length = 0;
+        reject(new HttpError(413, `Body too large (max ${MAX_BODY_BYTES} bytes).`));
+        return;
+      }
+      chunks.push(chunk);
+    });
     req.on("end", () => {
+      const data = Buffer.concat(chunks).toString("utf8");
       try {
         resolve(data ? (JSON.parse(data) as Record<string, unknown>) : {});
       } catch {
-        reject(new Error("Invalid JSON body."));
+        reject(new HttpError(400, "Invalid JSON body."));
       }
     });
     req.on("error", reject);
   });
 }
 
-export function createApiServer(ms: MemoSprout, port: number = 3456): void {
+/** Fixed-window rate limiter, per API key (or IP when unauthenticated). */
+function createRateLimiter(maxPerMinute: number) {
+  const windows = new Map<string, { windowStart: number; count: number }>();
+  return (key: string): boolean => {
+    const now = Date.now();
+    const entry = windows.get(key);
+    if (!entry || now - entry.windowStart >= 60_000) {
+      if (windows.size > 10_000) windows.clear();
+      windows.set(key, { windowStart: now, count: 1 });
+      return true;
+    }
+    entry.count++;
+    return entry.count <= maxPerMinute;
+  };
+}
+
+function isAuthorized(req: IncomingMessage, apiKey: string): boolean {
+  const header = req.headers.authorization ?? "";
+  const bearer = header.startsWith("Bearer ") ? header.slice(7) : "";
+  const provided = bearer || String(req.headers["x-api-key"] ?? "");
+  const expected = Buffer.from(apiKey);
+  const actual = Buffer.from(provided);
+  return actual.length === expected.length && timingSafeEqual(actual, expected);
+}
+
+export function createApiServer(
+  ms: MemoSprout,
+  port: number = 3456,
+  options: ApiServerOptions = {},
+): Server {
+  const apiKey = options.apiKey ?? process.env.MEMOSPROUT_API_KEY ?? "";
+  const corsOrigin = options.corsOrigin ?? process.env.MEMOSPROUT_CORS_ORIGIN ?? "*";
+  const host = options.host ?? process.env.MEMOSPROUT_HOST ?? "127.0.0.1";
+  const rateLimitPerMinute =
+    options.rateLimitPerMinute ?? Number(process.env.MEMOSPROUT_RATE_LIMIT ?? 120);
+  const allowRequest = createRateLimiter(rateLimitPerMinute);
+
+  if (!apiKey && host !== "127.0.0.1" && host !== "localhost") {
+    throw new Error(
+      "Refusing to bind to a non-loopback host without an API key. " +
+        "Set MEMOSPROUT_API_KEY (or options.apiKey) to expose the server.",
+    );
+  }
+
   const server = createServer(async (req, res) => {
     const url = new URL(req.url ?? "/", `http://localhost:${port}`);
     const path = url.pathname;
     const method = req.method ?? "GET";
 
-    res.setHeader("Access-Control-Allow-Origin", "*");
+    res.setHeader("Access-Control-Allow-Origin", corsOrigin);
     res.setHeader("Access-Control-Allow-Methods", "GET, POST, DELETE, OPTIONS");
-    res.setHeader("Access-Control-Allow-Headers", "Content-Type");
+    res.setHeader("Access-Control-Allow-Headers", "Content-Type, Authorization, x-api-key");
 
     if (method === "OPTIONS") {
       res.writeHead(204);
       res.end();
       return;
+    }
+
+    if (method === "GET" && path === "/health") {
+      json(res, 200, { status: "ok", version: "0.2.0" });
+      return;
+    }
+
+    if (apiKey && !isAuthorized(req, apiKey)) {
+      json(res, 401, { error: "Unauthorized. Provide Authorization: Bearer <key> or x-api-key." });
+      return;
+    }
+
+    if (rateLimitPerMinute > 0) {
+      const client = apiKey || req.socket.remoteAddress || "unknown";
+      if (!allowRequest(client)) {
+        json(res, 429, { error: `Rate limit exceeded (${rateLimitPerMinute}/min).` });
+        return;
+      }
     }
 
     try {
@@ -174,28 +276,43 @@ export function createApiServer(ms: MemoSprout, port: number = 3456): void {
         }
 
         if (method === "DELETE" && !sub) {
+          const existing = await ms.get(id);
+          if (!existing) {
+            json(res, 404, { error: "Correction not found." });
+            return;
+          }
           await ms.remove(id);
           json(res, 200, { deprecated: id });
           return;
         }
       }
 
-      // GET /health
-      if (method === "GET" && path === "/health") {
-        json(res, 200, { status: "ok", version: "0.2.0" });
-        return;
-      }
-
       json(res, 404, { error: `Unknown endpoint: ${method} ${path}` });
     } catch (error) {
-      json(res, 500, {
-        error: error instanceof Error ? error.message : "Internal error.",
-      });
+      if (error instanceof HttpError) {
+        json(res, error.status, { error: error.message });
+        return;
+      }
+      const message = error instanceof Error ? error.message : "Internal error.";
+      const status = message.includes("not found")
+        ? 404
+        : message.includes("cannot be approved")
+          ? 409
+          : 500;
+      json(res, status, { error: message });
     }
   });
 
-  server.listen(port, () => {
-    console.log(`MemoSprout API server running at http://localhost:${port}`);
+  server.listen(port, host, () => {
+    const address = server.address();
+    const actualPort = typeof address === "object" && address ? address.port : port;
+    console.log(`MemoSprout API server running at http://${host}:${actualPort}`);
+    if (!apiKey) {
+      console.warn(
+        "  WARNING: no API key set — server is unauthenticated (loopback only). " +
+          "Set MEMOSPROUT_API_KEY before exposing it.",
+      );
+    }
     console.log(`  POST /correct                  — capture a correction`);
     console.log(`  POST /process                  — LLM detect + extract (correction|feedback|none)`);
     console.log(`  POST /context                  — get corrections for a query`);
@@ -212,4 +329,6 @@ export function createApiServer(ms: MemoSprout, port: number = 3456): void {
     console.log(`  DELETE /corrections/:id        — deprecate a correction`);
     console.log(`  GET  /health                   — health check`);
   });
+
+  return server;
 }

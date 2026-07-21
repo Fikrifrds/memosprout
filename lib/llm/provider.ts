@@ -8,6 +8,7 @@ export const llmProviderConfigSchema = z
     apiKey: z.string().min(1),
     model: z.string().min(1).default("gpt-4o-mini"),
     apiFormat: apiFormatSchema.default("openai-compatible"),
+    timeoutMs: z.number().int().positive().default(30_000),
   })
   .strict();
 
@@ -18,19 +19,111 @@ export interface LLMResponse {
   model: string;
 }
 
+/**
+ * Every LLM failure surfaces as an LLMError with an actionable message —
+ * never a silent crash or a bare fetch error.
+ */
+export class LLMError extends Error {
+  constructor(
+    message: string,
+    readonly status?: number,
+  ) {
+    super(message);
+    this.name = "LLMError";
+  }
+}
+
+function describeHttpFailure(status: number, body: string, config: LLMProviderConfig): string {
+  const detail = body.slice(0, 200);
+  if (status === 401 || status === 403) {
+    return `LLM auth failed (${status}) at ${config.baseUrl} — check your API key. ${detail}`;
+  }
+  if (status === 404) {
+    return (
+      `LLM endpoint or model not found (404) at ${config.baseUrl} — ` +
+      `check that model "${config.model}" exists on this provider. ${detail}`
+    );
+  }
+  if (status === 400 && /model/i.test(detail)) {
+    return (
+      `LLM rejected the request (400) — model "${config.model}" may not be ` +
+      `supported by this provider. ${detail}`
+    );
+  }
+  if (status === 429) {
+    return `LLM rate limit hit (429) at ${config.baseUrl}. ${detail}`;
+  }
+  return `LLM request failed (${status}) at ${config.baseUrl}: ${detail}`;
+}
+
+/**
+ * Some models wrap JSON in markdown fences or prose. Extract the JSON
+ * payload so downstream JSON.parse succeeds across providers.
+ */
+export function extractJsonPayload(content: string): string {
+  const trimmed = content.trim();
+  const fenced = /```(?:json)?\s*([\s\S]*?)```/.exec(trimmed);
+  if (fenced) return fenced[1].trim();
+  const start = trimmed.indexOf("{");
+  const end = trimmed.lastIndexOf("}");
+  if (start !== -1 && end > start) return trimmed.slice(start, end + 1);
+  return trimmed;
+}
+
 export async function callLLM(
   config: LLMProviderConfig,
   messages: Array<{ role: "system" | "user"; content: string }>,
 ): Promise<LLMResponse> {
-  if (config.apiFormat === "anthropic") {
-    return callAnthropic(config, messages);
+  const call = () =>
+    config.apiFormat === "anthropic"
+      ? callAnthropic(config, messages)
+      : callOpenAICompatible(config, messages);
+
+  try {
+    return await call();
+  } catch (error) {
+    if (!isRetryable(error)) throw toLLMError(error, config);
+    try {
+      return await call();
+    } catch (retryError) {
+      throw toLLMError(retryError, config);
+    }
   }
-  return callOpenAICompatible(config, messages);
+}
+
+function toLLMError(error: unknown, config: LLMProviderConfig): LLMError {
+  if (error instanceof LLMError) return error;
+  if (error instanceof Error) {
+    if (error.name === "TimeoutError" || error.name === "AbortError") {
+      return new LLMError(
+        `LLM request timed out after ${config.timeoutMs}ms at ${config.baseUrl}. ` +
+          `Increase timeoutMs or check the endpoint.`,
+      );
+    }
+    return new LLMError(
+      `Could not reach LLM endpoint ${config.baseUrl}: ${error.message}. ` +
+        `Check the baseUrl and your network.`,
+    );
+  }
+  return new LLMError(`LLM request failed: ${String(error)}`);
+}
+
+// Retry once on timeouts, network failures, and 5xx / 429 — not on 4xx.
+function isRetryable(error: unknown): boolean {
+  if (!(error instanceof Error)) return false;
+  if (error.name === "TimeoutError" || error.name === "AbortError") return true;
+  const status =
+    error instanceof LLMError
+      ? error.status
+      : Number(/\((\d{3})\)/.exec(error.message)?.[1]) || undefined;
+  if (status) return status === 429 || status >= 500;
+  return true; // no status → network-level failure (fetch TypeError, etc.)
 }
 
 async function callOpenAICompatible(
   config: LLMProviderConfig,
   messages: Array<{ role: "system" | "user"; content: string }>,
+  useJsonFormat = true,
 ): Promise<LLMResponse> {
   const url = `${config.baseUrl.replace(/\/+$/, "")}/chat/completions`;
 
@@ -40,30 +133,39 @@ async function callOpenAICompatible(
       "Content-Type": "application/json",
       Authorization: `Bearer ${config.apiKey}`,
     },
+    signal: AbortSignal.timeout(config.timeoutMs),
     body: JSON.stringify({
       model: config.model,
       messages,
       temperature: 0,
-      response_format: { type: "json_object" },
+      ...(useJsonFormat ? { response_format: { type: "json_object" } } : {}),
     }),
   });
 
   if (!response.ok) {
     const body = await response.text().catch(() => "");
-    throw new Error(
-      `LLM request failed (${response.status}): ${body.slice(0, 200)}`,
+    // Not every OpenAI-compatible endpoint supports response_format —
+    // retry the same request without it before giving up.
+    if (useJsonFormat && response.status === 400 && /response_format/i.test(body)) {
+      return callOpenAICompatible(config, messages, false);
+    }
+    throw new LLMError(describeHttpFailure(response.status, body, config), response.status);
+  }
+
+  const data = (await response.json().catch(() => null)) as {
+    choices?: Array<{ message?: { content?: string } }>;
+    model?: string;
+  } | null;
+
+  const content = data?.choices?.[0]?.message?.content;
+  if (!content) {
+    throw new LLMError(
+      `LLM at ${config.baseUrl} returned an empty or unexpected response for ` +
+        `model "${config.model}". The model may not be supported by this provider.`,
     );
   }
 
-  const data = (await response.json()) as {
-    choices: Array<{ message: { content: string } }>;
-    model: string;
-  };
-
-  return {
-    content: data.choices[0]?.message?.content ?? "",
-    model: data.model,
-  };
+  return { content, model: data?.model ?? config.model };
 }
 
 async function callAnthropic(
@@ -82,9 +184,10 @@ async function callAnthropic(
       "x-api-key": config.apiKey,
       "anthropic-version": "2023-06-01",
     },
+    signal: AbortSignal.timeout(config.timeoutMs),
     body: JSON.stringify({
       model: config.model,
-      max_tokens: 1024,
+      max_tokens: 4096,
       system: systemMessage?.content ?? "",
       messages: userMessages.map((m) => ({ role: "user", content: m.content })),
     }),
@@ -92,22 +195,23 @@ async function callAnthropic(
 
   if (!response.ok) {
     const body = await response.text().catch(() => "");
-    throw new Error(
-      `Anthropic request failed (${response.status}): ${body.slice(0, 200)}`,
+    throw new LLMError(describeHttpFailure(response.status, body, config), response.status);
+  }
+
+  const data = (await response.json().catch(() => null)) as {
+    content?: Array<{ type: string; text: string }>;
+    model?: string;
+  } | null;
+
+  const textBlock = data?.content?.find((block) => block.type === "text");
+  if (!textBlock?.text) {
+    throw new LLMError(
+      `Anthropic endpoint at ${config.baseUrl} returned an empty or unexpected ` +
+        `response for model "${config.model}".`,
     );
   }
 
-  const data = (await response.json()) as {
-    content: Array<{ type: string; text: string }>;
-    model: string;
-  };
-
-  const textBlock = data.content.find((block) => block.type === "text");
-
-  return {
-    content: textBlock?.text ?? "",
-    model: data.model,
-  };
+  return { content: textBlock.text, model: data?.model ?? config.model };
 }
 
 export interface ProviderInfo {
@@ -155,6 +259,13 @@ export const knownProviders: Record<string, ProviderInfo> = {
     apiFormat: "openai-compatible",
     note: "8k context is sufficient for correction extraction.",
   },
+  xiaomi: {
+    baseUrl: "https://api.xiaomimimo.com/v1",
+    defaultModel: "mimo-v2.5",
+    suggestedModel: "mimo-v2.5",
+    apiFormat: "openai-compatible",
+    note: "Xiaomi MiMo. mimo-v2.5-pro for higher quality. Also offers an Anthropic-compatible endpoint (use provider anthropic-compatible).",
+  },
   minimax: {
     baseUrl: "https://api.minimax.chat/v1",
     defaultModel: "MiniMax-Text-01",
@@ -169,7 +280,7 @@ export const knownProviders: Record<string, ProviderInfo> = {
     apiFormat: "openai-compatible",
     note: "8b-instant is the fastest and cheapest on Groq. Free tier available.",
   },
-  together: {
+  togetherai: {
     baseUrl: "https://api.together.xyz/v1",
     defaultModel: "meta-llama/Llama-3.3-70B-Instruct-Turbo",
     suggestedModel: "meta-llama/Llama-3.1-8B-Instruct-Turbo",
@@ -197,13 +308,45 @@ export function resolveProviderConfig(options: {
   baseUrl?: string;
   apiKey: string;
   model?: string;
+  timeoutMs?: number;
 }): LLMProviderConfig {
+  // Explicit custom-endpoint providers: bring your own baseUrl + model,
+  // choose which wire format the endpoint speaks.
+  if (options.provider === "openai-compatible" || options.provider === "anthropic-compatible") {
+    if (!options.baseUrl || !options.model) {
+      throw new LLMError(
+        `Provider "${options.provider}" is for custom endpoints and requires ` +
+          `both baseUrl and model to be set explicitly.`,
+      );
+    }
+    return llmProviderConfigSchema.parse({
+      baseUrl: options.baseUrl,
+      apiKey: options.apiKey,
+      model: options.model,
+      apiFormat: options.provider === "anthropic-compatible" ? "anthropic" : "openai-compatible",
+      ...(options.timeoutMs !== undefined ? { timeoutMs: options.timeoutMs } : {}),
+    });
+  }
+
   const known = options.provider ? knownProviders[options.provider] : undefined;
+
+  // Only providers in the registry are supported — an unknown name must
+  // fail loudly at construction time, not fall back to OpenAI and produce
+  // confusing auth errors later.
+  if (options.provider && !known) {
+    throw new LLMError(
+      `Unsupported LLM provider "${options.provider}". ` +
+        `Supported providers: ${Object.keys(knownProviders).join(", ")}, ` +
+        `plus "openai-compatible" and "anthropic-compatible" for custom ` +
+        `endpoints (require baseUrl + model). See docs/PROVIDERS.md.`,
+    );
+  }
 
   return llmProviderConfigSchema.parse({
     baseUrl: options.baseUrl ?? known?.baseUrl ?? "https://api.openai.com/v1",
     apiKey: options.apiKey,
     model: options.model ?? known?.defaultModel ?? "gpt-4o-mini",
     apiFormat: known?.apiFormat ?? "openai-compatible",
+    ...(options.timeoutMs !== undefined ? { timeoutMs: options.timeoutMs } : {}),
   });
 }

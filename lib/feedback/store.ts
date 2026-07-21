@@ -1,10 +1,12 @@
-import { mkdir, readFile, readdir, writeFile } from "node:fs/promises";
+import { mkdir, readFile, readdir } from "node:fs/promises";
 import { join } from "node:path";
 
 import { feedbackRecordSchema, type FeedbackRecord, type FeedbackSummary } from "@/lib/feedback/schema";
+import { atomicWriteFile, Mutex } from "@/lib/store/atomic";
 
 export class FeedbackStore {
   private readonly records = new Map<string, FeedbackRecord>();
+  private readonly writeLock = new Mutex();
   private initialized = false;
 
   constructor(private readonly directory: string) {}
@@ -39,13 +41,14 @@ export class FeedbackStore {
 
   async save(record: FeedbackRecord): Promise<void> {
     const validated = feedbackRecordSchema.parse(record);
-    await mkdir(this.directory, { recursive: true });
-    await writeFile(
-      join(this.directory, `${validated.feedbackId}.json`),
-      `${JSON.stringify(validated, null, 2)}\n`,
-      "utf8",
-    );
-    this.records.set(validated.feedbackId, validated);
+    await this.writeLock.run(async () => {
+      await mkdir(this.directory, { recursive: true });
+      await atomicWriteFile(
+        join(this.directory, `${validated.feedbackId}.json`),
+        `${JSON.stringify(validated, null, 2)}\n`,
+      );
+      this.records.set(validated.feedbackId, validated);
+    });
   }
 
   get(feedbackId: string): FeedbackRecord | undefined {
