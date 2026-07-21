@@ -200,7 +200,7 @@ export default function HomePage() {
         <section className="border-t border-slate-200 py-14 text-center">
           <h2 className="text-2xl font-bold tracking-tight">Open source, local-first</h2>
           <p className="mx-auto mt-4 max-w-2xl text-slate-600">
-            MemoSprout is open source and runs entirely on your infrastructure. Corrections are
+            MemoSprout is MIT-licensed and runs entirely on your infrastructure. Corrections are
             stored as Markdown files — human-readable, git-versionable, and portable. No data
             leaves your server. No vendor lock-in. Audit the code yourself.
           </p>

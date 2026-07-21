@@ -474,4 +474,5 @@ pnpm build:lib    # build the publishable package (dist/)
 
 ## License
 
-MIT
+MIT — see [LICENSE](LICENSE). Use it commercially, modify it, ship it in
+closed-source products; just keep the copyright notice.
