@@ -103,7 +103,7 @@ export default function HomePage() {
             <SproutMark className="h-16 w-16" animate />
           </div>
           <p className="mb-3 text-sm font-semibold uppercase tracking-wide text-teal-700">
-            Open-source correction intelligence
+            Correction memory for AI systems
           </p>
           <h1 className="text-4xl font-bold tracking-tight sm:text-5xl">
             Correct once. Improve every interaction.
