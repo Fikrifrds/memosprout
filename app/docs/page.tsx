@@ -1,5 +1,6 @@
 import { CodeBlock } from "@/components/CodeBlock";
 import { GitHubLink } from "@/components/GitHubLink";
+import { ProviderTable } from "@/components/ProviderTable";
 import { SiteNav } from "@/components/SiteNav";
 
 export const metadata = {
@@ -34,23 +35,6 @@ export default function DocsPage() {
           MemoSprout captures corrections to AI outputs and delivers them to future
           interactions. Fix a mistake once, and it stops coming back.
         </p>
-        <div className="mt-5 rounded-xl border border-slate-200 bg-white p-4 text-sm">
-          <p className="font-medium text-slate-900">What you actually need</p>
-          <ul className="mt-2 space-y-1.5 text-slate-600">
-            <li>
-              <span className="font-medium text-teal-800">Required:</span> step 1 (install),
-              step 3 (wire it into your app), step 4 (add corrections).
-            </li>
-            <li>
-              <span className="font-medium text-slate-500">Add an LLM (step 2)</span> only if
-              you want corrections detected inside chat messages instead of added by hand.
-            </li>
-            <li>
-              <span className="font-medium text-slate-500">Add the REST API (step 5)</span>{" "}
-              only if you call MemoSprout from Python, PHP, Go, or another non-JS runtime.
-            </li>
-          </ul>
-        </div>
 
         {/* Install */}
         <Section id="install" title="1. Install">
@@ -58,7 +42,7 @@ export default function DocsPage() {
         </Section>
 
         {/* Configure */}
-        <Section id="configure" title="2. Connect an LLM (optional)">
+        <Section id="configure" title="2. Connect an LLM — optional">
           <p>
             An LLM lets MemoSprout detect corrections inside ordinary chat messages and
             extract the fields for you. Skip this and everything still works — you just add
@@ -84,38 +68,7 @@ const ms = new MemoSprout("./corrections", {
             and a default <code>model</code> are filled in for you, e.g.{" "}
             <code>{`llm: { provider: "openai", apiKey: "..." }`}</code>:
           </p>
-          <div className="overflow-x-auto">
-            <table className="w-full text-left text-xs">
-              <thead className="border-b border-slate-200 text-slate-500">
-                <tr>
-                  <th className="px-2 py-2 font-medium">Provider</th>
-                  <th className="px-2 py-2 font-medium">Suggested model</th>
-                  <th className="px-2 py-2 font-medium">Note</th>
-                </tr>
-              </thead>
-              <tbody className="divide-y divide-slate-100">
-                {[
-                  ["openai", "gpt-4o-mini", "Best price/performance"],
-                  ["anthropic", "claude-haiku-4-5-20251001", "Cheapest Claude"],
-                  ["deepseek", "deepseek-chat", "Extremely cheap"],
-                  ["qwen", "qwen-turbo", "Strong multilingual"],
-                  ["kimi", "moonshot-v1-8k", "Moonshot"],
-                  ["xiaomi", "mimo-v2.5", "Xiaomi MiMo"],
-                  ["minimax", "MiniMax-Text-01", "Competitive pricing"],
-                  ["groq", "llama-3.1-8b-instant", "Free tier available"],
-                  ["togetherai", "meta-llama/Llama-3.1-8B-Instruct-Turbo", "Open models"],
-                  ["openrouter", "deepseek/deepseek-chat-v3-0324", "Hundreds of models"],
-                  ["ollama", "llama3.2", "Free, local, no API key"],
-                ].map(([provider, model, note]) => (
-                  <tr key={provider}>
-                    <td className="px-2 py-1.5 font-mono font-medium">{provider}</td>
-                    <td className="px-2 py-1.5 font-mono text-slate-600">{model}</td>
-                    <td className="px-2 py-1.5 text-slate-500">{note}</td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
+          <ProviderTable />
           <p className="text-xs text-slate-400">
             Custom or self-hosted endpoints: use provider <code>openai-compatible</code> or{" "}
             <code>anthropic-compatible</code> with an explicit <code>baseUrl</code> +{" "}
@@ -188,7 +141,7 @@ async function handleChat(userMessage: string, previousAIAnswer: string) {
         </Section>
 
         {/* REST API */}
-        <Section id="rest-api" title="5. Call it from another language (optional)">
+        <Section id="rest-api" title="5. Call it from Python, PHP, Go — optional">
           <p>
             Run the built-in REST API server and call it over HTTP — the full feature set,
             not a subset:
