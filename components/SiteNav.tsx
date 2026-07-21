@@ -1,5 +1,7 @@
 import Link from "next/link";
 
+import { SproutMark } from "@/components/SproutMark";
+
 const links = [
   { href: "/", label: "Home" },
   { href: "/docs", label: "Docs" },
@@ -35,24 +37,3 @@ export function SiteNav() {
   );
 }
 
-/**
- * One correction, growing. The amber dot is the captured correction (the
- * memo); the single stroke rising from it into a leaf is the sprout.
- * Two elements only, so the silhouette holds at favicon size.
- */
-export function SproutMark({ className = "h-6 w-6" }: { className?: string }) {
-  return (
-    <svg viewBox="0 0 64 64" className={className} aria-hidden="true">
-      <rect width="64" height="64" rx="16" fill="#134E4A" />
-      <path
-        d="M28 48V33c0-9 7-15 18-16 1 12-7 18-18 18"
-        fill="none"
-        stroke="#5EEAD4"
-        strokeWidth="5.5"
-        strokeLinecap="round"
-        strokeLinejoin="round"
-      />
-      <circle cx="28" cy="48" r="3.2" fill="#FBBF24" />
-    </svg>
-  );
-}

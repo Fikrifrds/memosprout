@@ -4,6 +4,7 @@ import { CodeBlock } from "@/components/CodeBlock";
 import { FlowAnimation } from "@/components/FlowAnimation";
 import { GitHubLink } from "@/components/GitHubLink";
 import { SiteNav } from "@/components/SiteNav";
+import { SproutMark } from "@/components/SproutMark";
 
 export const metadata = {
   title: "MemoSprout — Correct once. Improve every interaction.",
@@ -98,6 +99,9 @@ export default function HomePage() {
       <SiteNav />
       <main className="mx-auto max-w-4xl px-4">
         <section className="py-16 text-center">
+          <div className="mb-5 flex justify-center">
+            <SproutMark className="h-16 w-16" animate />
+          </div>
           <p className="mb-3 text-sm font-semibold uppercase tracking-wide text-teal-700">
             Open-source correction intelligence
           </p>
