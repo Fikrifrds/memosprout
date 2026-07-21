@@ -212,10 +212,27 @@ Only agent/admin corrections do.
 corrections/                    # corrections directory
 ├── corr_a1b2c3d4.md           # correction record (Markdown + YAML)
 ├── corr_e5f6g7h8.md
+├── audit.json                  # lifecycle audit trail (capped 50k entries)
+├── outcomes.json               # outcome events (capped 50k events)
 └── feedback/                   # customer feedback signals
     ├── fb_i9j0k1l2.json       # feedback record (JSON)
     └── fb_m3n4o5p6.json
 ```
+
+### Write safety
+
+All writes go through `atomicWriteFile()` (write to a temp file in the
+same directory, then `rename` — atomic on POSIX), so a reader never sees a
+partially written file. Two levels of serialization prevent races:
+
+- **Store-level mutex** — serializes file writes within each store.
+- **Operation-level mutex** (`MemoSprout.opLock`) — serializes the whole
+  read-modify-write cycle of `correct()`, `approve()`, `remove()`, and
+  `feedback()`, so concurrent requests cannot lose a `confirmCount`
+  increment or overwrite each other's status transition.
+
+This covers a single process. Multiple processes writing the same
+directory would still need external locking.
 
 ### Correction file format
 
@@ -315,24 +332,100 @@ interface DomainAdapter {
 │          Body: { model, messages }       │
 └─────────────────────────────────────────┘
 
-Supported providers:
-  openai, anthropic, deepseek, qwen, kimi,
-  minimax, groq, togetherai, openrouter, ollama,
-  + any custom OpenAI-compatible endpoint
+Supported providers (fixed registry — unknown names throw LLMError):
+  openai, anthropic, deepseek, qwen, kimi, xiaomi,
+  minimax, groq, togetherai, openrouter, ollama
+Custom endpoints (require baseUrl + model):
+  openai-compatible, anthropic-compatible
 ```
+
+### Response normalization
+
+Every provider returns `{ content, model }` and fails as an `LLMError`
+with an actionable message. Divergent provider behavior is absorbed here:
+
+| Situation | Handling |
+|---|---|
+| Wrong API key (401/403) | `LLMError` naming the endpoint |
+| Unknown model (404, or 400 mentioning the model) | `LLMError` naming the model |
+| Rate limit (429) / server error (5xx) | One automatic retry, then `LLMError` |
+| Network failure / timeout | One retry; `LLMError` names `timeoutMs` (default 30s) |
+| Endpoint rejects `response_format` | Retried automatically without it |
+| Model wraps JSON in markdown fences or prose | Stripped by `extractJsonPayload()` |
+| Empty or unexpected response body | `LLMError` — never a silent empty string |
+
+4xx errors are never retried. See `docs/PROVIDERS.md` for per-provider
+detail and live verification status.
+
+---
+
+## Answer Matching
+
+`check()` decides whether an AI answer asserts a known-wrong claim.
+
+```
+answer + active, fresh corrections
+              │
+              ▼
+  ┌────────────────────────────────────────────┐
+  │ 1. Lexical (always, no LLM)                │
+  │    normalizeText: lowercase, strip          │
+  │      punctuation, collapse whitespace       │
+  │    a) word-boundary substring match         │
+  │       (" 12 days " ⊄ "112 days")            │
+  │    b) token overlap ≥ 80% for patterns      │
+  │       with ≥ 3 significant tokens           │
+  │       — every numeric token must be present │
+  │         so corrected values are not blocked │
+  └────────────────────┬───────────────────────┘
+                       │ unmatched corrections
+                       ▼
+  ┌────────────────────────────────────────────┐
+  │ 2. Semantic (opt-in: semanticCheck + LLM)   │
+  │    LLM sees wrong_claim + correct_claim     │
+  │    Flags only answers ASSERTING the wrong   │
+  │    claim — paraphrase or translation.       │
+  │    Not flagged: the correct claim, or a     │
+  │    denial of the wrong one.                 │
+  │    Capped at 30 corrections/call.           │
+  │    On failure: fail open + console.warn     │
+  └────────────────────┬───────────────────────┘
+                       ▼
+              { ok, corrections }
+```
+
+`context()` retrieval scores corrections by trigger keywords (+2),
+entities (+3), and — as a fallback when no triggers were set — overlapping
+content tokens (requires ≥ 2 matches).
 
 ---
 
 ## REST API
 
 For non-Node backends (Python, PHP, Go, etc.), run the REST API server
-and call it over HTTP. Start with LLM config to enable `/process`:
+and call it over HTTP. Start with an API key, plus LLM config to enable
+`/process`:
 
 ```
+MEMOSPROUT_API_KEY=your-secret-key \
 MEMOSPROUT_LLM_PROVIDER=deepseek \
 MEMOSPROUT_LLM_API_KEY=sk-... \
-pnpm api                          # default port 3456
+pnpm api                          # default 127.0.0.1:3456
 ```
+
+### Security model
+
+| Control | Behavior |
+|---|---|
+| Auth | All endpoints except `/health` require `MEMOSPROUT_API_KEY` via `Authorization: Bearer` or `x-api-key` (timing-safe compare) |
+| Bind host | `127.0.0.1` by default; binding elsewhere **without** an API key throws at startup |
+| CORS | `MEMOSPROUT_CORS_ORIGIN`, default `*` |
+| Rate limit | `MEMOSPROUT_RATE_LIMIT` requests/min per key (default 120, `0` disables) → 429 |
+| Body limit | 1 MB → 413 |
+
+Status codes: 400 invalid JSON · 401 bad/missing key · 404 unknown
+correction or endpoint · 409 correction cannot be approved in its current
+status · 413 body too large · 429 rate limited · 500 otherwise.
 
 Endpoints:
 
@@ -353,7 +446,8 @@ POST /corrections/:id/approve
 DELETE /corrections/:id
 GET  /health
 
-Config: MEMOSPROUT_PORT, MEMOSPROUT_DIR,
+Config: MEMOSPROUT_API_KEY, MEMOSPROUT_HOST, MEMOSPROUT_PORT,
+        MEMOSPROUT_DIR, MEMOSPROUT_CORS_ORIGIN, MEMOSPROUT_RATE_LIMIT,
         MEMOSPROUT_LLM_PROVIDER, MEMOSPROUT_LLM_API_KEY,
         MEMOSPROUT_LLM_BASE_URL, MEMOSPROUT_LLM_MODEL
 ```
@@ -502,7 +596,9 @@ lib/
 ├── correction/
 │   ├── schema.ts               # CorrectionRecord Zod schema
 │   ├── render.ts               # Markdown + YAML render/parse
-│   ├── store.ts                # File-based store + matching
+│   ├── store.ts                # File-based store + retrieval scoring
+│   ├── matching.ts             # Lexical answer matching (normalize,
+│   │                           #   word-boundary, token overlap)
 │   └── staleness.ts            # Source hash, conflict, TTL detection
 ├── feedback/
 │   ├── schema.ts               # FeedbackRecord Zod schema
@@ -512,8 +608,12 @@ lib/
 ├── audit/
 │   └── log.ts                  # Audit trail (from v1 Control Plane)
 ├── llm/
-│   ├── provider.ts             # 10 providers, OpenAI + Anthropic formats
-│   └── extractor.ts            # LLM 3-way classification + extraction
+│   ├── provider.ts             # 11 providers, OpenAI + Anthropic formats,
+│   │                           #   LLMError, retry/timeout, JSON extraction
+│   ├── extractor.ts            # LLM 3-way classification + extraction
+│   └── semantic-check.ts       # Opt-in semantic answer matching
+├── store/
+│   └── atomic.ts               # Atomic writes (tmp+rename) + Mutex
 ├── adapter/
 │   ├── types.ts                # DomainAdapter interface + Oracle
 │   └── coding.ts               # CodingAdapter (built-in, uses v1 scenarios)

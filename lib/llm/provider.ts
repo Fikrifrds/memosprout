@@ -233,10 +233,10 @@ export const knownProviders: Record<string, ProviderInfo> = {
   },
   anthropic: {
     baseUrl: "https://api.anthropic.com/v1",
-    defaultModel: "claude-sonnet-4-20250514",
-    suggestedModel: "claude-3-5-haiku-20241022",
+    defaultModel: "claude-haiku-4-5-20251001",
+    suggestedModel: "claude-haiku-4-5-20251001",
     apiFormat: "anthropic",
-    note: "Haiku is the cheapest Claude model, fast and reliable for extraction.",
+    note: "Haiku 4.5 is the cheapest Claude model, fast and reliable for extraction.",
   },
   deepseek: {
     baseUrl: "https://api.deepseek.com/v1",

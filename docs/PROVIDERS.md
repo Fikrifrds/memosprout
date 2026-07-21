@@ -47,7 +47,7 @@ the same way:
 
 ### anthropic
 - **Base URL**: `https://api.anthropic.com/v1` · **API format**: anthropic (`/messages`)
-- **Default model**: `claude-sonnet-4-20250514` · **Cheap**: `claude-3-5-haiku-20241022`
+- **Default model**: `claude-haiku-4-5-20251001` (also the cheap/fast choice)
 - **API key**: https://console.anthropic.com/settings/keys
 - Uses Anthropic's native message format internally (`x-api-key` +
   `anthropic-version` headers, `max_tokens` capped at 1024) — normalized to
@@ -163,10 +163,13 @@ Providers that have passed the full live check suite (8/8):
 | Provider | Model tested | Date |
 |---|---|---|
 | openai | gpt-4o-mini | 2026-07-21 |
+| anthropic | claude-haiku-4-5-20251001 | 2026-07-21 |
 | qwen | qwen3.8-max-preview | 2026-07-21 |
 | openrouter | openai/gpt-4o-mini | 2026-07-21 |
 | xiaomi | mimo-v2.5 | 2026-07-21 |
 | togetherai | openai/gpt-oss-120b | 2026-07-21 |
 
-Other providers use the same OpenAI-compatible code path but have not been
-run against a live key yet.
+Both wire formats are covered: `anthropic` exercises the `/messages` path,
+the rest exercise the OpenAI-compatible path. Remaining providers
+(deepseek, kimi, minimax, groq, ollama) use the same OpenAI-compatible
+code path as the verified ones but have not been run against a live key.

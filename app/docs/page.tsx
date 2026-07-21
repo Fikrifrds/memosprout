@@ -69,10 +69,14 @@ const ms = new MemoSprout("./corrections", {
               <tbody className="divide-y divide-slate-100">
                 {[
                   ["openai", "gpt-4o-mini", "Best price/performance"],
-                  ["anthropic", "claude-3-5-haiku-20241022", "Cheapest Claude"],
+                  ["anthropic", "claude-haiku-4-5-20251001", "Cheapest Claude"],
                   ["deepseek", "deepseek-chat", "Extremely cheap"],
                   ["qwen", "qwen-turbo", "Strong multilingual"],
+                  ["kimi", "moonshot-v1-8k", "Moonshot"],
+                  ["xiaomi", "mimo-v2.5", "Xiaomi MiMo"],
+                  ["minimax", "MiniMax-Text-01", "Competitive pricing"],
                   ["groq", "llama-3.1-8b-instant", "Free tier available"],
+                  ["togetherai", "meta-llama/Llama-3.1-8B-Instruct-Turbo", "Open models"],
                   ["openrouter", "deepseek/deepseek-chat-v3-0324", "Hundreds of models"],
                   ["ollama", "llama3.2", "Free, local, no API key"],
                 ].map(([provider, model, note]) => (
@@ -86,11 +90,11 @@ const ms = new MemoSprout("./corrections", {
             </table>
           </div>
           <p className="text-xs text-slate-400">
-            Also supported: kimi, xiaomi, minimax, togetherai. Custom/self-hosted endpoints: use
-            provider <code>openai-compatible</code> or <code>anthropic-compatible</code> with
-            an explicit <code>baseUrl</code> + <code>model</code>. Unsupported provider names
-            throw a clear error listing valid options — see <code>docs/PROVIDERS.md</code> for
-            per-provider setup, keys, and caveats.
+            Custom or self-hosted endpoints: use provider <code>openai-compatible</code> or{" "}
+            <code>anthropic-compatible</code> with an explicit <code>baseUrl</code> +{" "}
+            <code>model</code>. Unsupported provider names throw a clear error listing valid
+            options. Whichever provider you pick, responses and errors are normalized — see{" "}
+            <code>docs/PROVIDERS.md</code> for per-provider setup, keys, and caveats.
           </p>
         </Section>
 
@@ -138,6 +142,36 @@ const ms = new MemoSprout("./corrections", {
 });`}</Code>
         </Section>
 
+        {/* REST API */}
+        <Section id="rest-api" title="5. Use from Python, PHP, or any language">
+          <p>
+            Run the built-in REST API server and call it over HTTP — the full feature set,
+            not a subset:
+          </p>
+          <Code>{`MEMOSPROUT_API_KEY=your-secret-key \\
+MEMOSPROUT_LLM_PROVIDER=deepseek \\
+MEMOSPROUT_LLM_API_KEY=sk-... \\
+pnpm api        # http://127.0.0.1:3456`}</Code>
+          <Code>{`import requests, os
+
+BASE = "http://127.0.0.1:3456"
+HEAD = {"Authorization": f"Bearer {os.environ['MEMOSPROUT_API_KEY']}"}
+
+requests.post(f"{BASE}/correct", headers=HEAD, json={
+    "wrong": "Refund takes 3 business days",
+    "correct": "Refund takes 5 business days",
+})
+
+ctx = requests.post(f"{BASE}/context", headers=HEAD,
+                    json={"query": "how long is a refund?"}).json()`}</Code>
+          <p>
+            The server binds to <code>127.0.0.1</code> and refuses to bind anywhere else
+            without an API key. All endpoints except <code>/health</code> require the key,
+            requests are rate limited (120/min per key by default), and bodies are capped at
+            1&nbsp;MB.
+          </p>
+        </Section>
+
         {/* What happens */}
         <Section id="what-happens" title="What happens behind the scenes">
           <ul className="list-inside list-disc space-y-2">
@@ -155,7 +189,14 @@ const ms = new MemoSprout("./corrections", {
             </li>
             <li>
               <span className="font-medium">Storage</span> is plain Markdown files in the
-              directory you chose. No database, no cloud. Git-versionable.
+              directory you chose. No database, no cloud. Git-versionable. Writes are atomic
+              and serialized, so concurrent requests never corrupt a file.
+            </li>
+            <li>
+              <span className="font-medium">Answer checking</span> catches literal, reworded,
+              and reordered wrong answers without an LLM — and paraphrases and translations
+              when <code>semanticCheck</code> is on. If the LLM fails, it falls back to
+              lexical matching and logs a warning rather than blocking your answers.
             </li>
           </ul>
         </Section>

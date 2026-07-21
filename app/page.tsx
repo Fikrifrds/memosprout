@@ -24,7 +24,26 @@ const steps = [
   },
   {
     title: "Deliver it just-in-time",
-    body: "When a similar question or task appears, the relevant correction is injected into the AI's context — and known-wrong answers are blocked before they reach the user.",
+    body: "When a similar question or task appears, the relevant correction is injected into the AI's context — and known-wrong answers are blocked before they reach the user, including paraphrased and translated ones.",
+  },
+];
+
+const capabilities = [
+  {
+    title: "Catches rewording, not just exact matches",
+    body: "Blocking works on normalized, word-boundary matching plus token overlap — so reordered and repunctuated wrong answers are caught. Turn on semantic checking and paraphrases and translations are caught too, while already-corrected answers are never blocked by mistake.",
+  },
+  {
+    title: "Eleven LLM providers, one interface",
+    body: "OpenAI, Anthropic, DeepSeek, Qwen, Kimi, Xiaomi MiMo, MiniMax, Groq, Together AI, OpenRouter, and local Ollama — plus any OpenAI- or Anthropic-compatible endpoint. Every provider returns the same shape and the same actionable errors.",
+  },
+  {
+    title: "Safe by default",
+    body: "Customer corrections wait for approval. LLM-extracted corrections need high confidence to go live. Prompts treat user text as data, not instructions. Conflicting corrections are quarantined automatically.",
+  },
+  {
+    title: "Works from any language",
+    body: "A built-in REST API brings the full feature set to Python, PHP, Go, or anything that speaks HTTP — authenticated, rate limited, and bound to localhost unless you say otherwise.",
   },
 ];
 
@@ -122,6 +141,23 @@ export default function HomePage() {
                 <p className="text-sm font-semibold text-emerald-600">Step {index + 1}</p>
                 <h3 className="mt-1 text-lg font-semibold">{step.title}</h3>
                 <p className="mt-2 text-sm text-slate-600">{step.body}</p>
+              </div>
+            ))}
+          </div>
+        </section>
+
+        <section className="border-t border-slate-200 py-14">
+          <h2 className="text-center text-2xl font-bold tracking-tight">
+            What you get
+          </h2>
+          <div className="mt-8 grid gap-6 sm:grid-cols-2">
+            {capabilities.map((capability) => (
+              <div
+                key={capability.title}
+                className="rounded-xl border border-slate-200 bg-white p-6"
+              >
+                <h3 className="font-semibold">{capability.title}</h3>
+                <p className="mt-2 text-sm text-slate-600">{capability.body}</p>
               </div>
             ))}
           </div>

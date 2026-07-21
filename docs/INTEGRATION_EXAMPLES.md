@@ -11,9 +11,19 @@ Two integration modes:
 Start the API server for non-Node.js languages:
 
 ```bash
-pnpm api
-# MemoSprout API server running at http://localhost:3456
+MEMOSPROUT_API_KEY=your-secret-key pnpm api
+# MemoSprout API server running at http://127.0.0.1:3456
 ```
+
+**Every API-mode example below needs the key.** All endpoints except
+`/health` require it, sent as `Authorization: Bearer <key>` (or the
+`x-api-key` header). The server binds to `127.0.0.1` only and refuses to
+bind to any other host unless `MEMOSPROUT_API_KEY` is set. Requests are
+rate limited (default 120/min per key, `MEMOSPROUT_RATE_LIMIT`) and bodies
+are capped at 1 MB.
+
+If you run without a key on localhost for local development, drop the
+`Authorization` header from the examples.
 
 ---
 
@@ -246,15 +256,18 @@ or call the REST API.
 
 ```python
 # pip install requests openai
+import os
 import requests
 import openai
 
-MEMOSPROUT_URL = "http://localhost:3456"
+MEMOSPROUT_URL = "http://127.0.0.1:3456"
+MEMOSPROUT_HEADERS = {"Authorization": f"Bearer {os.environ['MEMOSPROUT_API_KEY']}"}
 client = openai.OpenAI()
 
 def chat(question: str) -> str:
     # 1. Get corrections from MemoSprout API
-    ctx = requests.post(f"{MEMOSPROUT_URL}/context", json={
+    ctx = requests.post(f"{MEMOSPROUT_URL}/context",
+                        headers=MEMOSPROUT_HEADERS, json={
         "query": question,
     }).json()
     context = ctx.get("context", "")
@@ -270,7 +283,8 @@ def chat(question: str) -> str:
     answer = response.choices[0].message.content
 
     # 3. Check the answer
-    check = requests.post(f"{MEMOSPROUT_URL}/check", json={
+    check = requests.post(f"{MEMOSPROUT_URL}/check",
+                          headers=MEMOSPROUT_HEADERS, json={
         "answer": answer,
     }).json()
 
@@ -281,7 +295,8 @@ def chat(question: str) -> str:
 
 def give_feedback(wrong: str, correct: str, keywords: list[str] = None):
     """Capture a correction when the AI gets it wrong."""
-    requests.post(f"{MEMOSPROUT_URL}/correct", json={
+    requests.post(f"{MEMOSPROUT_URL}/correct",
+                  headers=MEMOSPROUT_HEADERS, json={
         "wrong": wrong,
         "correct": correct,
         "keywords": keywords or [],
@@ -349,15 +364,19 @@ def build_context(question: str, corrections: list[dict]) -> str:
 <?php
 // composer require openai-php/client guzzlehttp/guzzle
 
-$memosproutUrl = 'http://localhost:3456';
+$memosproutUrl = 'http://127.0.0.1:3456';
+$memosproutKey = getenv('MEMOSPROUT_API_KEY');
 
 function msPost(string $endpoint, array $data): array {
-    global $memosproutUrl;
+    global $memosproutUrl, $memosproutKey;
     $ch = curl_init("$memosproutUrl/$endpoint");
     curl_setopt_array($ch, [
         CURLOPT_POST => true,
         CURLOPT_POSTFIELDS => json_encode($data),
-        CURLOPT_HTTPHEADER => ['Content-Type: application/json'],
+        CURLOPT_HTTPHEADER => [
+            'Content-Type: application/json',
+            "Authorization: Bearer $memosproutKey",
+        ],
         CURLOPT_RETURNTRANSFER => true,
     ]);
     $response = curl_exec($ch);
@@ -423,11 +442,13 @@ giveFeedback(
 
 ```bash
 # Start the MemoSprout API server first:
-# pnpm api
+# MEMOSPROUT_API_KEY=your-secret-key pnpm api
+MS_KEY="your-secret-key"
 
 # ── Capture a correction ──
 curl -X POST http://localhost:3456/correct \
   -H "Content-Type: application/json" \
+  -H "Authorization: Bearer $MS_KEY" \
   -d '{
     "wrong": "Annual leave is 12 days",
     "correct": "Annual leave is 15 days since January 2026",
@@ -439,6 +460,7 @@ curl -X POST http://localhost:3456/correct \
 # ── Get corrections for a query ──
 curl -X POST http://localhost:3456/context \
   -H "Content-Type: application/json" \
+  -H "Authorization: Bearer $MS_KEY" \
   -d '{"query": "How many leave days do I get?"}'
 
 # Response:
@@ -450,6 +472,7 @@ curl -X POST http://localhost:3456/context \
 # ── Check an answer ──
 curl -X POST http://localhost:3456/check \
   -H "Content-Type: application/json" \
+  -H "Authorization: Bearer $MS_KEY" \
   -d '{"answer": "You get 12 days of annual leave"}'
 
 # Response:
@@ -459,18 +482,19 @@ curl -X POST http://localhost:3456/check \
 # }
 
 # ── List all corrections ──
-curl http://localhost:3456/corrections
+curl -H "Authorization: Bearer $MS_KEY" http://localhost:3456/corrections
 
 # ── List active corrections for a domain ──
-curl "http://localhost:3456/corrections?status=active&domain=rag-chat"
+curl -H "Authorization: Bearer $MS_KEY" "http://localhost:3456/corrections?status=active&domain=rag-chat"
 
 # ── Get one correction ──
-curl http://localhost:3456/corrections/corr_a1b2c3d4
+curl -H "Authorization: Bearer $MS_KEY" http://localhost:3456/corrections/corr_a1b2c3d4
 
 # ── Remove (deprecate) a correction ──
-curl -X DELETE http://localhost:3456/corrections/corr_a1b2c3d4
+curl -X DELETE -H "Authorization: Bearer $MS_KEY" \
+  http://localhost:3456/corrections/corr_a1b2c3d4
 
-# ── Health check ──
+# ── Health check (the only endpoint that needs no key) ──
 curl http://localhost:3456/health
 ```
 
@@ -480,12 +504,13 @@ curl http://localhost:3456/health
 #!/bin/bash
 # chat.sh — a complete chatbot with MemoSprout corrections, using only curl
 
-MS_URL="http://localhost:3456"
+MS_URL="http://127.0.0.1:3456"
+MS_AUTH="Authorization: Bearer $MEMOSPROUT_API_KEY"
 QUESTION="$1"
 
 # 1. Get corrections
 CONTEXT=$(curl -s -X POST "$MS_URL/context" \
-  -H "Content-Type: application/json" \
+  -H "Content-Type: application/json" -H "$MS_AUTH" \
   -d "{\"query\": \"$QUESTION\"}" | jq -r '.context // ""')
 
 # 2. Call OpenAI
@@ -557,13 +582,16 @@ export async function POST(req: Request) {
 ```python
 from langchain_openai import ChatOpenAI
 from langchain_core.prompts import ChatPromptTemplate
+import os
 import requests
 
-MS_URL = "http://localhost:3456"
+MS_URL = "http://127.0.0.1:3456"
+MS_HEAD = {"Authorization": f"Bearer {os.environ['MEMOSPROUT_API_KEY']}"}
 
 def answer(question: str) -> str:
     # Get corrections
-    ctx = requests.post(f"{MS_URL}/context", json={"query": question}).json()
+    ctx = requests.post(f"{MS_URL}/context", headers=MS_HEAD,
+                        json={"query": question}).json()
     context = ctx.get("context", "")
 
     # LangChain chain
@@ -575,7 +603,8 @@ def answer(question: str) -> str:
     response = chain.invoke({"question": question, "context": context})
 
     # Check
-    check = requests.post(f"{MS_URL}/check", json={"answer": response.content}).json()
+    check = requests.post(f"{MS_URL}/check", headers=MS_HEAD,
+                          json={"answer": response.content}).json()
     if not check.get("ok", True):
         return f"[Corrected] {check['corrections'][0]['correct']}"
     return response.content
@@ -601,16 +630,35 @@ def answer(question: str) -> str:
 | `/corrections/:id/validate` | POST | — | Validate against oracle |
 | `/corrections/:id/approve` | POST | — | Approve a correction |
 | `/corrections/:id` | DELETE | — | Deprecate a correction |
-| `/health` | GET | — | Health check |
+| `/health` | GET | — | Health check (no auth required) |
+
+All endpoints except `/health` require the API key.
+
+**Status codes:** `400` invalid JSON body · `401` missing/invalid key ·
+`404` unknown correction or endpoint · `409` correction cannot be approved
+in its current status · `413` body over 1 MB · `429` rate limit exceeded ·
+`500` internal error. Every error response is `{ "error": "..." }`.
 
 Start the API server (with LLM config to enable `/process`):
 
 ```bash
+MEMOSPROUT_API_KEY=your-secret-key \
 MEMOSPROUT_LLM_PROVIDER=deepseek \
 MEMOSPROUT_LLM_API_KEY=sk-... \
-pnpm api                          # default: port 3456
+pnpm api                          # default: 127.0.0.1:3456
 ```
 
-Environment variables: `MEMOSPROUT_PORT`, `MEMOSPROUT_DIR`,
-`MEMOSPROUT_LLM_PROVIDER`, `MEMOSPROUT_LLM_API_KEY`,
-`MEMOSPROUT_LLM_BASE_URL`, `MEMOSPROUT_LLM_MODEL`.
+Environment variables:
+
+| Variable | Default | Purpose |
+|---|---|---|
+| `MEMOSPROUT_API_KEY` | — | Required to authenticate; required to bind off-loopback |
+| `MEMOSPROUT_HOST` | `127.0.0.1` | Bind host |
+| `MEMOSPROUT_PORT` | `3456` | Bind port |
+| `MEMOSPROUT_DIR` | `corrections` | Storage directory |
+| `MEMOSPROUT_CORS_ORIGIN` | `*` | Allowed CORS origin |
+| `MEMOSPROUT_RATE_LIMIT` | `120` | Requests/min per key (`0` disables) |
+| `MEMOSPROUT_LLM_PROVIDER` | — | See docs/PROVIDERS.md |
+| `MEMOSPROUT_LLM_API_KEY` | — | LLM key for `/process` |
+| `MEMOSPROUT_LLM_BASE_URL` | — | Endpoint override |
+| `MEMOSPROUT_LLM_MODEL` | provider default | Model id |

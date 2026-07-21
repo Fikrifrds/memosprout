@@ -19,9 +19,10 @@ npm install memosprout
 ```typescript
 import { MemoSprout } from "memosprout";
 
-// Configure once — use any LLM provider
+// Configure once — pick any supported provider (see docs/PROVIDERS.md)
 const ms = new MemoSprout("./corrections", {
   llm: { provider: "deepseek", apiKey: "sk-..." },
+  semanticCheck: true, // also catch paraphrased/translated wrong answers
 });
 
 // Your chatbot handler:
@@ -65,10 +66,28 @@ await ms.correct({
 
 ## API
 
-### `new MemoSprout(directory?)`
+### `new MemoSprout(directory?, options?)`
 
 Create a MemoSprout instance. Corrections are stored as Markdown files
 in `directory` (default: `"./corrections"`).
+
+```typescript
+new MemoSprout("./corrections", {
+  llm: {
+    provider: "deepseek",   // see docs/PROVIDERS.md for the full list
+    apiKey: "sk-...",
+    model: "deepseek-chat", // optional — provider default otherwise
+    baseUrl: "https://...", // optional override for proxies
+    timeoutMs: 30_000,      // optional, default 30s
+  },
+  approvalRequired: false,     // true = every correction needs approval
+  autoActivateThreshold: 0.8,  // min LLM confidence to auto-activate
+  semanticCheck: false,        // LLM pass in check() for paraphrases
+});
+```
+
+All LLM options are optional — without them, MemoSprout works as a
+manual correction store (`correct()`, `context()`, `check()`).
 
 ### `ms.correct(options)`
 
@@ -104,6 +123,17 @@ Returns `{ ok, corrections }`.
 
 If `ok` is `false`, the answer contains a known-wrong pattern. Use
 `corrections[0].correct` to fix it.
+
+Matching is layered:
+
+1. **Lexical** (always on, no LLM): normalized word-boundary matching plus
+   token overlap — catches case, punctuation, and reordered phrasing.
+   Numeric values must match exactly, so an already-corrected answer is
+   never blocked by mistake.
+2. **Semantic** (opt-in via `semanticCheck: true` + an LLM): catches
+   paraphrases and translations of the wrong answer. If the LLM call
+   fails, it falls back to lexical matching and logs a warning — a broken
+   LLM never blocks your answers.
 
 ### `ms.list(filter?)`
 
@@ -150,6 +180,40 @@ source verification.
 const result = await ms.validate("corr_abc");
 // { passed: true, detail: "Correction validated against scenario..." }
 ```
+
+## LLM providers
+
+Eleven providers are supported out of the box — pass the name and your key:
+
+| Provider | Suggested model | Note |
+|---|---|---|
+| `openai` | `gpt-4o-mini` | Best price/performance |
+| `anthropic` | `claude-haiku-4-5-20251001` | Cheapest Claude |
+| `deepseek` | `deepseek-chat` | Extremely cheap |
+| `qwen` | `qwen-turbo` | Strong multilingual |
+| `kimi` | `moonshot-v1-8k` | Moonshot |
+| `xiaomi` | `mimo-v2.5` | Xiaomi MiMo |
+| `minimax` | `MiniMax-Text-01` | Competitive pricing |
+| `groq` | `llama-3.1-8b-instant` | Fastest, free tier |
+| `togetherai` | `meta-llama/Llama-3.1-8B-Instruct-Turbo` | Open models |
+| `openrouter` | `deepseek/deepseek-chat-v3-0324` | Hundreds of models, one key |
+| `ollama` | `llama3.2` | Free, local, no API key |
+
+For a self-hosted or proxied endpoint, choose the wire format explicitly:
+
+```typescript
+llm: {
+  provider: "openai-compatible",   // or "anthropic-compatible"
+  baseUrl: "https://your-gateway.internal/v1",
+  apiKey: "...",
+  model: "your-model-id",
+}
+```
+
+Unsupported provider names throw a clear error listing the valid options.
+Every provider returns the same shape and the same error type — see
+[docs/PROVIDERS.md](docs/PROVIDERS.md) for per-provider setup, API key
+links, caveats, and live verification status.
 
 ## Use with any framework
 
@@ -234,6 +298,46 @@ app.post("/chat", async (req, res) => {
 });
 ```
 
+## Use from Python, PHP, Go, or any language
+
+Run the built-in REST API server and call it over HTTP:
+
+```bash
+MEMOSPROUT_API_KEY=your-secret-key \
+MEMOSPROUT_LLM_PROVIDER=deepseek \
+MEMOSPROUT_LLM_API_KEY=sk-... \
+pnpm api
+```
+
+```python
+import requests
+
+BASE = "http://127.0.0.1:3456"
+HEAD = {"Authorization": "Bearer your-secret-key"}
+
+requests.post(f"{BASE}/correct", headers=HEAD, json={
+    "wrong": "Refund takes 3 business days",
+    "correct": "Refund takes 5 business days",
+})
+
+ctx = requests.post(f"{BASE}/context", headers=HEAD,
+                    json={"query": "how long is a refund?"}).json()
+```
+
+Endpoints: `POST /correct`, `/context`, `/check`, `/process`, `/feedback`,
+`/refresh-staleness`, `/corrections/:id/validate`, `/corrections/:id/approve`;
+`GET /corrections`, `/corrections/:id`, `/corrections/:id/audit`,
+`/feedback/summary`, `/report`, `/health`; `DELETE /corrections/:id`.
+
+**Security defaults:** the server binds to `127.0.0.1` only and refuses to
+bind elsewhere without `MEMOSPROUT_API_KEY`. All endpoints except `/health`
+require the key (`Authorization: Bearer` or `x-api-key`). Rate limited to
+120 requests/min per key (`MEMOSPROUT_RATE_LIMIT`), body limit 1 MB, CORS
+origin configurable via `MEMOSPROUT_CORS_ORIGIN`.
+
+See [docs/INTEGRATION_EXAMPLES.md](docs/INTEGRATION_EXAMPLES.md) for more
+languages and frameworks.
+
 ## CLI
 
 ```bash
@@ -273,6 +377,28 @@ HR Policy v3.2
 
 No database. No vendor lock-in. `git diff` your corrections.
 
+Writes are atomic (temp file + rename) and serialized in-process, so
+concurrent requests cannot corrupt a file or lose a `confirmCount` bump.
+
+## Trust and safety
+
+Corrections change what your AI tells users, so they are not accepted
+blindly:
+
+- **Role-based trust.** `agent`/`admin`/`system` corrections go live;
+  `customer` corrections are always saved as `suggested` pending approval.
+- **Confidence threshold.** LLM-extracted corrections auto-activate only
+  at confidence ≥ `autoActivateThreshold` (default `0.8`). Set
+  `approvalRequired: true` to require manual approval for everything —
+  recommended when the input comes from the public.
+- **Prompt-injection hardening.** User text is framed as data, not
+  instructions, in every LLM prompt; extracted output is validated with a
+  strict schema and unknown ids are discarded.
+- **Conflict quarantine and staleness.** A new correction that contradicts
+  an active one quarantines the old record. Corrections also expire by
+  date or when the source document's hash changes.
+- **Audit trail.** Every lifecycle action is recorded via `ms.audit(id)`.
+
 ## Principles
 
 - **Corrections are verified, not blindly trusted.** Validate against
@@ -282,15 +408,27 @@ No database. No vendor lock-in. `git diff` your corrections.
 - **Portable and open.** Markdown files, not a proprietary database.
 - **Domain-agnostic core.** Pluggable adapters for any domain.
 
+## Documentation
+
+- [docs/PROVIDERS.md](docs/PROVIDERS.md) — every supported LLM provider,
+  setup, and response-handling guarantees
+- [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md) — internals: lifecycle,
+  staleness, storage, adapters
+- [docs/INTEGRATION_EXAMPLES.md](docs/INTEGRATION_EXAMPLES.md) — framework
+  and cross-language integration recipes
+
 ## Development
 
 ```bash
 pnpm install
-pnpm dev          # UI
+pnpm dev          # marketing/docs site
 pnpm cli <cmd>    # CLI
-pnpm test         # 61 test files, 388 tests
+pnpm test         # 69 test files, 474 tests
+pnpm test:live    # smoke test against a real LLM (needs an API key)
+pnpm api          # REST API server
 pnpm lint
 pnpm typecheck
+pnpm build:lib    # build the publishable package (dist/)
 ```
 
 ## License
