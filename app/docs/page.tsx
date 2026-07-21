@@ -37,8 +37,12 @@ export default function DocsPage() {
       <main className="mx-auto max-w-3xl px-4 py-10">
         <h1 className="text-3xl font-bold tracking-tight">Get started</h1>
         <p className="mt-2 text-slate-600">
-          MemoSprout captures corrections to AI outputs and delivers them to future interactions.
-          Fix a mistake once — every future answer improves.
+          MemoSprout captures corrections to AI outputs and delivers them to future
+          interactions. Fix a mistake once, and it stops coming back.
+        </p>
+        <p className="mt-3 text-sm text-slate-500">
+          Steps 1, 3 and 4 are all you need. Step 2 adds automatic correction detection, and
+          step 5 is for calling MemoSprout from a language other than JavaScript.
         </p>
 
         {/* Install */}
@@ -47,12 +51,16 @@ export default function DocsPage() {
         </Section>
 
         {/* Configure */}
-        <Section id="configure" title="2. Configure your LLM provider">
+        <Section id="configure" title="2. Connect an LLM (optional)">
           <p>
-            MemoSprout uses your LLM to detect and extract corrections automatically. For any
-            endpoint, pick the wire format it speaks — <code>openai-compatible</code> or{" "}
-            <code>anthropic-compatible</code> — and supply a base URL, an API key, and a model
-            id (all three required):
+            An LLM lets MemoSprout detect corrections inside ordinary chat messages and
+            extract the fields for you. Skip this and everything still works — you just add
+            corrections yourself with <code>ms.correct()</code> (step 4) or the CLI.
+          </p>
+          <p>
+            For any endpoint, pick the wire format it speaks — <code>openai-compatible</code>{" "}
+            or <code>anthropic-compatible</code> — and supply a base URL, an API key, and a
+            model id (all three required):
           </p>
           <Code>{`import { MemoSprout } from "memosprout";
 
@@ -112,7 +120,12 @@ const ms = new MemoSprout("./corrections", {
 
         {/* Use */}
         <Section id="use" title="3. Add to your chatbot">
-          <Code>{`async function handleChat(userMessage: string, previousAIAnswer: string) {
+          <p>
+            Three calls wrap the AI call you already have: one to learn from the message, one
+            to enrich the prompt, one to check the answer before it goes out.
+          </p>
+          <Code>{`// ms is the instance from step 2 (or \`new MemoSprout("./corrections")\`)
+async function handleChat(userMessage: string, previousAIAnswer: string) {
   // MemoSprout auto-detects corrections and feedback.
   // "No, it's 15 days, not 12" → correction saved automatically.
   // "My refund seems too low"  → feedback signal for your team.
@@ -130,11 +143,14 @@ const ms = new MemoSprout("./corrections", {
   if (!check.ok) return check.corrections[0].correct;
   return answer;
 }`}</Code>
-          <p>That&apos;s it. Corrections are captured, validated, and delivered automatically.</p>
           <p>
-            <code>check()</code> catches literal, reworded, and reordered wrong answers out of
-            the box. Enable <code>semanticCheck: true</code> to also catch paraphrases and
-            translations via your LLM:
+            That&apos;s the whole loop: corrections are captured, gated, and delivered on
+            every future turn.
+          </p>
+          <p>
+            <code>check()</code> catches literal, reworded, and reordered wrong answers with
+            no LLM involved. Enable <code>semanticCheck: true</code> to also catch paraphrases
+            and translations, at the cost of one LLM call per check:
           </p>
           <Code>{`const ms = new MemoSprout("./corrections", {
   llm: {
@@ -148,8 +164,13 @@ const ms = new MemoSprout("./corrections", {
         </Section>
 
         {/* Manual corrections */}
-        <Section id="manual" title="4. Add corrections manually (optional)">
-          <p>Agents and admins can add corrections directly:</p>
+        <Section id="manual" title="4. Add corrections manually">
+          <p>
+            No LLM needed here. Use this for a review queue, an admin panel, or seeding known
+            fixes — <code>role</code> decides whether it goes live immediately (
+            <code>agent</code>, <code>admin</code>, <code>system</code>) or waits for approval
+            (<code>customer</code>):
+          </p>
           <Code>{`await ms.correct({
   wrong: "Refund takes 3 business days",
   correct: "Refund takes 5 business days since March 2026",
@@ -222,24 +243,32 @@ ctx = requests.post(f"{BASE}/context", headers=HEAD,
 
         {/* FAQ */}
         <Section id="faq" title="FAQ">
-          <h3 className="font-semibold">Does MemoSprout store customer data?</h3>
+          <h3 className="font-semibold">What does MemoSprout store?</h3>
           <p>
-            No. Corrections are general knowledge (e.g., &quot;refund takes 5 days&quot;), not
-            personal data. No chat logs or session data is stored.
+            Corrections themselves are general knowledge (e.g. &quot;refund takes 5
+            days&quot;), not personal data, and no chat transcripts are kept. One thing to
+            know: when <code>context()</code> serves a correction, the query text that
+            triggered it is recorded in <code>outcomes.json</code> so you can see which
+            corrections actually get used. If your queries can contain personal data, treat
+            that file as you would any log — it stays on your server either way.
           </p>
 
           <h3 className="font-semibold">Can customers poison the knowledge base?</h3>
           <p>
-            Guardrails prevent it. Manual corrections from customers are always saved as{" "}
-            <code>suggested</code> and need approval. LLM-extracted corrections auto-activate
-            only above a 0.8 confidence threshold — set <code>approvalRequired: true</code> to
-            require manual approval for everything.
+            Several guardrails make it hard. Corrections submitted with{" "}
+            <code>role: &quot;customer&quot;</code> are always saved as <code>suggested</code>{" "}
+            and need approval. Corrections the LLM extracts from a message go live only above
+            a 0.8 confidence threshold, and prompts treat user text as data rather than
+            instructions. If your input comes from the public and you want no automatic path
+            at all, set <code>approvalRequired: true</code> so every correction waits for a
+            human.
           </p>
 
           <h3 className="font-semibold">Does it require an LLM?</h3>
           <p>
-            Only for automatic detection. You can add corrections manually via{" "}
-            <code>ms.correct()</code> or the CLI without any LLM.
+            No. Capturing, storing, matching, and blocking all work without one. An LLM only
+            adds two things: detecting corrections inside ordinary messages (
+            <code>processMessage()</code>) and semantic answer checking.
           </p>
 
           <h3 className="font-semibold">Is the REST API secured?</h3>
@@ -257,8 +286,10 @@ ctx = requests.post(f"{BASE}/context", headers=HEAD,
         </Section>
 
         <footer className="mt-12 border-t border-slate-200 py-6 text-center text-xs text-slate-400">
-          For full documentation (architecture, adapters, REST API, CLI, framework examples),
-          see the Markdown docs in the repository.
+          Deeper reference lives in the repository:{" "}
+          <code>docs/PROVIDERS.md</code> (every LLM provider),{" "}
+          <code>docs/ARCHITECTURE.md</code> (internals),{" "}
+          <code>docs/INTEGRATION_EXAMPLES.md</code> (frameworks and other languages).
         </footer>
       </main>
     </>
