@@ -40,10 +40,11 @@ export interface MemoSproutOptions {
 }
 
 export interface ProcessResult {
-  isCorrection: boolean;
+  type: "correction" | "feedback" | "none";
   confidence: number;
   correctionSaved: CorrectionRecord | null;
   correctionStatus: "active" | "suggested" | null;
+  feedbackSaved: FeedbackRecord | null;
   context: string;
   staleSkipped: number;
 }
@@ -349,10 +350,11 @@ export class MemoSprout {
   ): Promise<ProcessResult> {
     await this.ensureReady();
 
+    let type: "correction" | "feedback" | "none" = "none";
+    let confidence = 0;
     let correctionSaved: CorrectionRecord | null = null;
     let correctionStatus: "active" | "suggested" | null = null;
-    let isCorrection = false;
-    let confidence = 0;
+    let feedbackSaved: FeedbackRecord | null = null;
 
     if (this.llmConfig) {
       const extraction = await extractCorrection(
@@ -361,11 +363,10 @@ export class MemoSprout {
         previousAIAnswer,
       );
 
+      type = extraction.type;
       confidence = extraction.confidence;
 
-      if (extraction.isCorrection && extraction.wrong && extraction.correct) {
-        isCorrection = true;
-
+      if (type === "correction" && extraction.wrong && extraction.correct) {
         const shouldAutoActivate =
           !this.approvalRequired && confidence >= this.autoActivateThreshold;
 
@@ -381,11 +382,21 @@ export class MemoSprout {
 
         correctionStatus = correctionSaved.status === "active" ? "active" : "suggested";
       }
+
+      if (type === "feedback" && extraction.topic) {
+        feedbackSaved = await this.feedback({
+          topic: extraction.topic,
+          message: userMessage,
+          domain,
+          role: "customer",
+          by: "llm-classification",
+        });
+      }
     }
 
     const { context, staleSkipped } = await this.context(userMessage, domain);
 
-    return { isCorrection, confidence, correctionSaved, correctionStatus, context, staleSkipped };
+    return { type, confidence, correctionSaved, correctionStatus, feedbackSaved, context, staleSkipped };
   }
 
   async approve(correctionId: string): Promise<CorrectionRecord> {
@@ -520,6 +531,7 @@ export {
 } from "@/lib/llm/provider";
 export {
   extractCorrection,
+  messageTypeSchema,
   type ExtractionResult,
 } from "@/lib/llm/extractor";
 export {
