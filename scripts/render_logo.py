@@ -3,12 +3,11 @@ import math
 import os
 
 # ---------------------------------------------------------------------------
-# MemoSprout procedural logo — v2 (compact & simple)
+# MemoSprout procedural logo — v3 ("M" grown from sprouts)
 #
-# A young sprout: two full leaves emerging from the SAME point near the top
-# of a short stem, tilted only slightly apart so they read as one tight,
-# cohesive bud growing upward. No scattered elements — everything sits
-# close together in a compact, near-square mark.
+# The letter M drawn as a single organic vine. The two upper peaks of the M
+# each sprout a pair of leaves — so the M itself is growing. MemoSprout =
+# the M that sprouts. Compact, bold, reads as a lettermark at any size.
 # ---------------------------------------------------------------------------
 
 OUTPUT_DIR = "/Users/fikrifirdaus/Documents/products/MemoSproutWorks/memosprout/public"
@@ -41,22 +40,25 @@ def make_material(name, base_color, roughness=0.42):
     links.new(bsdf.outputs["BSDF"], output.inputs["Surface"])
     return mat
 
-stem_mat = make_material("StemGreen", (0.09, 0.36, 0.19), roughness=0.5)
-leaf_mat = make_material("LeafGreen", (0.16, 0.63, 0.33), roughness=0.36)
+vine_mat = make_material("VineGreen", (0.09, 0.36, 0.19), roughness=0.48)
+leaf_mat = make_material("LeafGreen", (0.18, 0.66, 0.35), roughness=0.34)
 
-# --- Short stem ------------------------------------------------------------
-stem_data = bpy.data.curves.new(name="stem", type="CURVE")
-stem_data.dimensions = "3D"
-stem_data.resolution_u = 24
-stem_data.bevel_resolution = 6
-stem_data.use_fill_caps = True
+# --- The "M" as a single vine curve ----------------------------------------
+m_data = bpy.data.curves.new(name="m_vine", type="CURVE")
+m_data.dimensions = "3D"
+m_data.resolution_u = 32
+m_data.bevel_resolution = 6
+m_data.use_fill_caps = True
 
-spline = stem_data.splines.new("BEZIER")
-# Short, near-straight stem rising along +Z, tapered.
+spline = m_data.splines.new("BEZIER")
+# M skeleton in the XZ plane (camera looks along Y):
+#   bottom-left -> top-left peak -> middle valley -> top-right peak -> bottom-right
 pts = [
-    (0.00, 0.00, 0.00, 0.115),   # base (x, y, z, radius)
-    (0.02, 0.00, 0.32, 0.095),
-    (0.00, 0.00, 0.62, 0.075),   # top — leaves attach here
+    (-0.82, 0.00, 0.00, 0.095),   # bottom-left
+    (-0.82, 0.00, 1.12, 0.080),   # top-left peak
+    ( 0.00, 0.00, 0.42, 0.085),   # middle valley
+    ( 0.82, 0.00, 1.12, 0.080),   # top-right peak
+    ( 0.82, 0.00, 0.00, 0.095),   # bottom-right
 ]
 spline.bezier_points.add(len(pts) - 1)
 for i, (x, y, z, r) in enumerate(pts):
@@ -66,27 +68,25 @@ for i, (x, y, z, r) in enumerate(pts):
     bp.handle_left_type = "AUTO"
     bp.handle_right_type = "AUTO"
 
-stem_obj = bpy.data.objects.new("Stem", stem_data)
-stem_obj.data.materials.append(stem_mat)
-scene.collection.objects.link(stem_obj)
+m_obj = bpy.data.objects.new("M_Vine", m_data)
+m_obj.data.materials.append(vine_mat)
+scene.collection.objects.link(m_obj)
 
 # --- Leaf builder (points straight up, base at origin) ---------------------
 def make_leaf(name):
-    """A full, rounded leaf in the XZ plane pointing up (+Z), base at origin."""
     data = bpy.data.curves.new(name=name, type="CURVE")
     data.dimensions = "3D"
     data.resolution_u = 32
-    data.bevel_depth = 0.030       # gentle thickness
+    data.bevel_depth = 0.026
     data.bevel_resolution = 4
     data.use_fill_caps = True
 
     s = data.splines.new("BEZIER")
-    # Symmetric upward leaf: base -> right belly -> tip -> left belly -> close
     leaf_pts = [
-        (0.000, 0.00, 0.00),   # base (attachment)
-        (0.300, 0.00, 0.40),   # right belly
-        (0.000, 0.00, 0.95),   # tip (up)
-        (-0.300, 0.00, 0.40),  # left belly
+        (0.000, 0.00, 0.00),
+        (0.300, 0.00, 0.40),
+        (0.000, 0.00, 0.95),
+        (-0.300, 0.00, 0.40),
     ]
     s.bezier_points.add(len(leaf_pts) - 1)
     s.use_cyclic_u = True
@@ -101,19 +101,21 @@ def make_leaf(name):
     scene.collection.objects.link(obj)
     return obj
 
-# Both leaves attach at the SAME point at the top of the stem and tilt only
-# slightly apart — a tight, cohesive bud, not a wide-open spread.
-attach = (0.0, 0.0, 0.58)
+def sprout_at(name, x, z, tilt=26.0, scale=0.42):
+    """A pair of leaves opening upward from a point — a little sprout bud."""
+    right = make_leaf(f"{name}_R")
+    right.location = (x, 0.0, z)
+    right.rotation_euler = (0.0, math.radians(tilt), 0.0)
+    right.scale = (scale, scale, scale)
 
-right_leaf = make_leaf("LeafRight")
-right_leaf.location = attach
-right_leaf.rotation_euler = (0.0, math.radians(26), 0.0)   # tilt toward +X
-right_leaf.scale = (1.0, 1.0, 1.0)
+    left = make_leaf(f"{name}_L")
+    left.location = (x, 0.0, z)
+    left.rotation_euler = (0.0, math.radians(-tilt), 0.0)
+    left.scale = (scale, scale, scale)
 
-left_leaf = make_leaf("LeafLeft")
-left_leaf.location = attach
-left_leaf.rotation_euler = (0.0, math.radians(-26), 0.0)   # tilt toward -X
-left_leaf.scale = (1.0, 1.0, 1.0)
+# Sprout a bud on each of the two peaks of the M.
+sprout_at("PeakL", -0.82, 1.16)
+sprout_at("PeakR", 0.82, 1.16)
 
 # --- Lighting --------------------------------------------------------------
 def add_area_light(name, energy, loc, rot, size=2.0):
@@ -132,12 +134,12 @@ key = add_area_light("Key", 300, (-2.6, -3.2, 3.4), (math.radians(42), 0, math.r
 fill = add_area_light("Fill", 110, (3.0, -2.2, 1.6), (math.radians(62), 0, math.radians(48)), size=2.6)
 rim = add_area_light("Rim", 160, (0.4, 3.0, 2.4), (math.radians(-40), 0, math.radians(180)), size=2.2)
 
-# --- Camera (orthographic, tight frame on the compact mark) ----------------
+# --- Camera (orthographic, frames the M lettermark) ------------------------
 cam_data = bpy.data.cameras.new(name="Camera")
 cam_data.type = "ORTHO"
-cam_data.ortho_scale = 1.9
+cam_data.ortho_scale = 2.5
 cam_obj = bpy.data.objects.new("Camera", cam_data)
-cam_obj.location = (0.0, -6.0, 0.72)
+cam_obj.location = (0.0, -6.0, 0.78)
 cam_obj.rotation_euler = (math.radians(90), 0, 0)
 scene.collection.objects.link(cam_obj)
 scene.camera = cam_obj
