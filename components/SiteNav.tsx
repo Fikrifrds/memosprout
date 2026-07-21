@@ -36,30 +36,23 @@ export function SiteNav() {
 }
 
 /**
- * A sprout: a curved stem carrying two asymmetric leaves, seed at the tip.
- * The asymmetry keeps the silhouette legible at favicon size, where a
- * symmetric mark collapses into a blob.
+ * One correction, growing. The amber dot is the captured correction (the
+ * memo); the single stroke rising from it into a leaf is the sprout.
+ * Two elements only, so the silhouette holds at favicon size.
  */
 export function SproutMark({ className = "h-6 w-6" }: { className?: string }) {
   return (
     <svg viewBox="0 0 64 64" className={className} aria-hidden="true">
       <rect width="64" height="64" rx="16" fill="#134E4A" />
       <path
-        d="M31 50V34c0-5.5 1.6-9.8 4-13"
-        stroke="#99F6E4"
-        strokeWidth="3.4"
-        strokeLinecap="round"
+        d="M28 48V33c0-9 7-15 18-16 1 12-7 18-18 18"
         fill="none"
+        stroke="#5EEAD4"
+        strokeWidth="5.5"
+        strokeLinecap="round"
+        strokeLinejoin="round"
       />
-      <path
-        d="M31 38c-1.4-6.4-6.6-11.4-12-11.6-2.6-.1-3.6 2-2.3 4.4C19.4 35.6 25.6 38.6 31 38Z"
-        fill="#2DD4BF"
-      />
-      <path
-        d="M33 34c1-7.8 7.2-14 13.4-14.2 3-.1 4.2 2.4 2.7 5.2C45.9 31.4 39.2 35 33 34Z"
-        fill="#5EEAD4"
-      />
-      <circle cx="36.5" cy="18.5" r="3.1" fill="#FBBF24" />
+      <circle cx="28" cy="48" r="3.2" fill="#FBBF24" />
     </svg>
   );
 }
