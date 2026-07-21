@@ -3,10 +3,12 @@ import math
 import os
 
 # ---------------------------------------------------------------------------
-# MemoSprout procedural logo
-# Concept: a delicate sprout — a curved stem rising upward with two leaves
-# opening like hands. Represents a correction taking root and growing into
-# lasting knowledge. Hopeful, organic, growing.
+# MemoSprout procedural logo — v2 (compact & simple)
+#
+# A young sprout: two full leaves emerging from the SAME point near the top
+# of a short stem, tilted only slightly apart so they read as one tight,
+# cohesive bud growing upward. No scattered elements — everything sits
+# close together in a compact, near-square mark.
 # ---------------------------------------------------------------------------
 
 OUTPUT_DIR = "/Users/fikrifirdaus/Documents/products/MemoSproutWorks/memosprout/public"
@@ -17,7 +19,7 @@ bpy.ops.wm.read_factory_settings(use_empty=True)
 scene = bpy.context.scene
 
 # --- Materials -------------------------------------------------------------
-def make_material(name, base_color, roughness=0.45):
+def make_material(name, base_color, roughness=0.42):
     mat = bpy.data.materials.new(name=name)
     mat.use_nodes = True
     nodes = mat.node_tree.nodes
@@ -39,12 +41,10 @@ def make_material(name, base_color, roughness=0.45):
     links.new(bsdf.outputs["BSDF"], output.inputs["Surface"])
     return mat
 
-# Deep forest green for the stem, bright emerald for the leaves.
-stem_mat = make_material("StemGreen", (0.07, 0.32, 0.17), roughness=0.5)
-leaf_mat = make_material("LeafGreen", (0.13, 0.62, 0.32), roughness=0.38)
-seed_mat = make_material("SeedBrown", (0.30, 0.22, 0.13), roughness=0.6)
+stem_mat = make_material("StemGreen", (0.09, 0.36, 0.19), roughness=0.5)
+leaf_mat = make_material("LeafGreen", (0.16, 0.63, 0.33), roughness=0.36)
 
-# --- Stem (curved, tapered) ------------------------------------------------
+# --- Short stem ------------------------------------------------------------
 stem_data = bpy.data.curves.new(name="stem", type="CURVE")
 stem_data.dimensions = "3D"
 stem_data.resolution_u = 24
@@ -52,14 +52,13 @@ stem_data.bevel_resolution = 6
 stem_data.use_fill_caps = True
 
 spline = stem_data.splines.new("BEZIER")
-# 4 control points forming a gentle S-curve rising along +Z
+# Short, near-straight stem rising along +Z, tapered.
 pts = [
-    (0.00, 0.00, 0.00, 0.13),   # base (x, y, z, radius)
-    (0.10, 0.00, 0.65, 0.10),
-    (-0.08, 0.00, 1.35, 0.075),
-    (0.02, 0.00, 2.00, 0.055),  # top
+    (0.00, 0.00, 0.00, 0.115),   # base (x, y, z, radius)
+    (0.02, 0.00, 0.32, 0.095),
+    (0.00, 0.00, 0.62, 0.075),   # top — leaves attach here
 ]
-spline.bezier_points.add(len(pts) - 1)  # one point exists by default
+spline.bezier_points.add(len(pts) - 1)
 for i, (x, y, z, r) in enumerate(pts):
     bp = spline.bezier_points[i]
     bp.co = (x, y, z)
@@ -71,23 +70,23 @@ stem_obj = bpy.data.objects.new("Stem", stem_data)
 stem_obj.data.materials.append(stem_mat)
 scene.collection.objects.link(stem_obj)
 
-# --- Leaf builder ----------------------------------------------------------
+# --- Leaf builder (points straight up, base at origin) ---------------------
 def make_leaf(name):
-    """A pointed leaf shape in the XZ plane, base at origin, tip toward +X/+Z."""
+    """A full, rounded leaf in the XZ plane pointing up (+Z), base at origin."""
     data = bpy.data.curves.new(name=name, type="CURVE")
     data.dimensions = "3D"
-    data.resolution_u = 24
-    data.bevel_depth = 0.028       # slight thickness
+    data.resolution_u = 32
+    data.bevel_depth = 0.030       # gentle thickness
     data.bevel_resolution = 4
     data.use_fill_caps = True
 
     s = data.splines.new("BEZIER")
-    # leaf outline (closed loop): base -> upper belly -> tip -> lower belly
+    # Symmetric upward leaf: base -> right belly -> tip -> left belly -> close
     leaf_pts = [
-        (0.00, 0.00, 0.00),
-        (0.42, 0.00, 0.30),
-        (0.95, 0.00, 0.62),   # tip
-        (0.42, 0.00, 0.02),
+        (0.000, 0.00, 0.00),   # base (attachment)
+        (0.300, 0.00, 0.40),   # right belly
+        (0.000, 0.00, 0.95),   # tip (up)
+        (-0.300, 0.00, 0.40),  # left belly
     ]
     s.bezier_points.add(len(leaf_pts) - 1)
     s.use_cyclic_u = True
@@ -102,26 +101,19 @@ def make_leaf(name):
     scene.collection.objects.link(obj)
     return obj
 
-# Right leaf — emerges near the top of the stem, opens up-and-out to the right.
+# Both leaves attach at the SAME point at the top of the stem and tilt only
+# slightly apart — a tight, cohesive bud, not a wide-open spread.
+attach = (0.0, 0.0, 0.58)
+
 right_leaf = make_leaf("LeafRight")
-right_leaf.location = (0.00, 0.00, 1.78)
-right_leaf.rotation_euler = (0.0, math.radians(-8), math.radians(-18))
-right_leaf.scale = (1.05, 1.05, 1.05)
+right_leaf.location = attach
+right_leaf.rotation_euler = (0.0, math.radians(26), 0.0)   # tilt toward +X
+right_leaf.scale = (1.0, 1.0, 1.0)
 
-# Left leaf — mirror image, opens up-and-out to the left.
 left_leaf = make_leaf("LeafLeft")
-left_leaf.location = (0.02, 0.00, 1.62)
-left_leaf.rotation_euler = (0.0, math.radians(-6), math.radians(196))
-left_leaf.scale = (0.92, 0.92, 0.92)
-
-# --- Seed / base -----------------------------------------------------------
-bpy.ops.mesh.primitive_uv_sphere_add(
-    radius=0.20, location=(0.0, 0.0, -0.02), segments=48, ring_count=24
-)
-seed = bpy.context.active_object
-seed.name = "Seed"
-seed.scale = (1.0, 1.0, 0.78)
-seed.data.materials.append(seed_mat)
+left_leaf.location = attach
+left_leaf.rotation_euler = (0.0, math.radians(-26), 0.0)   # tilt toward -X
+left_leaf.scale = (1.0, 1.0, 1.0)
 
 # --- Lighting --------------------------------------------------------------
 def add_area_light(name, energy, loc, rot, size=2.0):
@@ -136,26 +128,23 @@ def add_area_light(name, energy, loc, rot, size=2.0):
     scene.collection.objects.link(light_obj)
     return light_obj
 
-# Soft key light from upper-front-left (warm-neutral).
-key = add_area_light("Key", 320, (-3.2, -3.5, 4.2), (math.radians(40), 0, math.radians(-40)), size=3.0)
-# Gentle fill from the right.
-fill = add_area_light("Fill", 120, (3.5, -2.5, 2.0), (math.radians(60), 0, math.radians(50)), size=3.0)
-# Subtle rim from behind for a hopeful glow on the leaf edges.
-rim = add_area_light("Rim", 180, (0.5, 3.5, 3.0), (math.radians(-40), 0, math.radians(180)), size=2.5)
+key = add_area_light("Key", 300, (-2.6, -3.2, 3.4), (math.radians(42), 0, math.radians(-38)), size=2.6)
+fill = add_area_light("Fill", 110, (3.0, -2.2, 1.6), (math.radians(62), 0, math.radians(48)), size=2.6)
+rim = add_area_light("Rim", 160, (0.4, 3.0, 2.4), (math.radians(-40), 0, math.radians(180)), size=2.2)
 
-# --- Camera (orthographic, centered on the sprout) -------------------------
+# --- Camera (orthographic, tight frame on the compact mark) ----------------
 cam_data = bpy.data.cameras.new(name="Camera")
 cam_data.type = "ORTHO"
-cam_data.ortho_scale = 3.4
+cam_data.ortho_scale = 1.9
 cam_obj = bpy.data.objects.new("Camera", cam_data)
-cam_obj.location = (0.0, -6.0, 1.15)
+cam_obj.location = (0.0, -6.0, 0.72)
 cam_obj.rotation_euler = (math.radians(90), 0, 0)
 scene.collection.objects.link(cam_obj)
 scene.camera = cam_obj
 
 # --- Render settings -------------------------------------------------------
 scene.render.engine = "CYCLES"
-scene.cycles.samples = 200
+scene.cycles.samples = 220
 scene.cycles.use_denoising = True
 scene.render.resolution_x = 1024
 scene.render.resolution_y = 1024
@@ -165,7 +154,6 @@ scene.render.image_settings.file_format = "PNG"
 scene.render.image_settings.color_mode = "RGBA"
 scene.render.image_settings.color_depth = "16"
 
-# Prefer GPU if available, else CPU.
 try:
     prefs = bpy.context.preferences.addons["cycles"].preferences
     prefs.compute_device_type = "METAL"
