@@ -1,3 +1,4 @@
+import Image from "next/image";
 import Link from "next/link";
 
 import { SiteNav } from "@/components/SiteNav";
@@ -76,6 +77,16 @@ export default function HomePage() {
       <SiteNav />
       <main className="mx-auto max-w-4xl px-4">
         <section className="py-16 text-center">
+          <div className="mb-6 flex justify-center">
+            <Image
+              src="/logo.png"
+              alt="MemoSprout — a sprout growing upward"
+              width={120}
+              height={120}
+              priority
+              className="h-[120px] w-[120px] drop-shadow-sm"
+            />
+          </div>
           <p className="mb-3 text-sm font-semibold uppercase tracking-wide text-emerald-600">
             Open-source correction intelligence
           </p>
