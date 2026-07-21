@@ -19,9 +19,15 @@ npm install memosprout
 ```typescript
 import { MemoSprout } from "memosprout";
 
-// Configure once — pick any supported provider (see docs/PROVIDERS.md)
+// Configure once. Any endpoint works — give it a base URL, an API key,
+// and a model id.
 const ms = new MemoSprout("./corrections", {
-  llm: { provider: "deepseek", apiKey: "sk-..." },
+  llm: {
+    provider: "openai-compatible",          // wire format of the endpoint
+    baseUrl: "https://api.openai.com/v1",
+    apiKey: process.env.LLM_API_KEY,
+    model: "gpt-4o-mini",
+  },
   semanticCheck: true, // also catch paraphrased/translated wrong answers
 });
 
@@ -74,11 +80,15 @@ in `directory` (default: `"./corrections"`).
 ```typescript
 new MemoSprout("./corrections", {
   llm: {
-    provider: "deepseek",   // see docs/PROVIDERS.md for the full list
-    apiKey: "sk-...",
-    model: "deepseek-chat", // optional — provider default otherwise
-    baseUrl: "https://...", // optional override for proxies
-    timeoutMs: 30_000,      // optional, default 30s
+    // Any endpoint: give it the wire format, URL, key, and model.
+    provider: "openai-compatible",         // or "anthropic-compatible"
+    baseUrl: "https://api.openai.com/v1",
+    apiKey: process.env.LLM_API_KEY,
+    model: "gpt-4o-mini",
+    timeoutMs: 30_000,                     // optional, default 30s
+
+    // Shorthand: a named provider fills in baseUrl and a default model.
+    // provider: "openai", apiKey: "..."
   },
   approvalRequired: false,     // true = every correction needs approval
   autoActivateThreshold: 0.8,  // min LLM confidence to auto-activate
@@ -183,7 +193,41 @@ const result = await ms.validate("corr_abc");
 
 ## LLM providers
 
-Eleven providers are supported out of the box — pass the name and your key:
+`provider` accepts 13 values: two generic ones for any endpoint, and
+eleven named shortcuts.
+
+### Any endpoint
+
+Pick the wire format your endpoint speaks. `baseUrl` and `model` are
+**required** here — there is no default to fall back on:
+
+```typescript
+llm: {
+  provider: "openai-compatible",   // POST <baseUrl>/chat/completions
+  baseUrl: "https://your-endpoint.com/v1",
+  apiKey: process.env.LLM_API_KEY,
+  model: "your-model-id",
+}
+
+llm: {
+  provider: "anthropic-compatible", // POST <baseUrl>/messages
+  baseUrl: "https://your-endpoint.com/anthropic",
+  apiKey: process.env.LLM_API_KEY,
+  model: "your-model-id",
+}
+```
+
+That covers self-hosted models, gateways like LiteLLM or vLLM, and any
+provider not listed below.
+
+### Named providers (shorthand)
+
+For these eleven, pass the name instead and `baseUrl` plus a default
+`model` are filled in for you:
+
+```typescript
+llm: { provider: "openai", apiKey: process.env.OPENAI_API_KEY }
+```
 
 | Provider | Suggested model | Note |
 |---|---|---|
@@ -199,16 +243,8 @@ Eleven providers are supported out of the box — pass the name and your key:
 | `openrouter` | `deepseek/deepseek-chat-v3-0324` | Hundreds of models, one key |
 | `ollama` | `llama3.2` | Free, local, no API key |
 
-For a self-hosted or proxied endpoint, choose the wire format explicitly:
-
-```typescript
-llm: {
-  provider: "openai-compatible",   // or "anthropic-compatible"
-  baseUrl: "https://your-gateway.internal/v1",
-  apiKey: "...",
-  model: "your-model-id",
-}
-```
+A named provider also accepts a `baseUrl` override (for a regional or
+proxied endpoint) and a `model` override.
 
 Unsupported provider names throw a clear error listing the valid options.
 Every provider returns the same shape and the same error type — see
@@ -308,7 +344,12 @@ few lines of Node:
 import { MemoSprout, createApiServer } from "memosprout";
 
 const ms = new MemoSprout("./corrections", {
-  llm: { provider: "deepseek", apiKey: process.env.LLM_KEY },
+  llm: {
+    provider: "openai-compatible",
+    baseUrl: process.env.LLM_BASE_URL,
+    apiKey: process.env.LLM_API_KEY,
+    model: process.env.LLM_MODEL,
+  },
 });
 
 createApiServer(ms, 3456, {
@@ -323,8 +364,10 @@ Or from a clone of this repo, configured entirely by environment:
 
 ```bash
 MEMOSPROUT_API_KEY=your-secret-key \
-MEMOSPROUT_LLM_PROVIDER=deepseek \
-MEMOSPROUT_LLM_API_KEY=sk-... \
+MEMOSPROUT_LLM_PROVIDER=openai-compatible \
+MEMOSPROUT_LLM_BASE_URL=https://api.openai.com/v1 \
+MEMOSPROUT_LLM_API_KEY=your-llm-key \
+MEMOSPROUT_LLM_MODEL=gpt-4o-mini \
 pnpm api
 ```
 

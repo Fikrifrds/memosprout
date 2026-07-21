@@ -49,14 +49,26 @@ export default function DocsPage() {
         {/* Configure */}
         <Section id="configure" title="2. Configure your LLM provider">
           <p>
-            MemoSprout uses your LLM to detect and extract corrections automatically. Pick any
-            provider:
+            MemoSprout uses your LLM to detect and extract corrections automatically. For any
+            endpoint, pick the wire format it speaks — <code>openai-compatible</code> or{" "}
+            <code>anthropic-compatible</code> — and supply a base URL, an API key, and a model
+            id (all three required):
           </p>
           <Code>{`import { MemoSprout } from "memosprout";
 
 const ms = new MemoSprout("./corrections", {
-  llm: { provider: "deepseek", apiKey: "sk-..." },
+  llm: {
+    provider: "openai-compatible",   // or "anthropic-compatible"
+    baseUrl: "https://api.openai.com/v1",
+    apiKey: process.env.LLM_API_KEY,
+    model: "gpt-4o-mini",
+  },
 });`}</Code>
+          <p>
+            For these eleven named providers you can pass the name instead — <code>baseUrl</code>{" "}
+            and a default <code>model</code> are filled in for you, e.g.{" "}
+            <code>{`llm: { provider: "openai", apiKey: "..." }`}</code>:
+          </p>
           <div className="overflow-x-auto">
             <table className="w-full text-left text-xs">
               <thead className="border-b border-slate-200 text-slate-500">
@@ -125,7 +137,12 @@ const ms = new MemoSprout("./corrections", {
             translations via your LLM:
           </p>
           <Code>{`const ms = new MemoSprout("./corrections", {
-  llm: { provider: "deepseek", apiKey: "sk-..." },
+  llm: {
+    provider: "openai-compatible",
+    baseUrl: "https://api.openai.com/v1",
+    apiKey: process.env.LLM_API_KEY,
+    model: "gpt-4o-mini",
+  },
   semanticCheck: true,  // catches "twelve days of yearly vacation"
 });`}</Code>
         </Section>
@@ -149,8 +166,10 @@ const ms = new MemoSprout("./corrections", {
             not a subset:
           </p>
           <Code>{`MEMOSPROUT_API_KEY=your-secret-key \\
-MEMOSPROUT_LLM_PROVIDER=deepseek \\
-MEMOSPROUT_LLM_API_KEY=sk-... \\
+MEMOSPROUT_LLM_PROVIDER=openai-compatible \\
+MEMOSPROUT_LLM_BASE_URL=https://api.openai.com/v1 \\
+MEMOSPROUT_LLM_API_KEY=your-llm-key \\
+MEMOSPROUT_LLM_MODEL=gpt-4o-mini \\
 pnpm api        # http://127.0.0.1:3456`}</Code>
           <Code>{`import requests, os
 

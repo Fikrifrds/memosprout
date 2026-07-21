@@ -643,8 +643,10 @@ Start the API server (with LLM config to enable `/process`):
 
 ```bash
 MEMOSPROUT_API_KEY=your-secret-key \
-MEMOSPROUT_LLM_PROVIDER=deepseek \
-MEMOSPROUT_LLM_API_KEY=sk-... \
+MEMOSPROUT_LLM_PROVIDER=openai-compatible \
+MEMOSPROUT_LLM_BASE_URL=https://api.openai.com/v1 \
+MEMOSPROUT_LLM_API_KEY=your-llm-key \
+MEMOSPROUT_LLM_MODEL=gpt-4o-mini \
 pnpm api                          # default: 127.0.0.1:3456
 ```
 
