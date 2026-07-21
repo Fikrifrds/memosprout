@@ -1,9 +1,9 @@
 {
   "name": "memosprout",
-  "version": "0.1.0",
+  "version": "0.2.0",
   "private": true,
   "type": "module",
-  "description": "Verified, portable knowledge for improving future AI-agent runs.",
+  "description": "Domain-agnostic correction intelligence engine. Capture, validate, and deliver corrections to AI outputs.",
   "engines": {
     "node": ">=24 <25",
     "pnpm": ">=11 <12"
@@ -12,14 +12,17 @@
   "scripts": {
     "build": "next build",
     "check:generated": "pnpm --dir demo/generated-files/template check:generated",
+    "api": "tsx scripts/api-server.ts",
+    "cli": "tsx bin/memosprout.ts",
+    "convergence:config:setup": "tsx scripts/setup-convergence-config.ts",
+    "convergence:design:verify": "tsx scripts/verify-convergence-design.ts",
+    "cost:experiment": "tsx --env-file=.env scripts/run-cost-experiment.ts",
     "demo": "vitest run tests/scenario demo/generated-files/template/tests --reporter=verbose",
     "dev": "next dev",
     "lint": "eslint .",
+    "mcp:serve": "tsx scripts/mcp-server.ts",
     "phase2:live": "tsx --env-file=.env scripts/generate-live-candidate.ts",
     "phase2:verify": "tsx scripts/verify-phase2.ts",
-    "convergence:config:setup": "tsx scripts/setup-convergence-config.ts",
-    "convergence:design:verify": "tsx scripts/verify-convergence-design.ts",
-    "mcp:serve": "tsx scripts/mcp-server.ts",
     "phase3:live": "tsx scripts/generate-protection.ts",
     "phase3:verify": "tsx scripts/verify-phase3.ts",
     "phase4:baseline": "tsx scripts/capture-baseline.ts",
@@ -41,7 +44,6 @@
     "phase4:v2:worker:calibrate-v2": "tsx scripts/run-phase4-v2-calibration-v2.ts",
     "phase4:v2:worker:calibrate:recover-v1": "tsx scripts/launch-phase4-v2-calibration-recovery-v1.ts",
     "phase4:v2:worker:preflight": "tsx scripts/run-phase4-v2-preflight.ts",
-    "cost:experiment": "tsx --env-file=.env scripts/run-cost-experiment.ts",
     "test": "vitest run",
     "test:watch": "vitest",
     "typecheck": "tsc --noEmit"

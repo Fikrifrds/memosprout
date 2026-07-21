@@ -1,113 +1,264 @@
 # MemoSprout
 
-**Correct once. Improve every agent.**
+**Correct once. Improve every interaction.**
 
-MemoSprout is the continuous learning and improvement layer for AI agents. It turns agent
-outcomes and human corrections into **verified, portable knowledge** — so a fix made once
-improves every future run, across models and tools.
+MemoSprout captures corrections to AI outputs, validates them, and delivers
+them to every future interaction — so a mistake fixed once never happens again.
 
-Memory stores a note. MemoSprout attaches evidence, validates it with an independent oracle,
-and delivers it to any agent exactly when it is needed.
+Works with any AI system: RAG pipelines, chatbots, coding agents, report
+generators. Any domain where AI produces outputs that humans verify.
 
-**The model is not your advantage — your knowledge is.** As models become interchangeable, the
-durable advantage is the verified knowledge your organization accumulates and delivers to its
-agents. A bigger context window gives an agent a larger memory; MemoSprout gives it the right
-knowledge, validated and delivered exactly when it is needed.
-
-## Prerequisites
-
-- Node.js 24.x
-- pnpm 11.x
+## Install
 
 ```bash
-nvm use
-pnpm install --frozen-lockfile
+npm install memosprout
 ```
 
 ## Quick start
 
-```bash
-pnpm dev
+```typescript
+import { MemoSprout } from "memosprout";
+
+// Configure once — use any LLM provider
+const ms = new MemoSprout("./corrections", {
+  llm: { provider: "deepseek", apiKey: "sk-..." },
+});
+
+// Your chatbot handler:
+async function handleChat(userMessage: string, previousAIAnswer: string) {
+  // 1. MemoSprout auto-detects corrections and extracts structured fields.
+  //    User says: "No, annual leave is 15 days since 2026, check SK-045"
+  //    LLM extracts: wrong="12 days", correct="15 days since 2026", source="SK-045"
+  //    High confidence → correction goes live automatically.
+  const result = await ms.processMessage(userMessage, previousAIAnswer);
+
+  // 2. Get relevant corrections and inject into your AI's system prompt
+  const { context } = await ms.context(userMessage);
+
+  // 3. Call your AI provider with `context` injected
+  const answer = await callYourAI(userMessage, context);
+
+  // 4. Check the answer before sending it to the user
+  const check = await ms.check(answer);
+  if (!check.ok) {
+    return check.corrections[0].correct; // use the verified answer
+  }
+  return answer;
+}
 ```
 
-Open `http://localhost:3000`:
+One `processMessage()` call handles detection, extraction, and saving.
+No manual field writing. Works in any language.
 
-- **Home** — what MemoSprout is and how it works.
-- **Demo** — a four-step walkthrough of the full loop (failed run → Candidate Sprout →
-  evaluation → improved fresh run). Runs on seeded evidence by default; the live extractor
-  on the Candidate step uses GPT-5.6 and needs `OPENAI_API_KEY`.
-- **Dashboard** — scenarios, validated sprouts, measured outcomes, and cost-intelligence routing.
-- **Docs** — this guide, in the app.
+### Manual corrections (admin / agent)
 
-## MCP server
-
-MemoSprout serves validated knowledge to any agent over the Model Context Protocol:
-
-```bash
-pnpm mcp:serve
+```typescript
+// Agents and admins can also add corrections directly:
+await ms.correct({
+  wrong: "Refund takes 3 business days",
+  correct: "Refund takes 5 business days since March 2026",
+  keywords: ["refund", "processing"],
+  source: "Refund Policy v4.1",
+  role: "agent",  // trusted → auto-active
+});
 ```
 
-It exposes two tools:
+## API
 
-- `get_task_context` — returns the validated guidance relevant to the files a task touches
-  (`filePaths`) and/or context attributes (`context`), such as ticket type or domain.
-- `check_tool_call` — the reflex gate: returns allow / block / warn for a planned edit, so an
-  agent cannot tamper with guarded files.
+### `new MemoSprout(directory?)`
 
-Connect it from any MCP-capable client. For Claude Code, point an MCP server entry at
-`pnpm mcp:serve`. The server loads its sprouts from a file-backed store
-(`.memosprout-local/sprout-store.json` by default; override with `MEMOSPROUT_SPROUT_STORE`),
-seeding the demo sprouts on first run.
+Create a MemoSprout instance. Corrections are stored as Markdown files
+in `directory` (default: `"./corrections"`).
 
-## How it works
+### `ms.correct(options)`
 
-1. **Capture** — a failed agent run and the human correction are recorded as evidence.
-2. **Compile** — the Experience Compiler distills the correction into a narrow Candidate Sprout
-   (trigger, procedure, prohibited actions, scope), exportable as Open Knowledge Format.
-3. **Validate** — the Validation Engine tests the sprout against a held-out oracle, comparing
-   runs with and without it before anything is trusted.
-4. **Deliver** — validated sprouts are served to any agent through MCP and rendered to
-   `AGENTS.md` or `CLAUDE.md`.
+Capture a correction. Returns the `CorrectionRecord`.
 
-## Core concepts
-
-- **Sprout** — a narrow, validated unit of knowledge.
-- **Scenario** — a deterministic task with a held-out oracle. Four coding scenarios ship today:
-  idempotency, soft-delete, tenant-isolation, and secret-handling.
-- **Oracle** — the independent judge of correctness (an acceptance test suite for code; a
-  structured-check or rubric-judge oracle for other domains).
-- **Outcome Ledger** — records outcomes per scenario and measures the lift a sprout provides.
-- **Cost–Intelligence Router** — routes a task to the cheapest model that stays reliable.
-
-## Commands
-
-```bash
-pnpm dev                       # UI: landing, demo, dashboard, docs
-pnpm mcp:serve                 # MCP stdio server
-pnpm test                      # full test suite
-pnpm lint                      # ESLint
-pnpm typecheck                 # TypeScript
-pnpm build                     # production build
-pnpm convergence:design:verify # verify the convergence experiment design
+```typescript
+await ms.correct({
+  wrong: "the wrong answer",       // required
+  correct: "the correct answer",   // required
+  domain: "rag-chat",              // optional, default "general"
+  keywords: ["keyword1", "keyword2"], // optional trigger keywords
+  entities: ["entity1"],           // optional trigger entities
+  explanation: "why this changed", // optional
+  source: "document reference",    // optional
+  by: "user-id",                   // optional
+});
 ```
 
-## Architecture
+Calling `correct()` with the same `wrong` + `correct` + `domain` again
+increments `confirmCount` (multiple users confirming the same correction).
 
-- `lib/eval/engine/` — reusable Validation Engine (scenario definition, oracles, runner).
-- `lib/compiler/` — Experience Compiler (correction → sprout) and guidance compiler.
-- `lib/artifact/` — Artifact Compiler (sprout → enforcement artifact spec).
-- `lib/delivery/` — sprout registry, `get_task_context`, adapters, persistent store.
-- `lib/ledger/` — Outcome Ledger and domain outcome metrics.
-- `lib/router/` — Cost–Intelligence Router.
-- `lib/control-plane/` — sprout release lifecycle and audit trail.
-- `lib/reflex/` — Runtime Reflex Gate.
-- `lib/mcp/` — MCP server wiring.
-- `demo/` — the four scenario templates.
-- `app/` — Next.js UI and API routes.
+### `ms.context(query, domain?)`
 
-## Status
+Find corrections relevant to a query. Returns `{ corrections, context }`.
 
-The core loop is built and demonstrated end-to-end, and the central thesis is validated by a
-live scored experiment: a validated sprout lifts a cheap model from 0% to 100% on a
-knowledge-dependent task. See `docs/DECISIONS.md` and `docs/BUILD_WEEK_CHANGELOG.md` for the
-full record.
+Inject `context` into your AI's system prompt or RAG context so it
+applies verified corrections automatically.
+
+### `ms.check(answer, domain?)`
+
+Check an AI-generated answer against known-wrong patterns.
+Returns `{ ok, corrections }`.
+
+If `ok` is `false`, the answer contains a known-wrong pattern. Use
+`corrections[0].correct` to fix it.
+
+### `ms.list(filter?)`
+
+List corrections. Filter by `status`, `domain`, or `keyword`.
+
+### `ms.get(correctionId)`
+
+Get a single correction by ID.
+
+### `ms.remove(correctionId)`
+
+Deprecate a correction (soft delete).
+
+## Use with any framework
+
+### LangChain
+
+```typescript
+import { MemoSprout } from "memosprout";
+import { ChatOpenAI } from "@langchain/openai";
+import { ChatPromptTemplate } from "@langchain/core/prompts";
+
+const ms = new MemoSprout("./corrections");
+
+async function answer(question: string) {
+  const { context } = await ms.context(question);
+
+  const prompt = ChatPromptTemplate.fromMessages([
+    ["system", "You are a helpful assistant.\n\n{context}"],
+    ["human", "{question}"],
+  ]);
+
+  const chain = prompt.pipe(new ChatOpenAI({ model: "gpt-4o" }));
+  const response = await chain.invoke({ question, context });
+
+  const check = await ms.check(response.content as string);
+  if (!check.ok) {
+    return `Correction needed: ${check.corrections[0].correct}`;
+  }
+  return response.content;
+}
+```
+
+### Vercel AI SDK
+
+```typescript
+import { MemoSprout } from "memosprout";
+import { generateText } from "ai";
+import { openai } from "@ai-sdk/openai";
+
+const ms = new MemoSprout("./corrections");
+
+async function answer(question: string) {
+  const { context } = await ms.context(question);
+
+  const { text } = await generateText({
+    model: openai("gpt-4o"),
+    system: `You are a helpful assistant.\n\n${context}`,
+    prompt: question,
+  });
+
+  const check = await ms.check(text);
+  return check.ok ? text : `Correction: ${check.corrections[0].correct}`;
+}
+```
+
+### Express / any HTTP API
+
+```typescript
+import { MemoSprout } from "memosprout";
+import express from "express";
+
+const ms = new MemoSprout("./corrections");
+const app = express();
+app.use(express.json());
+
+// Capture corrections from user feedback
+app.post("/feedback", async (req, res) => {
+  const { wrong, correct, keywords } = req.body;
+  const correction = await ms.correct({ wrong, correct, keywords });
+  res.json(correction);
+});
+
+// Enhance any chat endpoint
+app.post("/chat", async (req, res) => {
+  const { question } = req.body;
+  const { context } = await ms.context(question);
+
+  // Pass `context` to your AI provider
+  const answer = await callYourAI(question, context);
+
+  const check = await ms.check(answer);
+  res.json({ answer, corrections: check.ok ? [] : check.corrections });
+});
+```
+
+## CLI
+
+```bash
+npx memosprout init
+npx memosprout add --domain coding --wrong "Edit generated files" --correct "Modify schema and regenerate"
+npx memosprout list --status active
+npx memosprout check "query" "answer"
+```
+
+## How corrections are stored
+
+Corrections are Markdown files with YAML frontmatter — human-readable,
+git-versionable, portable:
+
+```markdown
+---
+correction_id: corr_a1b2c3d4
+status: active
+domain: rag-chat
+trigger_keywords: [leave, cuti, annual]
+wrong_pattern: Annual leave is 12 days
+correct_answer: Annual leave is 15 days since January 2026
+source_ref: HR Policy v3.2
+---
+
+# Correction: Annual leave is 15 days since January 2026
+
+## Wrong pattern
+Annual leave is 12 days
+
+## Correct answer
+Annual leave is 15 days since January 2026
+
+## Source
+HR Policy v3.2
+```
+
+No database. No vendor lock-in. `git diff` your corrections.
+
+## Principles
+
+- **Corrections are verified, not blindly trusted.** Validate against
+  domain-specific oracles before going live.
+- **Your data never leaves your infrastructure.** Local-first, open
+  source. Audit the code yourself.
+- **Portable and open.** Markdown files, not a proprietary database.
+- **Domain-agnostic core.** Pluggable adapters for any domain.
+
+## Development
+
+```bash
+pnpm install
+pnpm dev          # UI
+pnpm cli <cmd>    # CLI
+pnpm test         # 61 test files, 388 tests
+pnpm lint
+pnpm typecheck
+```
+
+## License
+
+MIT

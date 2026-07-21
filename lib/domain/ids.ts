@@ -8,6 +8,8 @@ export const idPrefixes = {
   candidateSprout: "sprout",
   auditEntry: "audit",
   reflexRule: "reflex",
+  domainCorrection: "corr",
+  feedback: "fb",
 } as const;
 
 export type IdPrefix = (typeof idPrefixes)[keyof typeof idPrefixes];

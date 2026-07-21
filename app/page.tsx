@@ -3,60 +3,71 @@ import Link from "next/link";
 import { SiteNav } from "@/components/SiteNav";
 
 export const metadata = {
-  title: "MemoSprout — Correct once. Improve every agent.",
+  title: "MemoSprout — Correct once. Improve every interaction.",
   description:
-    "MemoSprout turns human corrections into verified, portable knowledge that makes every " +
-    "agent run better — and makes what a run costs far more predictable.",
+    "MemoSprout captures corrections to AI outputs, validates them, and delivers them to every " +
+    "future interaction — so a mistake fixed once never happens again.",
 };
 
 const steps = [
   {
     title: "Capture the correction",
-    body: "When an agent gets it wrong and a human fixes it, MemoSprout records the failed run and the correction as evidence.",
-  },
-  {
-    title: "Compile a sprout",
-    body: "The Experience Compiler distills the correction into a narrow Candidate Sprout: trigger, procedure, prohibited actions, and scope.",
+    body: "When AI gets it wrong and a human fixes it — in a chatbot, a code review, a report — MemoSprout records what was wrong and what is right.",
   },
   {
     title: "Validate it",
-    body: "The Validation Engine tests the sprout against a held-out oracle, comparing runs with and without it before anything is trusted.",
+    body: "Not every correction is correct. The Validation Engine checks each one against a domain-specific oracle before it is trusted. Bad corrections are quarantined, not deployed.",
+  },
+  {
+    title: "Store it as portable knowledge",
+    body: "Validated corrections are stored as Markdown with structured metadata — human-readable, git-versionable, and portable across any AI platform.",
   },
   {
     title: "Deliver it just-in-time",
-    body: "One MCP tool, get_task_context, deterministically selects the few sprouts relevant to the task at hand — and a reflex gate blocks edits that break guarded rules.",
+    body: "When a similar question or task appears, the relevant correction is injected into the AI's context — and known-wrong answers are blocked before they reach the user.",
   },
 ];
 
-const economics = [
+const domains = [
   {
-    title: "Fewer wasted attempts",
-    body: "Across 16 measured runs on a multi-file repository, agents given the sprout succeeded on the first attempt every time. Without it, one run in eight got lost exploring and had to start over.",
+    name: "Enterprise chat & RAG",
+    example:
+      "User asks about leave policy, chatbot answers with outdated numbers. User corrects it once. Every future answer is right.",
   },
   {
-    title: "Knowledge replaces re-exploration",
-    body: "A convention discovered once is delivered as a few sentences — not rediscovered by re-reading dozens of files every new session.",
+    name: "Coding agents",
+    example:
+      "An agent edits a generated file directly. A reviewer corrects it. The agent never makes that mistake again — on any model.",
   },
   {
-    title: "Cheaper models, routed safely",
-    body: "When a sprout makes a cheap model reliable on a task class, the Cost–Intelligence Router can send that task to a cheaper model instead of always reaching for the frontier.",
+    name: "Finance & compliance",
+    example:
+      "An analyst catches a wrong tax rate in an AI-generated report. The correction is validated against current regulation and applied to all future reports.",
+  },
+  {
+    name: "Customer support",
+    example:
+      "A supervisor corrects a refund timeline. The correction is verified against the latest SOP and delivered to every agent's suggested responses.",
   },
 ];
 
-const capabilities = [
-  { name: "Validation Engine", detail: "Scenario-agnostic oracle, isolation, and false-block controls." },
-  { name: "Experience Compiler", detail: "Correction to Candidate Sprout, exported as Open Knowledge Format." },
-  { name: "Artifact Compiler", detail: "Sprout to enforcement artifact specification with an integrity-checked manifest." },
-  { name: "MCP Delivery", detail: "get_task_context and a reflex gate, served over a stdio MCP server." },
+const principles = [
   {
-    name: "Outcome Ledger",
-    detail: "Measures sprout impact on quality (success lift) and on cost (tokens-to-success, baseline versus protected).",
+    title: "Corrections are verified, not blindly trusted",
+    body: "A user correction could be wrong or malicious. MemoSprout validates every correction against a domain-specific oracle — source documents, test suites, regulations — before it goes live.",
   },
   {
-    name: "Cost–Intelligence Router",
-    detail: "Routes each task to the cheapest model that stays reliable — sprouts expand what a cheap model can do.",
+    title: "Your data never leaves your infrastructure",
+    body: "MemoSprout runs locally. Corrections are stored as Markdown files on your server. No documents, chat logs, or sensitive data are sent anywhere. Open source — audit the code yourself.",
   },
-  { name: "Team Control Plane", detail: "Sprout lifecycle: validate, release, canary, rollback, audit." },
+  {
+    title: "Domain-agnostic core, pluggable adapters",
+    body: "The correction engine works the same way in every domain. What changes is the adapter: how corrections are captured, what validates them, and how they are delivered.",
+  },
+  {
+    title: "Portable and open",
+    body: "Corrections are Markdown files with YAML frontmatter — not locked in a database or a platform. Version them with git, move them between tools, use them with any AI system.",
+  },
 ];
 
 export default function HomePage() {
@@ -66,32 +77,21 @@ export default function HomePage() {
       <main className="mx-auto max-w-4xl px-4">
         <section className="py-16 text-center">
           <p className="mb-3 text-sm font-semibold uppercase tracking-wide text-emerald-600">
-            Agent-learning infrastructure
+            Open-source correction intelligence
           </p>
           <h1 className="text-4xl font-bold tracking-tight sm:text-5xl">
-            Correct once. Improve every agent.
+            Correct once. Improve every interaction.
           </h1>
           <p className="mx-auto mt-5 max-w-2xl text-lg text-slate-600">
-            MemoSprout turns human corrections into verified, portable knowledge. Fix a mistake
-            once and every future run improves — across models and tools — without the agent
-            rediscovering your project from scratch every session.
+            AI makes mistakes. Humans fix them. But the fix lives and dies in one session —
+            tomorrow, the same mistake happens again. MemoSprout captures corrections, validates
+            them, and delivers them to every future interaction. Across any domain, any model,
+            any platform.
           </p>
           <div className="mt-8 flex justify-center gap-3">
             <Link
-              href="/demo"
-              className="rounded-lg bg-slate-900 px-5 py-2.5 text-sm font-medium text-white hover:bg-slate-700"
-            >
-              Try the demo
-            </Link>
-            <Link
-              href="/dashboard"
-              className="rounded-lg border border-slate-300 px-5 py-2.5 text-sm font-medium text-slate-700 hover:bg-slate-100"
-            >
-              View dashboard
-            </Link>
-            <Link
               href="/docs"
-              className="rounded-lg border border-slate-300 px-5 py-2.5 text-sm font-medium text-slate-700 hover:bg-slate-100"
+              className="rounded-lg bg-slate-900 px-5 py-2.5 text-sm font-medium text-white hover:bg-slate-700"
             >
               Read the docs
             </Link>
@@ -103,15 +103,14 @@ export default function HomePage() {
             The same mistake, every session
           </h2>
           <p className="mx-auto mt-4 max-w-2xl text-center text-slate-600">
-            The agent gets it wrong, you correct it, it runs again. Tomorrow a fresh session
-            rediscovers the same project conventions by re-reading the same files — and can
-            make the same mistake again, because your correction lived and died in one chat.
+            Your chatbot tells an employee that annual leave is 12 days. It has been 15 days
+            since January. The employee corrects it — and the correction vanishes. Next week,
+            another employee asks the same question and gets the same wrong answer.
           </p>
           <p className="mx-auto mt-4 max-w-2xl text-center text-slate-600">
-            The root cause is not model intelligence. The smartest model still cannot guess your
-            project&apos;s local facts — that users are soft-deleted, that every query must be
-            tenant-scoped, that the API client is generated from a schema. Local knowledge must
-            be supplied. MemoSprout supplies it, validated, exactly when it is needed.
+            This happens everywhere: chatbots with stale knowledge, coding agents that repeat
+            the same error, AI reports with outdated figures. The fix is always the same — a
+            human corrects it — and the fix is always lost.
           </p>
         </section>
 
@@ -128,110 +127,57 @@ export default function HomePage() {
           </div>
         </section>
 
-        <section className="border-t border-slate-200 py-14 text-center">
-          <h2 className="text-2xl font-bold tracking-tight">The proof</h2>
-          <div className="mx-auto mt-8 flex max-w-md items-center justify-center gap-8">
-            <div>
-              <p className="text-5xl font-bold tabular-nums text-slate-400">0/3</p>
-              <p className="mt-1 text-sm text-slate-500">cheap model, no sprout</p>
-            </div>
-            <p className="text-3xl text-slate-300">→</p>
-            <div>
-              <p className="text-5xl font-bold tabular-nums text-emerald-600">3/3</p>
-              <p className="mt-1 text-sm text-slate-500">same model, one validated sprout</p>
-            </div>
-          </div>
-          <p className="mx-auto mt-6 max-w-2xl text-slate-600">
-            In a live scored experiment, a single validated sprout took a cheap model from 0/3
-            to 3/3 on a knowledge-dependent task. The model did not get smarter — it got the
-            knowledge it was missing. A frontier model scored 0/3 on the same task without the
-            sprout, which is the point: this is a knowledge gap, not an intelligence gap.
-          </p>
-          <p className="mx-auto mt-4 max-w-2xl text-sm text-slate-500">
-            Three trials per condition on one scenario. A clean result on a small sample —
-            enough to demonstrate the mechanism, not enough to generalize from.
-          </p>
-        </section>
-
         <section className="border-t border-slate-200 py-14">
           <h2 className="text-center text-2xl font-bold tracking-tight">
-            Predictable runs, not just cheaper ones
+            Any domain where AI meets human judgment
           </h2>
-          <p className="mx-auto mt-4 max-w-2xl text-center text-slate-600">
-            We measured tokens-to-success — every token from task start until the work passes
-            its oracle, retries included — across 16 live runs on a multi-file repository whose
-            conventions are spread across a dozen files.
-          </p>
-          <div className="mx-auto mt-8 grid max-w-2xl gap-4 sm:grid-cols-2">
-            <div className="rounded-xl border border-slate-200 bg-white p-6 text-center">
-              <p className="text-3xl font-bold tabular-nums">−11%</p>
-              <p className="mt-1 text-sm font-medium">median tokens to finish</p>
-              <p className="mt-2 text-sm text-slate-600">
-                A real saving, but a modest one — this alone will not change your bill.
-              </p>
-            </div>
-            <div className="rounded-xl border border-slate-200 bg-white p-6 text-center">
-              <p className="text-3xl font-bold tabular-nums text-emerald-600">−81%</p>
-              <p className="mt-1 text-sm font-medium">spread between runs</p>
-              <p className="mt-2 text-sm text-slate-600">
-                The bigger effect: run-to-run variation collapsed from ±4,865 tokens to ±911.
-              </p>
-            </div>
-          </div>
-          <p className="mx-auto mt-6 max-w-2xl text-center text-slate-600">
-            What burns a monthly quota is not the average run — it is the run that gets lost.
-            Without guidance, one run in eight exhausted its turn budget exploring and had to
-            start over, costing nearly twice the median. Every run given the sprout finished on
-            the first attempt.
-          </p>
-          <div className="mt-8 grid gap-6 sm:grid-cols-3">
-            {economics.map((item) => (
-              <div key={item.title} className="rounded-xl border border-slate-200 bg-white p-6">
-                <h3 className="text-lg font-semibold">{item.title}</h3>
-                <p className="mt-2 text-sm text-slate-600">{item.body}</p>
+          <div className="mt-8 grid gap-6 sm:grid-cols-2">
+            {domains.map((domain) => (
+              <div key={domain.name} className="rounded-xl border border-slate-200 bg-white p-6">
+                <h3 className="font-semibold">{domain.name}</h3>
+                <p className="mt-2 text-sm text-slate-600">{domain.example}</p>
               </div>
             ))}
           </div>
           <p className="mx-auto mt-6 max-w-2xl text-center text-sm text-slate-500">
-            Measured on gpt-5.4-mini, 8 runs per condition, one scenario. A sample this size
-            shows a direction, not a guarantee — the raw per-run evidence ships with the
-            repository so you can check it, and larger runs across more scenarios are the next
-            step.
+            The core engine is domain-agnostic. Each domain plugs in an adapter that defines how
+            corrections are captured, validated, and delivered. Build your own adapter for any
+            domain.
           </p>
         </section>
 
         <section className="border-t border-slate-200 py-14">
-          <h2 className="text-center text-2xl font-bold tracking-tight">
-            The model is not your advantage
-          </h2>
-          <p className="mx-auto mt-4 max-w-2xl text-center text-slate-600">
-            You will switch models again in a few months — everyone does. Vendor-locked memory
-            dies with every migration. Sprouts are portable knowledge (Open Knowledge Format):
-            they survive every model switch, and every correction you have ever made keeps
-            paying off on whatever model comes next.
-          </p>
-          <p className="mx-auto mt-4 max-w-2xl text-center text-slate-600">
-            A bigger context window gives an agent a larger memory. MemoSprout gives it the right
-            knowledge — validated, portable, and delivered exactly when it is needed. The
-            difference between remembering everything and knowing what is true.
-          </p>
-        </section>
-
-        <section className="border-t border-slate-200 py-14">
-          <h2 className="text-center text-2xl font-bold tracking-tight">Capabilities</h2>
-          <div className="mt-8 grid gap-4 sm:grid-cols-2">
-            {capabilities.map((capability) => (
-              <div key={capability.name} className="rounded-lg border border-slate-200 bg-white p-5">
-                <h3 className="font-semibold">{capability.name}</h3>
-                <p className="mt-1 text-sm text-slate-600">{capability.detail}</p>
+          <h2 className="text-center text-2xl font-bold tracking-tight">Principles</h2>
+          <div className="mt-8 grid gap-6 sm:grid-cols-2">
+            {principles.map((principle) => (
+              <div
+                key={principle.title}
+                className="rounded-xl border border-slate-200 bg-white p-6"
+              >
+                <h3 className="font-semibold">{principle.title}</h3>
+                <p className="mt-2 text-sm text-slate-600">{principle.body}</p>
               </div>
             ))}
           </div>
         </section>
 
+        <section className="border-t border-slate-200 py-14 text-center">
+          <h2 className="text-2xl font-bold tracking-tight">Open source, local-first</h2>
+          <p className="mx-auto mt-4 max-w-2xl text-slate-600">
+            MemoSprout is open source and runs entirely on your infrastructure. Corrections are
+            stored as Markdown files — human-readable, git-versionable, and portable. No data
+            leaves your server. No vendor lock-in. Audit the code yourself.
+          </p>
+          <div className="mx-auto mt-6 max-w-md rounded-xl bg-slate-900 p-4 text-left">
+            <code className="text-sm text-emerald-400">
+              npm install memosprout
+            </code>
+          </div>
+        </section>
+
         <footer className="border-t border-slate-200 py-8 text-center text-sm text-slate-500">
-          <span className="lowercase">memosprout</span> — verified, portable knowledge for AI
-          agents.
+          <span className="lowercase">memosprout</span> — correct once. Improve every
+          interaction.
         </footer>
       </main>
     </>

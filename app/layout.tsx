@@ -3,9 +3,9 @@ import type { Metadata } from "next";
 import "./globals.css";
 
 export const metadata: Metadata = {
-  title: "MemoSprout — Correct once. Improve every agent.",
+  title: "MemoSprout — Correct once. Improve every interaction.",
   description:
-    "MemoSprout turns agent outcomes and human corrections into verified, portable knowledge that improves future AI-agent runs.",
+    "MemoSprout captures corrections to AI outputs, validates them, and delivers them to every future interaction. Open source, local-first, domain-agnostic.",
 };
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {

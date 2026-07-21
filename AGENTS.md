@@ -2,58 +2,50 @@
 
 ## Project
 
-MemoSprout is an agent-learning developer tool that turns agent outcomes
-and human corrections into verified, portable knowledge that improves
-future AI-agent runs.
+MemoSprout is a domain-agnostic correction intelligence engine. It
+captures corrections to AI outputs, validates them against
+domain-specific oracles, stores them as portable Markdown, and delivers
+them to future interactions — so a mistake fixed once never happens
+again.
 
-Canonical Build Week tagline:
+Canonical tagline:
 
-> Correct once. Improve every agent.
+> Correct once. Improve every interaction.
 
-## Current implementation scope
+The core engine is domain-agnostic. Domain-specific behavior (how
+corrections are captured, validated, and delivered) is isolated in
+pluggable adapters. Supported domains include RAG/enterprise chat,
+coding agents, finance, and any domain where AI produces outputs that
+humans verify.
 
-The OpenAI Build Week implementation is the only active engineering scope.
+## Current direction
 
-Read and follow:
+The product is evolving from its original coding-agent-only scope toward
+a domain-agnostic correction intelligence engine, with RAG/chat as the
+primary target domain.
 
-- `docs/prd/BUILD_WEEK_PRD.md`
-- `docs/IMPLEMENTATION_PLAN.md`
-- `docs/DECISIONS.md`
-- `docs/BUILD_WEEK_CHANGELOG.md`
+Key documents:
 
-The following documents contain long-term product context only and must
-not expand the current implementation scope:
+- `docs/MEMOSPROUT_V2_BREAKDOWN.md` — v2 implementation plan with
+  domain-agnostic adapter architecture
+- `docs/QUALITYGATE_ARCHITECTURE.md` — explored multi-model quality
+  escalation architecture (reference only, not the active direction)
+- `docs/DECISIONS.md` — historical decisions from the Build Week
+  implementation
+- `docs/BUILD_WEEK_CHANGELOG.md` — historical changelog
+
+Long-term context (does not expand current scope):
 
 - `docs/prd/FULL_PRD.md`
+- `docs/prd/BUILD_WEEK_PRD.md`
 - `docs/strategy/Intelligence_Amplification_and_Operational_Distillation_PRD.md`
 
 When documents conflict, use this priority order:
 
 1. Direct user instructions
-2. `docs/DECISIONS.md`
-3. `docs/prd/BUILD_WEEK_PRD.md`
-4. `docs/IMPLEMENTATION_PLAN.md`
-5. Other documentation
-
-## Build Week vertical slice
-
-Implement only this flow:
-
-1. Load a failed agent-run fixture.
-2. Load the corresponding human correction.
-3. Generate a Candidate Sprout with GPT-5.6.
-4. Export the Candidate Sprout as OKF-compatible Markdown.
-5. Materialize an executable generated-files protection.
-6. Compare baseline and protected evaluations.
-7. Demonstrate improvement on a held-out fresh task.
-
-The only scenario is:
-
-> Generated files must not be edited directly. Modify the source schema
-> and run the generator instead.
-
-Reserve `preferred_language` as the held-out fresh task. Do not use it
-while creating or tuning the initial protection.
+2. `docs/MEMOSPROUT_V2_BREAKDOWN.md`
+3. `docs/DECISIONS.md`
+4. Other documentation
 
 ## Required stack
 
@@ -67,40 +59,8 @@ Use:
 - Vitest
 - deterministic file and JSON fixtures
 
-Do not add during Build Week:
-
-- FastAPI
-- Redis
-- queues
-- authentication
-- billing
-- GitHub App
-- MCP
-- Claude Code adapter
-- OpenCode adapter
-- enterprise infrastructure
-- distributed services
-- unnecessary databases
-
-Use file-based storage for the demo unless an accepted decision explicitly
-changes this.
-
-## Implementation order
-
-The deterministic core proof is a hard gate before UI work.
-
-Follow the phases and exit gates in `docs/IMPLEMENTATION_PLAN.md`.
-
-Do not begin a later phase until:
-
-- the current phase exit gate passes;
-- linting passes;
-- type checking passes;
-- tests pass;
-- the implementation plan and changelog are updated.
-
-Do not silently change an accepted decision. Record a genuinely necessary
-new decision in `docs/DECISIONS.md`.
+Use file-based storage (Markdown + YAML frontmatter for corrections,
+JSON for indexes) unless an accepted decision explicitly changes this.
 
 ## Engineering rules
 
@@ -109,14 +69,20 @@ new decision in `docs/DECISIONS.md`.
 - Prefer small modules with explicit inputs and outputs.
 - Validate external and model-generated data with Zod.
 - Keep deterministic policy logic separate from model-generated guidance.
-- Do not use GPT output as the evidence oracle that proves the same GPT
-  output is correct.
-- Preserve reproducibility for the judge demo.
-- Seeded judge mode must work without live model or Codex execution.
-- Live GPT-5.6 and Codex runs should be captured separately as evidence.
+- Do not use the same model as both generator and judge/oracle.
 - Never expose API keys, secrets, credentials, private prompts, or local
   machine paths in fixtures, logs, screenshots, or committed files.
 - Do not add speculative abstractions for future enterprise features.
+- Corrections must be validated before they go live. Never blindly trust
+  user corrections.
+- All data stays local. No data leaves the user's infrastructure.
+
+## Evaluation integrity
+
+Reserve `preferred_language` as the held-out fresh task in the
+coding-domain evaluation scenarios. Do not use it while creating or
+tuning protections. This preserves the independence of the fresh-task
+proof.
 
 ## Commands
 
@@ -128,5 +94,4 @@ pnpm install
 pnpm lint
 pnpm typecheck
 pnpm test
-pnpm demo
 ```
