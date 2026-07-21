@@ -412,7 +412,25 @@ Stored in `corrections/audit.json`. Full history, queryable per correction.
 
 ## Oracle Validation (from v1 Validation Engine)
 
-Corrections can be validated against a domain-specific oracle:
+Corrections can be validated against a domain-specific oracle.
+`ms.validate()` uses a fallback chain:
+
+```
+1. DomainAdapter oracle (if ms.setAdapter() called)
+2. LLM source oracle (if LLM configured in constructor)
+3. Error (neither configured)
+```
+
+### CodingAdapter oracle (deterministic)
+
+Checks correction against the scenario definition:
+
+```
+✅ Correction references guarded paths from the scenario?
+✅ Wrong pattern and correct answer are distinct?
+✅ Correct answer is substantive (not too short)?
+✅ Scenario has acceptance tests?
+```
 
 ```typescript
 const adapter = new CodingAdapter();
@@ -420,11 +438,34 @@ adapter.registerScenario(idempotencyScenario);
 ms.setAdapter(adapter);
 
 const result = await ms.validate("corr_abc");
-// { passed: true, detail: "Correction targets scenario 'idempotency'..." }
+// { passed: true, detail: "Correction validated against scenario
+//   'idempotency' (2 guarded paths, acceptance test: ...)" }
 ```
 
-The oracle is defined by the DomainAdapter. For coding: test suites.
-For RAG/chat: document verification. For finance: regulation checks.
+### Source oracle (LLM-based, any domain)
+
+When no adapter is set but LLM is configured, `ms.validate()` uses
+an LLM to verify the correction's internal consistency:
+
+```
+✅ Correct answer differs from wrong pattern?
+✅ Correct answer is specific and actionable?
+✅ Explanation supports the correction?
+✅ Source reference is plausible?
+✅ No obvious contradictions or red flags?
+```
+
+```typescript
+const ms = new MemoSprout("./corrections", {
+  llm: { provider: "deepseek", apiKey: "sk-..." },
+});
+
+const result = await ms.validate("corr_abc");
+// { passed: true, detail: "Correction is internally consistent..." }
+```
+
+For production RAG/chat deployments, implement a DomainAdapter with
+a real source-document oracle for deterministic verification.
 
 ---
 

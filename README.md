@@ -117,6 +117,40 @@ Get a single correction by ID.
 
 Deprecate a correction (soft delete).
 
+### `ms.report(domain?)`
+
+Outcome tracking. Shows whether corrections actually help:
+
+```typescript
+const report = await ms.report("support");
+// {
+//   totalQueries: 142,
+//   correctionsServed: 89,
+//   blocksTriggered: 12,
+//   topCorrections: [{ correctionId: "corr_abc", timesServed: 45, timesBlocked: 8 }],
+// }
+```
+
+### `ms.audit(correctionId)`
+
+Full lifecycle history for a correction:
+
+```typescript
+const history = await ms.audit("corr_abc");
+// [{ action: "approved", actor: "admin", timestamp: "..." }, ...]
+```
+
+### `ms.validate(correctionId)`
+
+Validate a correction against a domain-specific oracle. Uses the
+DomainAdapter oracle if set, otherwise falls back to LLM-based
+source verification.
+
+```typescript
+const result = await ms.validate("corr_abc");
+// { passed: true, detail: "Correction validated against scenario..." }
+```
+
 ## Use with any framework
 
 ### LangChain
