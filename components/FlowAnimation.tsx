@@ -92,12 +92,12 @@ export function FlowAnimation() {
             >
               <span
                 className={`block h-1 rounded-full transition-colors duration-500 ${
-                  i <= shown ? "bg-emerald-500" : "bg-slate-200 group-hover:bg-slate-300"
+                  i <= shown ? "bg-teal-600" : "bg-slate-200 group-hover:bg-slate-300"
                 }`}
               />
               <span
                 className={`mt-2 hidden text-[11px] font-medium transition-colors duration-500 sm:block ${
-                  i === shown ? "text-emerald-700" : "text-slate-400"
+                  i === shown ? "text-teal-800" : "text-slate-400"
                 }`}
               >
                 {s.label}
@@ -150,7 +150,7 @@ function Bubble({
 }) {
   const tones = {
     wrong: "border-rose-200 bg-rose-50 text-rose-900",
-    right: "border-emerald-200 bg-emerald-50 text-emerald-900",
+    right: "border-teal-200 bg-teal-50 text-teal-900",
     neutral: "border-slate-200 bg-slate-50 text-slate-700",
   };
   return (
@@ -226,12 +226,12 @@ function StageArt({ index, playing }: { index: number; playing: boolean }) {
               <span className="text-xs font-medium text-slate-700">{row.label}</span>
               <span className="flex items-center gap-1.5 text-[11px] text-slate-500">
                 {row.detail}
-                <span className="text-emerald-600">✓</span>
+                <span className="text-teal-700">✓</span>
               </span>
             </div>
           ))}
           <p
-            className="pt-0.5 text-center text-[11px] font-medium text-emerald-700"
+            className="pt-0.5 text-center text-[11px] font-medium text-teal-800"
             style={{
               opacity: playing ? 1 : 0,
               transition: "opacity 400ms ease-out 700ms",
@@ -260,7 +260,7 @@ function StageArt({ index, playing }: { index: number; playing: boolean }) {
             {"\n\n"}
             <span className="text-slate-400">---</span>
             {"\n"}
-            status: <span className="text-emerald-400">active</span>
+            status: <span className="text-teal-300">active</span>
             {"\n"}
             wrong_pattern: Annual leave is 12 days{"\n"}
             correct_answer: Annual leave is 15 days{"\n"}

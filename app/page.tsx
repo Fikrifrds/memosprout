@@ -1,6 +1,8 @@
 import Link from "next/link";
 
+import { CodeBlock } from "@/components/CodeBlock";
 import { FlowAnimation } from "@/components/FlowAnimation";
+import { GitHubLink } from "@/components/GitHubLink";
 import { SiteNav } from "@/components/SiteNav";
 
 export const metadata = {
@@ -78,7 +80,7 @@ const principles = [
   },
   {
     title: "Your data never leaves your infrastructure",
-    body: "MemoSprout runs locally. Corrections are stored as Markdown files on your server. No documents, chat logs, or sensitive data are sent anywhere. Open source — audit the code yourself.",
+    body: "MemoSprout runs on your infrastructure and stores corrections as Markdown files on your server. There is no MemoSprout cloud and no telemetry. The only outbound calls are to the LLM endpoint you configure — and only if you configure one.",
   },
   {
     title: "Domain-agnostic core, pluggable adapters",
@@ -96,7 +98,7 @@ export default function HomePage() {
       <SiteNav />
       <main className="mx-auto max-w-4xl px-4">
         <section className="py-16 text-center">
-          <p className="mb-3 text-sm font-semibold uppercase tracking-wide text-emerald-600">
+          <p className="mb-3 text-sm font-semibold uppercase tracking-wide text-teal-700">
             Open-source correction intelligence
           </p>
           <h1 className="text-4xl font-bold tracking-tight sm:text-5xl">
@@ -108,13 +110,17 @@ export default function HomePage() {
             before they count, and delivers them to every future interaction. Across any domain,
             any model, any platform.
           </p>
-          <div className="mt-8 flex justify-center gap-3">
+          <div className="mt-8 flex flex-wrap items-center justify-center gap-3">
             <Link
               href="/docs"
-              className="rounded-lg bg-slate-900 px-5 py-2.5 text-sm font-medium text-white hover:bg-slate-700"
+              className="rounded-lg bg-teal-900 px-5 py-2.5 text-sm font-medium text-white transition hover:bg-teal-800"
             >
               Read the docs
             </Link>
+            <GitHubLink />
+          </div>
+          <div className="mx-auto mt-6 max-w-xs">
+            <CodeBlock>{`npm install memosprout`}</CodeBlock>
           </div>
         </section>
 
@@ -150,7 +156,7 @@ export default function HomePage() {
           <div className="mt-8 grid gap-6 sm:grid-cols-2">
             {steps.map((step, index) => (
               <div key={step.title} className="rounded-xl border border-slate-200 bg-white p-6">
-                <p className="text-sm font-semibold text-emerald-600">Step {index + 1}</p>
+                <p className="text-sm font-semibold text-teal-700">Step {index + 1}</p>
                 <h3 className="mt-1 text-lg font-semibold">{step.title}</h3>
                 <p className="mt-2 text-sm text-slate-600">{step.body}</p>
               </div>
@@ -213,13 +219,14 @@ export default function HomePage() {
           <h2 className="text-2xl font-bold tracking-tight">Open source, local-first</h2>
           <p className="mx-auto mt-4 max-w-2xl text-slate-600">
             MemoSprout is MIT-licensed and runs entirely on your infrastructure. Corrections are
-            stored as Markdown files — human-readable, git-versionable, and portable. No data
-            leaves your server. No vendor lock-in. Audit the code yourself.
+            stored as Markdown files — human-readable, git-versionable, and portable. No
+            MemoSprout cloud, no telemetry, no vendor lock-in. Audit the code yourself.
           </p>
-          <div className="mx-auto mt-6 max-w-md rounded-xl bg-slate-900 p-4 text-left">
-            <code className="text-sm text-emerald-400">
-              npm install memosprout
-            </code>
+          <div className="mx-auto mt-6 max-w-md text-left">
+            <CodeBlock>{`npm install memosprout`}</CodeBlock>
+          </div>
+          <div className="mt-5 flex justify-center">
+            <GitHubLink />
           </div>
         </section>
 

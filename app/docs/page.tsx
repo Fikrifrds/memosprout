@@ -1,17 +1,10 @@
+import { CodeBlock } from "@/components/CodeBlock";
 import { SiteNav } from "@/components/SiteNav";
 
 export const metadata = {
   title: "Docs — MemoSprout",
   description: "Get started with MemoSprout: install, configure, and start capturing corrections.",
 };
-
-function Code({ children }: { children: string }) {
-  return (
-    <pre className="mt-2 overflow-x-auto rounded-lg bg-slate-900 p-4 text-sm leading-relaxed text-slate-100">
-      <code>{children}</code>
-    </pre>
-  );
-}
 
 function Section({
   id,
@@ -40,14 +33,27 @@ export default function DocsPage() {
           MemoSprout captures corrections to AI outputs and delivers them to future
           interactions. Fix a mistake once, and it stops coming back.
         </p>
-        <p className="mt-3 text-sm text-slate-500">
-          Steps 1, 3 and 4 are all you need. Step 2 adds automatic correction detection, and
-          step 5 is for calling MemoSprout from a language other than JavaScript.
-        </p>
+        <div className="mt-5 rounded-xl border border-slate-200 bg-white p-4 text-sm">
+          <p className="font-medium text-slate-900">What you actually need</p>
+          <ul className="mt-2 space-y-1.5 text-slate-600">
+            <li>
+              <span className="font-medium text-teal-800">Required:</span> step 1 (install),
+              step 3 (wire it into your app), step 4 (add corrections).
+            </li>
+            <li>
+              <span className="font-medium text-slate-500">Add an LLM (step 2)</span> only if
+              you want corrections detected inside chat messages instead of added by hand.
+            </li>
+            <li>
+              <span className="font-medium text-slate-500">Add the REST API (step 5)</span>{" "}
+              only if you call MemoSprout from Python, PHP, Go, or another non-JS runtime.
+            </li>
+          </ul>
+        </div>
 
         {/* Install */}
         <Section id="install" title="1. Install">
-          <Code>{`npm install memosprout`}</Code>
+          <CodeBlock>{`npm install memosprout`}</CodeBlock>
         </Section>
 
         {/* Configure */}
@@ -62,7 +68,7 @@ export default function DocsPage() {
             or <code>anthropic-compatible</code> — and supply a base URL, an API key, and a
             model id (all three required):
           </p>
-          <Code>{`import { MemoSprout } from "memosprout";
+          <CodeBlock>{`import { MemoSprout } from "memosprout";
 
 const ms = new MemoSprout("./corrections", {
   llm: {
@@ -71,7 +77,7 @@ const ms = new MemoSprout("./corrections", {
     apiKey: process.env.LLM_API_KEY,
     model: "gpt-4o-mini",
   },
-});`}</Code>
+});`}</CodeBlock>
           <p>
             For these eleven named providers you can pass the name instead — <code>baseUrl</code>{" "}
             and a default <code>model</code> are filled in for you, e.g.{" "}
@@ -119,12 +125,12 @@ const ms = new MemoSprout("./corrections", {
         </Section>
 
         {/* Use */}
-        <Section id="use" title="3. Add to your chatbot">
+        <Section id="use" title="3. Add to your app">
           <p>
             Three calls wrap the AI call you already have: one to learn from the message, one
             to enrich the prompt, one to check the answer before it goes out.
           </p>
-          <Code>{`// ms is the instance from step 2 (or \`new MemoSprout("./corrections")\`)
+          <CodeBlock>{`// ms is the instance from step 2 (or \`new MemoSprout("./corrections")\`)
 async function handleChat(userMessage: string, previousAIAnswer: string) {
   // MemoSprout auto-detects corrections and feedback.
   // "No, it's 15 days, not 12" → correction saved automatically.
@@ -142,7 +148,7 @@ async function handleChat(userMessage: string, previousAIAnswer: string) {
   const check = await ms.check(answer);
   if (!check.ok) return check.corrections[0].correct;
   return answer;
-}`}</Code>
+}`}</CodeBlock>
           <p>
             That&apos;s the whole loop: corrections are captured, gated, and delivered on
             every future turn.
@@ -152,7 +158,7 @@ async function handleChat(userMessage: string, previousAIAnswer: string) {
             no LLM involved. Enable <code>semanticCheck: true</code> to also catch paraphrases
             and translations, at the cost of one LLM call per check:
           </p>
-          <Code>{`const ms = new MemoSprout("./corrections", {
+          <CodeBlock>{`const ms = new MemoSprout("./corrections", {
   llm: {
     provider: "openai-compatible",
     baseUrl: "https://api.openai.com/v1",
@@ -160,7 +166,7 @@ async function handleChat(userMessage: string, previousAIAnswer: string) {
     model: "gpt-4o-mini",
   },
   semanticCheck: true,  // catches "twelve days of yearly vacation"
-});`}</Code>
+});`}</CodeBlock>
         </Section>
 
         {/* Manual corrections */}
@@ -171,28 +177,28 @@ async function handleChat(userMessage: string, previousAIAnswer: string) {
             <code>agent</code>, <code>admin</code>, <code>system</code>) or waits for approval
             (<code>customer</code>):
           </p>
-          <Code>{`await ms.correct({
+          <CodeBlock>{`await ms.correct({
   wrong: "Refund takes 3 business days",
   correct: "Refund takes 5 business days since March 2026",
   keywords: ["refund", "processing"],
   source: "Refund Policy v4.1",
   role: "agent",
-});`}</Code>
+});`}</CodeBlock>
         </Section>
 
         {/* REST API */}
-        <Section id="rest-api" title="5. Use from Python, PHP, or any language">
+        <Section id="rest-api" title="5. Call it from another language (optional)">
           <p>
             Run the built-in REST API server and call it over HTTP — the full feature set,
             not a subset:
           </p>
-          <Code>{`MEMOSPROUT_API_KEY=your-secret-key \\
+          <CodeBlock>{`MEMOSPROUT_API_KEY=your-secret-key \\
 MEMOSPROUT_LLM_PROVIDER=openai-compatible \\
 MEMOSPROUT_LLM_BASE_URL=https://api.openai.com/v1 \\
 MEMOSPROUT_LLM_API_KEY=your-llm-key \\
 MEMOSPROUT_LLM_MODEL=gpt-4o-mini \\
-pnpm api        # http://127.0.0.1:3456`}</Code>
-          <Code>{`import requests, os
+pnpm api        # http://127.0.0.1:3456`}</CodeBlock>
+          <CodeBlock>{`import requests, os
 
 BASE = "http://127.0.0.1:3456"
 HEAD = {"Authorization": f"Bearer {os.environ['MEMOSPROUT_API_KEY']}"}
@@ -203,7 +209,7 @@ requests.post(f"{BASE}/correct", headers=HEAD, json={
 })
 
 ctx = requests.post(f"{BASE}/context", headers=HEAD,
-                    json={"query": "how long is a refund?"}).json()`}</Code>
+                    json={"query": "how long is a refund?"}).json()`}</CodeBlock>
           <p>
             The server binds to <code>127.0.0.1</code> and refuses to bind anywhere else
             without an API key. All endpoints except <code>/health</code> require the key,
