@@ -100,7 +100,29 @@ async function handleChat(userMessage: string, previousAIAnswer: string) {
 
   // Check the answer before sending
   const check = await ms.check(answer);
-  if (!check.ok) return check.corrections[0].correct;
+  if (!check.ok) {
+    // A correction is one fact. An answer may carry several, so regenerate
+    // the whole answer with every returned correction and preserve the
+    // parts that were already right.
+    const verified = check.corrections.map((item) => \`- \${item.correct}\`).join("\\n");
+    const revised = await callYourAI(
+      userMessage,
+      \`\${context}
+
+Revise the entire draft below. Keep every unrelated fact, replace only
+the stale claims, and return the complete answer.
+
+Draft:
+\${answer}
+
+Verified facts:
+\${verified}\`,
+    );
+
+    // The repair is not trusted until it passes the same gate.
+    if (!(await ms.check(revised)).ok) throw new Error("Unsafe answer blocked");
+    return revised;
+  }
   return answer;
 }`}</CodeBlock>
           <p>
@@ -217,11 +239,10 @@ ctx = requests.post(f"{BASE}/context", headers=HEAD,
           <p>
             Several guardrails make it hard. Corrections submitted with{" "}
             <code>role: &quot;customer&quot;</code> are always saved as <code>suggested</code>{" "}
-            and need approval. Corrections the LLM extracts from a message go live only above
-            a 0.8 confidence threshold, and prompts treat user text as data rather than
-            instructions. If your input comes from the public and you want no automatic path
-            at all, set <code>approvalRequired: true</code> so every correction waits for a
-            human.
+            and need approval. LLM-extracted corrections also wait for approval by default,
+            because model confidence is not source validation, and prompts treat user text as
+            data rather than instructions. Only an explicit <code>approvalRequired: false</code>{" "}
+            enables confidence-based auto-activation; reserve that for a trusted input channel.
           </p>
 
           <h3 className="font-semibold">Does it require an LLM?</h3>

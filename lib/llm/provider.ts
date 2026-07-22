@@ -14,9 +14,96 @@ export const llmProviderConfigSchema = z
 
 export type LLMProviderConfig = z.infer<typeof llmProviderConfigSchema>;
 
+/**
+ * Token counts normalized across wire formats.
+ *
+ * `inputTokens` is always the complete input side, cache included, so the
+ * same field means the same thing on every provider. `cachedInputTokens`
+ * and `cacheCreationInputTokens` break that total down for pricing, which
+ * matters because cache reads and cache writes do not bill at the input
+ * rate. `totalTokens` is always `inputTokens + outputTokens`.
+ */
+export interface LLMTokenUsage {
+  inputTokens: number;
+  outputTokens: number;
+  totalTokens: number;
+  /** Tokens served from a provider prompt cache, when reported separately. */
+  cachedInputTokens: number | null;
+  /** Tokens written to an Anthropic-style prompt cache, when reported. */
+  cacheCreationInputTokens: number | null;
+}
+
 export interface LLMResponse {
   content: string;
   model: string;
+  /** Null only when the endpoint omitted or returned an invalid usage block. */
+  usage: LLMTokenUsage | null;
+}
+
+const openAIUsageSchema = z
+  .object({
+    prompt_tokens: z.number().int().nonnegative(),
+    completion_tokens: z.number().int().nonnegative(),
+    // Optional: self-hosted and gateway endpoints (vLLM, LiteLLM and
+    // friends) often report the two component counts and omit the sum.
+    // Rejecting the whole block over a derivable field would throw away
+    // the only cost data those endpoints give us.
+    total_tokens: z.number().int().nonnegative().optional(),
+    prompt_tokens_details: z
+      .object({ cached_tokens: z.number().int().nonnegative().optional() })
+      .passthrough()
+      .nullable()
+      .optional(),
+  })
+  .passthrough();
+
+const anthropicUsageSchema = z
+  .object({
+    input_tokens: z.number().int().nonnegative(),
+    output_tokens: z.number().int().nonnegative(),
+    cache_read_input_tokens: z.number().int().nonnegative().optional(),
+    cache_creation_input_tokens: z.number().int().nonnegative().optional(),
+  })
+  .passthrough();
+
+function normalizeOpenAIUsage(value: unknown): LLMTokenUsage | null {
+  const parsed = openAIUsageSchema.safeParse(value);
+  if (!parsed.success) return null;
+  // OpenAI counts cached tokens inside prompt_tokens, so inputTokens is
+  // already the whole input side and cached_tokens is a breakdown of it.
+  return {
+    inputTokens: parsed.data.prompt_tokens,
+    outputTokens: parsed.data.completion_tokens,
+    totalTokens:
+      parsed.data.total_tokens ?? parsed.data.prompt_tokens + parsed.data.completion_tokens,
+    cachedInputTokens: parsed.data.prompt_tokens_details?.cached_tokens ?? null,
+    cacheCreationInputTokens: null,
+  };
+}
+
+function normalizeAnthropicUsage(value: unknown): LLMTokenUsage | null {
+  const parsed = anthropicUsageSchema.safeParse(value);
+  if (!parsed.success) return null;
+  const cachedInputTokens = parsed.data.cache_read_input_tokens ?? null;
+  const cacheCreationInputTokens = parsed.data.cache_creation_input_tokens ?? null;
+
+  // Anthropic reports input_tokens *excluding* both cache figures, while
+  // OpenAI reports them included. Folding them in here makes inputTokens
+  // mean the same thing on every provider — the whole input side — so a
+  // consumer can compare or sum across providers without knowing which
+  // wire format produced the number. The cache fields remain the
+  // breakdown, and pricing must use them because cache reads and cache
+  // writes bill at different rates from ordinary input.
+  const inputTokens =
+    parsed.data.input_tokens + (cachedInputTokens ?? 0) + (cacheCreationInputTokens ?? 0);
+
+  return {
+    inputTokens,
+    outputTokens: parsed.data.output_tokens,
+    totalTokens: inputTokens + parsed.data.output_tokens,
+    cachedInputTokens,
+    cacheCreationInputTokens,
+  };
 }
 
 /**
@@ -155,6 +242,7 @@ async function callOpenAICompatible(
   const data = (await response.json().catch(() => null)) as {
     choices?: Array<{ message?: { content?: string } }>;
     model?: string;
+    usage?: unknown;
   } | null;
 
   const content = data?.choices?.[0]?.message?.content;
@@ -165,7 +253,11 @@ async function callOpenAICompatible(
     );
   }
 
-  return { content, model: data?.model ?? config.model };
+  return {
+    content,
+    model: data?.model ?? config.model,
+    usage: normalizeOpenAIUsage(data?.usage),
+  };
 }
 
 async function callAnthropic(
@@ -201,6 +293,7 @@ async function callAnthropic(
   const data = (await response.json().catch(() => null)) as {
     content?: Array<{ type: string; text: string }>;
     model?: string;
+    usage?: unknown;
   } | null;
 
   const textBlock = data?.content?.find((block) => block.type === "text");
@@ -211,7 +304,11 @@ async function callAnthropic(
     );
   }
 
-  return { content: textBlock.text, model: data?.model ?? config.model };
+  return {
+    content: textBlock.text,
+    model: data?.model ?? config.model,
+    usage: normalizeAnthropicUsage(data?.usage),
+  };
 }
 
 export interface ProviderInfo {

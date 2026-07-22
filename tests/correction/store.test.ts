@@ -94,6 +94,97 @@ describe("CorrectionStore", () => {
     expect(matches[0].correctionId).toBe("corr_match1");
   });
 
+  it("matches a configured multi-word keyword as a phrase", async () => {
+    await store.save(makeCorrection({
+      correctionId: "corr_multi_word",
+      trigger: { keywords: ["annual leave"], entities: [] },
+      wrongPattern: "The allowance was twelve",
+      correctAnswer: "The allowance is eighteen",
+    }));
+
+    expect(store.match("What is the annual leave allowance?")[0]?.correctionId).toBe(
+      "corr_multi_word",
+    );
+    expect(store.match("Is the annual office closed when people leave?")).toEqual([]);
+  });
+
+  it("requires corroboration for a broad single-word keyword", async () => {
+    await store.save(makeCorrection({
+      correctionId: "corr_training_hours",
+      trigger: { keywords: ["training", "training hours"], entities: [] },
+      wrongPattern: "Employees complete 8 training hours annually",
+      correctAnswer: "Employees complete 12 training hours annually",
+    }));
+
+    expect(store.match("Where is the employee training room?")).toEqual([]);
+    expect(store.match("What training hours must employees complete each year?")[0]?.correctionId)
+      .toBe("corr_training_hours");
+    expect(store.match("training")[0]?.correctionId).toBe("corr_training_hours");
+  });
+
+  it("lets a specific trigger survive natural question wording", async () => {
+    await store.save(makeCorrection({
+      correctionId: "corr_settlement",
+      trigger: { keywords: ["settlement", "settle", "funds"], entities: [] },
+      wrongPattern: "Funds settle on a T+3 basis",
+      correctAnswer: "Funds settle on a T+1 basis",
+    }));
+
+    expect(store.match("What is the settlement window for a merchant?")[0]?.correctionId)
+      .toBe("corr_settlement");
+    expect(store.match("Which currency do merchants settle in?")).toEqual([]);
+  });
+
+  it("matches common -ed and -ing keyword inflections", async () => {
+    await store.save(makeCorrection({
+      correctionId: "corr_dispute",
+      trigger: { keywords: ["chargeback", "chargeback fee", "dispute"], entities: [] },
+      wrongPattern: "The chargeback fee is EUR 15",
+      correctAnswer: "The chargeback fee is EUR 25",
+    }));
+
+    expect(store.match("What does a disputed transaction cost?")[0]?.correctionId)
+      .toBe("corr_dispute");
+  });
+
+  it("matches an ordinary-language alias configured in trigger metadata", async () => {
+    await store.save(makeCorrection({
+      correctionId: "corr_workwear",
+      trigger: {
+        keywords: ["uniform allowance", "allowance", "uniform", "workwear"],
+        entities: [],
+      },
+      wrongPattern: "The annual uniform allowance is EUR 120",
+      correctAnswer: "The annual uniform allowance is EUR 200",
+    }));
+
+    expect(store.match("How much can an employee claim for workwear?")[0]?.correctionId)
+      .toBe("corr_workwear");
+  });
+
+  it("uses inflected content words as corroboration", async () => {
+    await store.save(makeCorrection({
+      correctionId: "corr_retention",
+      trigger: { keywords: ["retention", "deleted ticket", "data retention"], entities: [] },
+      wrongPattern: "Deleted ticket retention is 30 days",
+      correctAnswer: "Deleted ticket retention is 90 days",
+    }));
+
+    expect(store.match("How long is a ticket kept after a customer deletes it?")[0]?.correctionId)
+      .toBe("corr_retention");
+  });
+
+  it("does not treat a keyword as a substring inside an unrelated word", async () => {
+    await store.save(makeCorrection({
+      correctionId: "corr_leave",
+      trigger: { keywords: ["leave"], entities: [] },
+      wrongPattern: "Annual leave is 12 days",
+      correctAnswer: "Annual leave is 18 days",
+    }));
+
+    expect(store.match("I believe this answer is current")).toEqual([]);
+  });
+
   it("only matches active corrections", async () => {
     await store.save(makeCorrection({ correctionId: "corr_active_match", status: "active" }));
     await store.save(makeCorrection({ correctionId: "corr_deprecated_match", status: "deprecated" }));

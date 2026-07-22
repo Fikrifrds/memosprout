@@ -72,6 +72,18 @@ export interface BenchmarkReport {
     protectedPassed: number;
     /** Control answers `check()` blocked. Every one of these is a bug. */
     falseBlocks: number;
+    /** Control questions whose prompt received one or more irrelevant corrections. */
+    queriesWithCorrections: number;
+    /** Total irrelevant corrections injected across control questions. */
+    correctionsServed: number;
+    retrievalContaminationRate: number;
+  };
+  gate: {
+    blocksTriggered: number;
+    /** Wrong pre-gate answers made correct by replacement. */
+    trueSaves: number;
+    /** Correct pre-gate answers replaced by another correct answer. */
+    redundantBlocks: number;
   };
   /**
    * Answers the model got right that `check()` blocked and replaced with
@@ -231,6 +243,35 @@ export function summarize(
       baselinePassed: count(control, (result) => result.baseline.grade.passed),
       protectedPassed: count(control, (result) => result.protected.grade.passed),
       falseBlocks: count(control, (result) => result.protected.blocked),
+      queriesWithCorrections: count(
+        control,
+        (result) => result.protected.servedCorrectionIds.length > 0,
+      ),
+      correctionsServed: control.reduce(
+        (sum, result) => sum + result.protected.servedCorrectionIds.length,
+        0,
+      ),
+      retrievalContaminationRate: ratio(
+        count(control, (result) => result.protected.servedCorrectionIds.length > 0),
+        control.length,
+      ),
+    },
+    gate: {
+      blocksTriggered: count(results, (result) => result.protected.blocked),
+      trueSaves: count(
+        results,
+        (result) =>
+          result.protected.blocked &&
+          !result.protected.gradeBeforeGate.passed &&
+          result.protected.grade.passed,
+      ),
+      redundantBlocks: count(
+        results,
+        (result) =>
+          result.protected.blocked &&
+          result.protected.gradeBeforeGate.passed &&
+          result.protected.grade.passed,
+      ),
     },
     harmfulBlocks: results
       .filter(

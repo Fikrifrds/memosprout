@@ -150,3 +150,8 @@ vite.config.ts.timestamp-*
 
 # macOS
 .DS_Store
+
+.provider_list_to_test
+
+# Live provider-matrix outputs contain paid-run observations and remain local.
+eval/provider-matrix/results/

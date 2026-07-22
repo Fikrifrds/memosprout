@@ -162,29 +162,43 @@ describe("knowledge-drift runner", () => {
     expect(report.control.baselinePassed).toBe(report.totals.controlCases);
     expect(report.control.protectedPassed).toBe(report.totals.controlCases);
     expect(report.control.falseBlocks).toBe(0);
+    expect(report.control.retrievalContaminationRate).toBeGreaterThanOrEqual(0);
+    expect(report.gate.blocksTriggered).toBe(
+      report.gate.trueSaves + report.gate.redundantBlocks,
+    );
     expect(report.harmfulBlocks).toEqual([]);
     expect(report.regressions).toEqual([]);
   });
 
-  it("reports a correct answer that the gate replaced with a wrong one", async () => {
-    // check() matches against every active correction in the domain, not
-    // just the ones relevant to the question, so an answer that mentions
-    // a second fact can trip an unrelated wrong pattern. When it does,
-    // the pipeline serves corrections[0] — which may be off-topic.
-    const chattyModel: AnswerModel = async ({ system, user }) => {
-      const injected = correctionsFromPrompt(system);
-      if (injected.length > 0) return injected.slice(0, 2).join(" ");
-      return snippetFrom(user);
-    };
+  it("preserves a correct multi-fact answer that negates the stale fact", async () => {
+    const multiFactCase = driftCaseSchema.parse({
+      id: "payout-multifact",
+      kind: "drift",
+      question: "How often are payouts sent, and what is the minimum payout?",
+      kbSnippet: "Payouts are sent weekly. The minimum payout is EUR 50.",
+      mustInclude: ["daily", "50"],
+      mustExclude: ["weekly"],
+      correction: {
+        wrong: "Payouts are sent weekly",
+        correct: "Payouts are sent daily",
+        keywords: ["payout", "payouts", "sent"],
+        source: "Payments policy rev. 2026-04",
+      },
+    });
+    const chattyModel: AnswerModel = async ({ system, user }) =>
+      correctionsFromPrompt(system).length > 0
+        ? "Payouts are sent daily, not weekly, and the minimum payout is EUR 50."
+        : snippetFrom(user);
 
     const report = await runKnowledgeDriftBenchmark({
       memosprout,
       answer: chattyModel,
-      cases: driftCases,
+      cases: [multiFactCase],
       model: "stub-chatty",
     });
 
-    expect(report.harmfulBlocks.length).toBeGreaterThan(0);
+    expect(report.harmfulBlocks).toEqual([]);
+    expect(report.drift.protectedPassed).toBe(1);
   });
 
   it("credits the gate when the model ignores the injected corrections", async () => {
@@ -199,5 +213,6 @@ describe("knowledge-drift runner", () => {
     expect(report.drift.protectedPassedBeforeGate).toBe(0);
     expect(report.drift.protectedPassed).toBeGreaterThan(0);
     expect(report.control.falseBlocks).toBe(0);
+    expect(report.gate.trueSaves).toBeGreaterThan(0);
   });
 });

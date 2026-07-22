@@ -23,31 +23,40 @@ import { extractCorrection } from "@/lib/llm/extractor";
 import { wrongPatternMatchScore } from "@/lib/correction/matching";
 import { Mutex } from "@/lib/store/atomic";
 
+export interface MemoSproutLlmOptions {
+  /**
+   * One of the supported providers (see docs/PROVIDERS.md): openai,
+   * anthropic, deepseek, qwen, kimi, xiaomi, minimax, groq,
+   * togetherai, openrouter, ollama — or, for custom/self-hosted
+   * endpoints,
+   * "openai-compatible" / "anthropic-compatible" (these require
+   * baseUrl + model). Unsupported names throw an LLMError.
+   */
+  provider?: string;
+  /**
+   * Endpoint URL. Required for "openai-compatible" /
+   * "anthropic-compatible"; optional override for named providers.
+   * Must speak the wire format of the chosen provider.
+   */
+  baseUrl?: string;
+  apiKey: string;
+  model?: string;
+  /** Request timeout in ms. Default: 30000. */
+  timeoutMs?: number;
+}
+
 export interface MemoSproutOptions {
-  llm?: {
-    /**
-     * One of the supported providers (see docs/PROVIDERS.md): openai,
-     * anthropic, deepseek, qwen, kimi, xiaomi, minimax, groq,
-     * togetherai, openrouter, ollama — or, for custom/self-hosted
-     * endpoints,
-     * "openai-compatible" / "anthropic-compatible" (these require
-     * baseUrl + model). Unsupported names throw an LLMError.
-     */
-    provider?: string;
-    /**
-     * Endpoint URL. Required for "openai-compatible" /
-     * "anthropic-compatible"; optional override for named providers.
-     * Must speak the wire format of the chosen provider.
-     */
-    baseUrl?: string;
-    apiKey: string;
-    model?: string;
-    /** Request timeout in ms. Default: 30000. */
-    timeoutMs?: number;
-  };
+  llm?: MemoSproutLlmOptions;
+  /**
+   * Optional, separate model used only for validation. It must not resolve to
+   * the same model as `llm`, because a generator cannot serve as its own
+   * judge. Prefer a domain adapter backed by an authoritative oracle.
+   */
+  validationLlm?: MemoSproutLlmOptions;
   /**
    * When true, all corrections require manual approval before going active.
-   * Default: false (smart confidence-based routing).
+   * Default: true. Model confidence is not source validation; callers must
+   * explicitly opt in to confidence-based auto-activation.
    */
   approvalRequired?: boolean;
   /**
@@ -130,6 +139,7 @@ export class MemoSprout {
   private readonly tracker: OutcomeTracker;
   private readonly auditLog: AuditLog;
   private readonly llmConfig: LLMProviderConfig | null;
+  private readonly validationLlmConfig: LLMProviderConfig | null;
   private readonly approvalRequired: boolean;
   private readonly autoActivateThreshold: number;
   private readonly semanticCheckEnabled: boolean;
@@ -151,7 +161,20 @@ export class MemoSprout {
     this.llmConfig = options.llm
       ? resolveProviderConfig(options.llm)
       : null;
-    this.approvalRequired = options.approvalRequired ?? false;
+    this.validationLlmConfig = options.validationLlm
+      ? resolveProviderConfig(options.validationLlm)
+      : null;
+    if (
+      this.llmConfig &&
+      this.validationLlmConfig &&
+      this.llmConfig.model === this.validationLlmConfig.model
+    ) {
+      throw new Error(
+        "validationLlm must use a different model from llm; " +
+          "the correction extractor cannot validate its own output.",
+      );
+    }
+    this.approvalRequired = options.approvalRequired ?? true;
     this.autoActivateThreshold = options.autoActivateThreshold ?? 0.8;
     this.semanticCheckEnabled = options.semanticCheck ?? false;
   }
@@ -302,26 +325,43 @@ export class MemoSprout {
 
     if (this.adapter) {
       oracle = this.adapter.createOracle(correction);
-    } else if (this.llmConfig) {
+    } else if (this.validationLlmConfig) {
       const { createSourceOracle } = await import("@/lib/adapter/source-oracle");
-      oracle = createSourceOracle(this.llmConfig, correction);
+      oracle = createSourceOracle(this.validationLlmConfig, correction);
     } else {
       return {
         passed: false,
-        detail: "No domain adapter or LLM configured. Use ms.setAdapter() or configure llm in constructor.",
+        detail: "No validation oracle configured. Use ms.setAdapter() or configure a separate validationLlm.",
       };
     }
 
     const result = await oracle.evaluate(correction);
 
-    if (result.passed) {
-      await this.auditLog.record({
-        correctionId,
-        action: "revalidated",
-        actor: oracle.id,
-        reason: result.detail,
+    const evaluatedAt = new Date().toISOString();
+    await this.opLock.run(async () => {
+      const latest = this.store.get(correctionId);
+      if (!latest) return;
+      const nextStatus = latest.status === "deprecated"
+        ? "deprecated"
+        : result.passed
+          ? latest.status === "active" ? "active" : "validated"
+          : "quarantined";
+      const updated = correctionRecordSchema.parse({
+        ...latest,
+        status: nextStatus,
+        validatedBy: result.passed ? oracle.id : latest.validatedBy,
+        validatedAt: result.passed ? evaluatedAt : latest.validatedAt,
+        lastValidatedAt: evaluatedAt,
       });
-    }
+      await this.store.save(updated);
+    });
+
+    await this.auditLog.record({
+      correctionId,
+      action: result.passed ? "revalidated" : "quarantined",
+      actor: oracle.id,
+      reason: result.detail,
+    });
     return result;
   }
 
@@ -561,7 +601,11 @@ export class MemoSprout {
     if (!correction) {
       throw new Error(`Correction "${correctionId}" not found.`);
     }
-    if (correction.status !== "suggested" && correction.status !== "quarantined") {
+    if (
+      correction.status !== "suggested" &&
+      correction.status !== "quarantined" &&
+      correction.status !== "validated"
+    ) {
       throw new Error(
         `Correction "${correctionId}" cannot be approved (current status: ${correction.status}).`,
       );
@@ -700,6 +744,8 @@ export {
   LLMError,
   extractJsonPayload,
   type LLMProviderConfig,
+  type LLMResponse,
+  type LLMTokenUsage,
 } from "@/lib/llm/provider";
 export {
   extractCorrection,

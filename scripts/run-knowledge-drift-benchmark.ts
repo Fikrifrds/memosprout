@@ -109,6 +109,16 @@ console.log(
   `  protected accuracy      ${percent(control.protectedPassed, report.totals.controlCases)}`,
 );
 console.log(`  false blocks            ${control.falseBlocks}`);
+console.log(
+  `  context contamination  ${(control.retrievalContaminationRate * 100).toFixed(0)}% ` +
+    `(${control.queriesWithCorrections}/${report.totals.controlCases} queries, ` +
+    `${control.correctionsServed} corrections)`,
+);
+
+console.log("\nAnswer gate");
+console.log(`  blocks triggered        ${report.gate.blocksTriggered}`);
+console.log(`  true saves              ${report.gate.trueSaves}`);
+console.log(`  redundant blocks        ${report.gate.redundantBlocks}`);
 
 console.log(
   `\nHarmful blocks (model was right, gate overwrote it): ` +

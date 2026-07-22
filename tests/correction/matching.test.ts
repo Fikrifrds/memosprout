@@ -85,6 +85,36 @@ describe("matchesWrongPattern across sentences", () => {
     ).toBe(true);
   });
 
+  it("does not block a wrong fact mentioned only to reject it", () => {
+    expect(
+      matchesWrongPattern(
+        "Payouts are sent daily, not weekly, and the minimum is EUR 50.",
+        "Payouts are sent weekly",
+      ),
+    ).toBe(false);
+    expect(
+      matchesWrongPattern(
+        "It is not correct that payouts are sent weekly.",
+        "Payouts are sent weekly",
+      ),
+    ).toBe(false);
+  });
+
+  it("still blocks the wrong fact when the negation applies to the correction", () => {
+    expect(
+      matchesWrongPattern(
+        "Payouts are sent weekly, not daily.",
+        "Payouts are sent weekly",
+      ),
+    ).toBe(true);
+    expect(
+      matchesWrongPattern(
+        "Not only are payouts sent weekly, they are also delayed on holidays.",
+        "Payouts are sent weekly",
+      ),
+    ).toBe(true);
+  });
+
   it("keeps decimals intact when splitting sentences", () => {
     expect(
       matchesWrongPattern(

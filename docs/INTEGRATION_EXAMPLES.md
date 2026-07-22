@@ -36,28 +36,41 @@ import OpenAI from "openai";
 const ms = new MemoSprout("./corrections");
 const openai = new OpenAI();
 
+async function callYourAI(userMessage: string, systemContext: string): Promise<string> {
+  const response = await openai.chat.completions.create({
+    model: "gpt-4o",
+    messages: [
+      { role: "system", content: `You are a helpful assistant.\n\n${systemContext}` },
+      { role: "user", content: userMessage },
+    ],
+  });
+  return response.choices[0].message.content ?? "";
+}
+
 async function chat(userMessage: string): Promise<string> {
   // 1. Get relevant corrections
   const { context } = await ms.context(userMessage);
 
   // 2. Call OpenAI with corrections injected
-  const response = await openai.chat.completions.create({
-    model: "gpt-4o",
-    messages: [
-      {
-        role: "system",
-        content: `You are a helpful assistant.\n\n${context}`,
-      },
-      { role: "user", content: userMessage },
-    ],
-  });
-
-  const answer = response.choices[0].message.content ?? "";
+  const answer = await callYourAI(userMessage, context);
 
   // 3. Check the answer before returning
   const check = await ms.check(answer);
   if (!check.ok) {
-    return `[Corrected] ${check.corrections[0].correct}`;
+    // A correction is one fact; an answer may carry several. Regenerate the
+    // whole answer with every returned correction so unrelated facts
+    // survive, then put the result through the same gate.
+    const verified = check.corrections.map((item) => `- ${item.correct}`).join("\n");
+    const revised = await callYourAI(
+      userMessage,
+      `${context}\n\nRevise the entire draft. Keep every unrelated fact, ` +
+        `replace only the stale claims, and return the complete answer.\n\n` +
+        `Draft:\n${answer}\n\nVerified facts:\n${verified}`,
+    );
+
+    // Never send a repair that still fails check().
+    if (!(await ms.check(revised)).ok) throw new Error("Unsafe answer blocked");
+    return revised;
   }
   return answer;
 }
@@ -97,7 +110,10 @@ async function chat(userMessage: string): Promise<string> {
 
   const check = await ms.check(answer);
   if (!check.ok) {
-    return `[Corrected] ${check.corrections[0].correct}`;
+    // Repair loop as in the first example: regenerate the complete answer
+    // with all returned corrections, preserve unrelated facts, re-check,
+    // and never send a repair that still fails.
+    throw new Error("Unsafe answer blocked");
   }
   return answer;
 }
@@ -130,7 +146,10 @@ async function answer(question) {
   const check = await ms.check(text);
 
   if (!check.ok) {
-    return { answer: check.corrections[0].correct, corrected: true };
+    // Repair loop as in the first example: regenerate the complete answer
+    // with all returned corrections, preserve unrelated facts, re-check,
+    // and never send a repair that still fails.
+    throw new Error("Unsafe answer blocked");
   }
   return { answer: text, corrected: false };
 }
@@ -289,7 +308,8 @@ def chat(question: str) -> str:
     }).json()
 
     if not check.get("ok", True):
-        return f"[Corrected] {check['corrections'][0]['correct']}"
+        # Regenerate the complete answer with all corrections, then re-check it.
+        raise RuntimeError("Unsafe answer blocked")
     return answer
 
 
@@ -413,7 +433,8 @@ function chat(string $question): string {
     // 3. Check the answer
     $check = msPost('check', ['answer' => $answer]);
     if (!$check['ok']) {
-        return '[Corrected] ' . $check['corrections'][0]['correct'];
+        // Regenerate the complete answer with all corrections, then re-check it.
+        throw new RuntimeException('Unsafe answer blocked');
     }
     return $answer;
 }
@@ -532,8 +553,8 @@ CHECK=$(curl -s -X POST "$MS_URL/check" \
 
 OK=$(echo "$CHECK" | jq -r '.ok')
 if [ "$OK" = "false" ]; then
-  CORRECT=$(echo "$CHECK" | jq -r '.corrections[0].correct')
-  echo "[Corrected] $CORRECT"
+  echo "Unsafe answer blocked; regenerate the full answer with all corrections." >&2
+  exit 1
 else
   echo "$ANSWER"
 fi
@@ -606,7 +627,8 @@ def answer(question: str) -> str:
     check = requests.post(f"{MS_URL}/check", headers=MS_HEAD,
                           json={"answer": response.content}).json()
     if not check.get("ok", True):
-        return f"[Corrected] {check['corrections'][0]['correct']}"
+        # Regenerate the complete answer with all corrections, then re-check it.
+        raise RuntimeError("Unsafe answer blocked")
     return response.content
 ```
 

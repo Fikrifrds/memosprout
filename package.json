@@ -61,6 +61,8 @@
     "test:watch": "vitest",
     "test:live": "tsx scripts/smoke-live-llm.ts",
     "audit:package": "node scripts/audit-package.mjs",
+    "verify:readiness": "tsx scripts/run-deterministic-readiness.ts",
+    "verify:package-consumer": "node scripts/verify-package-consumer.mjs",
     "api": "tsx scripts/api-server.ts",
     "cli": "tsx bin/memosprout.ts",
     "mcp:serve": "tsx scripts/mcp-server.ts",

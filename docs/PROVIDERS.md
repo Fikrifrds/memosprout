@@ -51,7 +51,8 @@ the same way:
 - **API key**: https://console.anthropic.com/settings/keys
 - Uses Anthropic's native message format internally (`x-api-key` +
   `anthropic-version` headers, `max_tokens` capped at 1024) — normalized to
-  the same `{ content, model }` result.
+  the same `{ content, model, usage }` result. `usage` is normalized and is
+  `null` only when the endpoint omits or returns an invalid usage block.
 
 ### deepseek
 - **Base URL**: `https://api.deepseek.com/v1` · **API format**: openai-compatible
