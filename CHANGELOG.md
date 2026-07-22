@@ -57,11 +57,14 @@ published, so there is no upgrade path to describe.
 
 These are measured and documented in the README, not open questions:
 
-- **Retrieval is lexical.** Recall is 100% when the question shares
-  vocabulary with the trigger and 20% for pure paraphrases. A miss is
+- **Retrieval is lexical by default.** Recall is 100% when the question
+  shares vocabulary with the trigger and 20% for pure paraphrases. A miss is
   silent — an empty context, not an error. `unmatchedQueries` shows you
-  which phrasings are missing and `generateAliases` widens the triggers, but
-  neither is a substitute for semantic retrieval.
+  which phrasings are missing and `generateAliases` widens the triggers.
+  Opt into `semanticRetrieval: true` to close the paraphrase gap with an
+  embedding fallback: on a 24-correction corpus it moves overall retrieval
+  accuracy from 33% to 93%, at the cost of an embedding provider. It is off
+  by default because it requires an API key and uploads correction text.
 - **The output gate matters most on weak models**: +48 points on a small
   model that ignored injected context, +7 to +15 on stronger ones.
 - **Published accuracy numbers come from constructed stale-context stress

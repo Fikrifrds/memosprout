@@ -68,13 +68,22 @@ Results on 2026-07-22:
 | Adversarial irrelevant queries receiving context | 10/10 |
 | Irrelevant corrections served across those queries | 11 |
 
-The semantic and adversarial rows are intentional honesty checks. The default
-retriever is lexical, not an embedding retriever. It handles configured
-keywords and close wording well, but it does not understand an unrelated use
-of a broad keyword: `training` can match `training room`, for example. That
-causes prompt noise and token cost. In the live controls it did not change a
-correct answer, but large stores should use specific trigger phrases and
-monitor `correctionsServed` until query-aware or semantic retrieval is added.
+The semantic and adversarial rows are intentional honesty checks, and they
+measure the **default** retriever, which is lexical rather than embedding
+based. It handles configured keywords and close wording well, but it does not
+understand an unrelated use of a broad keyword: `training` can match
+`training room`, for example. That causes prompt noise and token cost. In the
+live controls it did not change a correct answer, but large stores relying on
+the default should use specific trigger phrases and monitor
+`correctionsServed`.
+
+Semantic retrieval now exists as an opt-in (`semanticRetrieval: true`) and
+addresses both rows: on a separate 24-correction corpus it lifts overall
+retrieval accuracy from 33% to 93% and cuts wrong corrections served from 4
+to 1, because a weak lexical hit is re-checked against embeddings instead of
+being trusted. See the README and `pnpm semantic:eval`. The numbers in this
+table are not re-run with it enabled — they describe the zero-configuration
+default, which is what a new install gets.
 
 The output gate has a different role. It now scores one sentence at a time,
 ignores non-identifying function words during overlap, and ranks the strongest

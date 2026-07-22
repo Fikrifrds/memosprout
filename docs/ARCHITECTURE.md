@@ -214,10 +214,17 @@ corrections/                    # corrections directory
 ├── corr_e5f6g7h8.md
 ├── audit.json                  # lifecycle audit trail (capped 50k entries)
 ├── outcomes.json               # outcome events (capped 50k events)
+├── embeddings.json             # cached correction vectors — only when
+│                               #   semanticRetrieval is on; derived data,
+│                               #   safe to delete (costs one re-embed)
 └── feedback/                   # customer feedback signals
     ├── fb_i9j0k1l2.json       # feedback record (JSON)
     └── fb_m3n4o5p6.json
 ```
+
+Files appear as they are needed rather than all at once: a store with no
+audited action yet has no `audit.json`. The directory itself is created
+recursively on first use, so a path that does not exist is fine.
 
 ### Write safety
 
@@ -395,9 +402,58 @@ answer + active, fresh corrections
               { ok, corrections }
 ```
 
-`context()` retrieval scores corrections by trigger keywords (+2),
-entities (+3), and — as a fallback when no triggers were set — overlapping
-content tokens (requires ≥ 2 matches).
+---
+
+## Retrieval
+
+`context()` finds the corrections relevant to a query. Lexical scoring is the
+default and the only path that runs without configuration.
+
+```
+query + active corrections (domain-filtered)
+              │
+              ▼
+  ┌────────────────────────────────────────────┐
+  │ 1. Lexical scoring (always, no LLM)        │
+  │    trigger keyword  +2 (phrase: +4)        │
+  │    entity           +3                     │
+  │    content-token fallback, needs ≥ 2 hits  │
+  │    a "qualified" gate rejects a single      │
+  │    broad keyword with no second signal      │
+  └────────────────────┬───────────────────────┘
+                       │ best score
+                       ▼
+              ┌────────────────┐
+              │ score ≥ 4 ?    │──── yes ──▶ serve lexical result
+              └────────┬───────┘             (no embedding call)
+                       │ no — empty or weak
+                       ▼
+  ┌────────────────────────────────────────────┐
+  │ 2. Semantic (opt-in: semanticRetrieval)    │
+  │    embed query, cosine vs cached vectors   │
+  │    keep matches ≥ semanticRetrievalThreshold│
+  │    (default 0.42)                          │
+  └────────────────────┬───────────────────────┘
+                       ▼
+              staleness gate → context string
+```
+
+The `score ≥ 4` line separates a confident hit (a phrase keyword, or a
+keyword plus corroborating content) from a guess (one broad keyword). This
+matters because lexical matching is *confidently* wrong on queries like
+"what time does the office open?", which matches the bare word `office`.
+Deferring to any lexical hit measured worse than having no lexical layer at
+all — 83% vs 93% overall — so a weak hit is re-checked against the
+embeddings, and an empty semantic result replaces it rather than yielding to
+it. An empty result is a judgement (nothing scored above threshold), not an
+absence.
+
+A provider outage is distinguished from an empty result: on failure the weak
+lexical hit stands, which is what the feature being off would have returned.
+
+Correction vectors are embedded once and cached in `embeddings.json`, keyed
+by a hash of the embedded text, so editing a correction re-embeds it and
+nothing else does. Only the query is embedded per call.
 
 ---
 
@@ -598,8 +654,10 @@ lib/
 │   ├── schema.ts               # CorrectionRecord Zod schema
 │   ├── render.ts               # Markdown + YAML render/parse
 │   ├── store.ts                # File-based store + retrieval scoring
+│   │                           #   (match / matchScored)
 │   ├── matching.ts             # Lexical answer matching (normalize,
 │   │                           #   word-boundary, token overlap)
+│   ├── embedding-index.ts      # Cached correction vectors + cosine ranking
 │   └── staleness.ts            # Source hash, conflict, TTL detection
 ├── feedback/
 │   ├── schema.ts               # FeedbackRecord Zod schema
@@ -612,6 +670,7 @@ lib/
 │   ├── provider.ts             # 11 providers, OpenAI + Anthropic formats,
 │   │                           #   LLMError, retry/timeout, JSON extraction
 │   ├── extractor.ts            # LLM 3-way classification + extraction
+│   ├── embedding.ts            # Embedding transport + cosine similarity
 │   └── semantic-check.ts       # Opt-in semantic answer matching
 ├── store/
 │   └── atomic.ts               # Atomic writes (tmp+rename) + Mutex
