@@ -81,6 +81,14 @@ const principles = [
     body: "A user correction could be wrong or malicious. Customer corrections wait for approval, extracted ones need high confidence, and contradictions are quarantined — plus you can validate against a domain oracle: source documents, test suites, regulations.",
   },
   {
+    title: "A correction stops being served when its source changes",
+    body: "Give a correction a fingerprint of the document it came from, and MemoSprout re-checks it on every read. If the document changed, the correction is quarantined rather than deleted — because once its basis moves, it may have become right, wrong, or redundant, and serving it anyway is worse than serving nothing. A stale fact is the failure mode most knowledge stores never notice.",
+  },
+  {
+    title: "Every approval leaves a record",
+    body: "audit() returns the full lifecycle of a correction: who submitted it, who approved it, when it was validated, and why it was quarantined. Not a log you have to grep — a queryable history per correction, kept because serving a fact you cannot account for is its own kind of failure.",
+  },
+  {
     title: "Runs on your infrastructure",
     body: "Corrections are Markdown files on your server. No MemoSprout cloud, no telemetry, and by default no network calls at all — storing corrections, retrieving them, and blocking wrong answers need no LLM and no API key. Outbound calls happen only when you switch on an optional LLM feature, and then only to the endpoint you configured. One of those, semantic retrieval, sends correction text to your embedding provider; point it at a local model, or leave it off.",
   },
@@ -111,9 +119,16 @@ export default function HomePage() {
           </h1>
           <p className="mx-auto mt-5 max-w-2xl text-lg text-slate-600">
             AI makes mistakes. Humans fix them. But the fix lives and dies in one session —
-            tomorrow, the same mistake comes back. MemoSprout captures those corrections, gates
-            them before they count, and retrieves the relevant ones for later questions. Plain
-            files, any model, no database.
+            tomorrow, the same mistake comes back. MemoSprout captures those corrections and
+            retrieves the relevant ones for later questions.
+          </p>
+          <p className="mx-auto mt-4 max-w-2xl text-lg text-slate-600">
+            What makes it different from a memory file: a correction is{" "}
+            <strong className="font-semibold text-slate-800">approved by a human</strong> before
+            it counts, every approval leaves an{" "}
+            <strong className="font-semibold text-slate-800">audit trail</strong>, and it{" "}
+            <strong className="font-semibold text-slate-800">stops being served</strong> when the
+            document it came from changes. Plain files, any model, no database.
           </p>
           <div className="mt-8 flex flex-wrap items-center justify-center gap-3">
             <Link

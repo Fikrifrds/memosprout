@@ -9,6 +9,12 @@ with the session it was made in.
 Works alongside any AI system: RAG pipelines, chatbots, coding agents, report
 generators. Anywhere AI produces output that humans verify.
 
+**What separates it from a memory file or a prompt append:** a correction is
+approved by a human before it counts, every approval leaves an audit trail,
+and a correction stops being served when the document it came from changes.
+A memory file has none of those — every line is loaded every turn, and
+nothing checks whether it is still true.
+
 New and unproven: released July 2026, and the numbers below come from test
 sets written for this project rather than production traffic. The
 [Limitations](#limitations) section is not buried — read it before adopting.
