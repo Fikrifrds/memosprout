@@ -471,6 +471,24 @@ npx memosprout list --status active
 npx memosprout check "query" "answer"
 ```
 
+### Reviewing what is waiting for approval
+
+Corrections from customers, and those an LLM extracted from a conversation,
+are stored as `suggested` and are **not served** until a human approves them:
+
+```bash
+npx memosprout list --status suggested   # see the queue
+npx memosprout approve corr_a1b2c3d4     # clear one
+```
+
+`approve` is the human sign-off path. `activate` is different — it is the
+last step of the oracle path and only accepts an already-`validated`
+correction.
+
+Nothing notifies you that the queue is filling up. If you accept corrections
+from untrusted sources, check it on a schedule; otherwise a correction can
+sit unserved indefinitely without anyone noticing.
+
 ## How corrections are stored
 
 Corrections are Markdown files with YAML frontmatter — human-readable,

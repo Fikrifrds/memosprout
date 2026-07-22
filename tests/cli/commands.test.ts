@@ -1,4 +1,4 @@
-import { mkdtemp, rm } from "node:fs/promises";
+import { mkdtemp, readFile, rm } from "node:fs/promises";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
 
@@ -8,6 +8,7 @@ import { CodingAdapter } from "@/lib/adapter/coding";
 import {
   commandActivate,
   commandAdd,
+  commandApprove,
   commandCheck,
   commandInit,
   commandList,
@@ -143,6 +144,55 @@ describe("CLI commands", () => {
 
       await expect(commandActivate(store, correction.correctionId)).rejects.toThrow(
         "must be validated",
+      );
+    });
+  });
+
+  /**
+   * The gap these cover: `activate` only accepts an already-validated
+   * correction, so before `approve` existed every "suggested" correction —
+   * everything from a customer, and everything an LLM extracted — was
+   * visible in `list` but impossible to clear from the CLI.
+   */
+  describe("commandApprove", () => {
+    it("approves a suggested correction so it is served", async () => {
+      const correction = await commandAdd(store, {
+        domain: "support",
+        wrongPattern: "Refund takes 3 days",
+        correctAnswer: "Refund takes 5 days",
+        keywords: ["refund"],
+      });
+      expect(correction.status).toBe("suggested");
+
+      const approved = await commandApprove(directory, correction.correctionId);
+      expect(approved.status).toBe("active");
+
+      // Reload from disk: the CLI is a separate process from whatever wrote
+      // the correction, so an in-memory-only change would be invisible.
+      const reloaded = new CorrectionStore(directory);
+      await reloaded.init();
+      expect(reloaded.get(correction.correctionId)?.status).toBe("active");
+    });
+
+    it("records who approved it", async () => {
+      const correction = await commandAdd(store, {
+        domain: "support",
+        wrongPattern: "Refund takes 3 days",
+        correctAnswer: "Refund takes 5 days",
+      });
+      await commandApprove(directory, correction.correctionId);
+
+      // Approval is an accountability event; serving the correction while
+      // losing the record of who cleared it would defeat the gate.
+      const audit = JSON.parse(await readFile(join(directory, "audit.json"), "utf8"));
+      expect(audit).toContainEqual(
+        expect.objectContaining({ correctionId: correction.correctionId, action: "approved" }),
+      );
+    });
+
+    it("reports an unknown correction rather than failing silently", async () => {
+      await expect(commandApprove(directory, "corr_0000000000000000")).rejects.toThrow(
+        /not found/i,
       );
     });
   });

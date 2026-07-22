@@ -4,6 +4,28 @@ All notable changes to this project are documented here. This project
 follows [Semantic Versioning](https://semver.org/). While the major version
 is `0`, the public API may change between minor versions.
 
+## 0.4.0
+
+### Added
+
+- **`memosprout approve <id>`.** The approval queue was unreachable from the
+  CLI: corrections from customers and from LLM extraction are stored as
+  `suggested`, `list --status suggested` showed them, but the only command
+  that could clear them was `activate` — which rejects anything not already
+  `validated`. Approving therefore required writing JavaScript against
+  `ms.approve()`. The CLI now exposes it, and `help` documents the queue.
+
+  Approval routes through `MemoSprout` rather than writing to the store, so
+  it reaches the audit log: serving a correction while losing the record of
+  who cleared it would defeat the gate.
+
+### Known gap
+
+- Nothing notifies you that corrections are waiting for approval. The queue
+  has to be polled with `list --status suggested`, so a correction can sit
+  unserved indefinitely. Documented in the README and in `help` rather than
+  left to be discovered.
+
 ## 0.3.0 — first public release
 
 MemoSprout captures corrections to AI answers, gates them before they count,

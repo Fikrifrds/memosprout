@@ -135,6 +135,27 @@ export async function commandValidate(
   };
 }
 
+/**
+ * Approve a pending correction — the human sign-off that lets it be served.
+ *
+ * Distinct from `commandActivate`, which is the last step of the *oracle*
+ * path and only accepts an already-validated correction. Approval is the
+ * path for corrections a person vouches for: those from customers, and
+ * those an LLM extracted from a conversation. Without it, everything the
+ * store marks `suggested` is unreachable from the CLI.
+ *
+ * Delegates to MemoSprout rather than writing through the store, because
+ * approving must reach the audit log and the outcome tracker. A bare status
+ * write would serve the correction while losing the record of who cleared it.
+ */
+export async function commandApprove(
+  directory: string,
+  correctionId: string,
+): Promise<CorrectionRecord> {
+  const { MemoSprout } = await import("@/lib/index");
+  return new MemoSprout(directory).approve(correctionId);
+}
+
 export interface ActivateResult {
   correctionId: string;
   previousStatus: string;

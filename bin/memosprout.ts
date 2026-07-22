@@ -2,6 +2,7 @@ import { CodingAdapter } from "@/lib/adapter/coding";
 import {
   DEFAULT_CORRECTIONS_DIR,
   commandActivate,
+  commandApprove,
   commandAdd,
   commandCheck,
   commandInit,
@@ -23,10 +24,21 @@ Usage:
   memosprout add --domain <d> --wrong <w> --correct <c> [options]
                                                  Add a correction
   memosprout list [--status <s>] [--domain <d>]  List corrections
-  memosprout validate <id>                       Validate a correction
-  memosprout activate <id>                       Activate a validated correction
+  memosprout approve <id>                        Approve a pending correction (human sign-off)
+  memosprout validate <id>                       Validate a correction against a domain oracle
+  memosprout activate <id>                       Activate an already-validated correction
   memosprout check <query> <answer>              Check an answer against corrections
   memosprout match <query>                       Find relevant corrections for a query
+
+Reviewing pending corrections:
+  Corrections from customers, and LLM-extracted ones, are stored as
+  "suggested" and are not served until a human approves them.
+
+  memosprout list --status suggested             See what is waiting
+  memosprout approve <id>                        Approve one
+
+  Nothing notifies you that corrections are waiting — check the queue on a
+  schedule if you accept corrections from untrusted sources.
 
 Options for add:
   --domain <d>       Domain (required): coding, rag-chat, finance, ...
@@ -127,6 +139,25 @@ async function main(): Promise<void> {
           console.log(`    Correct: ${correction.correctAnswer}`);
           console.log();
         }
+      }
+      break;
+    }
+
+    case "approve": {
+      const correctionId = positional[0];
+      if (!correctionId) {
+        console.error("Error: correction ID is required.");
+        console.error("Find pending ones with: memosprout list --status suggested");
+        process.exit(1);
+      }
+      try {
+        const approved = await commandApprove(correctionsDir, correctionId);
+        console.log(`Approved: ${approved.correctionId} → ${approved.status}`);
+        console.log(`  Wrong:   ${approved.wrongPattern}`);
+        console.log(`  Correct: ${approved.correctAnswer}`);
+      } catch (error) {
+        console.error(`Error: ${error instanceof Error ? error.message : error}`);
+        process.exit(1);
       }
       break;
     }
