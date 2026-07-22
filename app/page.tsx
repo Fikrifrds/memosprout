@@ -3,6 +3,7 @@ import Link from "next/link";
 import { CodeBlock } from "@/components/CodeBlock";
 import { FlowAnimation } from "@/components/FlowAnimation";
 import { GitHubLink } from "@/components/GitHubLink";
+import { SiteFooter } from "@/components/SiteFooter";
 import { SiteNav } from "@/components/SiteNav";
 import { SproutMark } from "@/components/SproutMark";
 
@@ -234,10 +235,7 @@ export default function HomePage() {
           </div>
         </section>
 
-        <footer className="border-t border-slate-200 py-8 text-center text-sm text-slate-500">
-          <span className="lowercase">memosprout</span> — correct once. Improve every
-          interaction.
-        </footer>
+        <SiteFooter />
       </main>
     </>
   );

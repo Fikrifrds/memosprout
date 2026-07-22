@@ -1,11 +1,32 @@
+import type { Metadata } from "next";
+
 import { CodeBlock } from "@/components/CodeBlock";
 import { GitHubLink } from "@/components/GitHubLink";
 import { ProviderTable } from "@/components/ProviderTable";
+import { SiteFooter } from "@/components/SiteFooter";
 import { SiteNav } from "@/components/SiteNav";
 
-export const metadata = {
-  title: "Docs — MemoSprout",
-  description: "Get started with MemoSprout: install, configure, and start capturing corrections.",
+const description =
+  "Install MemoSprout, connect an LLM, and start capturing corrections to your " +
+  "AI's answers. Covers retrieval, the output gate, semantic retrieval, LLM " +
+  "providers, the REST API, and framework integrations.";
+
+export const metadata: Metadata = {
+  // The layout template appends " — MemoSprout".
+  title: "Docs",
+  description,
+  alternates: { canonical: "/docs" },
+  openGraph: {
+    type: "article",
+    title: "Docs — MemoSprout",
+    description,
+    url: "/docs",
+  },
+  twitter: {
+    card: "summary_large_image",
+    title: "Docs — MemoSprout",
+    description,
+  },
 };
 
 function Section({
@@ -384,16 +405,20 @@ ctx = requests.post(f"{BASE}/context", headers=HEAD,
           </p>
         </Section>
 
-        <footer className="mt-12 border-t border-slate-200 py-8 text-center">
-          <p className="text-xs text-slate-400">
-            Deeper reference lives in the repository: <code>docs/PROVIDERS.md</code> (every LLM
-            provider), <code>docs/ARCHITECTURE.md</code> (internals),{" "}
-            <code>docs/INTEGRATION_EXAMPLES.md</code> (frameworks and other languages).
-          </p>
-          <div className="mt-4 flex justify-center">
-            <GitHubLink />
-          </div>
-        </footer>
+        <SiteFooter
+          extra={
+            <>
+              <p className="text-xs text-slate-400">
+                Deeper reference lives in the repository: <code>docs/PROVIDERS.md</code> (every
+                LLM provider), <code>docs/ARCHITECTURE.md</code> (internals),{" "}
+                <code>docs/INTEGRATION_EXAMPLES.md</code> (frameworks and other languages).
+              </p>
+              <div className="mt-4 mb-6 flex justify-center">
+                <GitHubLink />
+              </div>
+            </>
+          }
+        />
       </main>
     </>
   );
