@@ -608,6 +608,30 @@ data rather than trusting the default: the right value depends on how densely
 your corrections cover one topic. `pnpm semantic:eval` prints the queries it
 got wrong, so point it at a corpus resembling yours and read the failures.
 
+**Why there is no "pure semantic" mode.** An obvious knob to expose would be
+skipping lexical entirely. It was measured and deliberately left out: across
+five thresholds from 0.30 to 0.60, pure semantic returned *the same answer on
+every one of the 30 queries* — not merely the same score, the same answer.
+
+The reason shows in the gate breakdown `semantic:eval` prints:
+
+```
+confident (kept lexical, no embedding call): 0
+weak      (fell through to embeddings):      6
+empty     (fell through to embeddings):     24
+```
+
+Not one paraphrase query produced a confident lexical hit, so hybrid was
+*already behaving* as pure semantic retrieval. The two can only diverge on
+`confident` queries, and a mode switch would have changed nothing while
+costing an extra embedding call, giving up exact-match determinism, and
+turning the embedding provider into a single point of failure.
+
+That conclusion is corpus-dependent, which is why the number is printed
+rather than asserted. Run it against your own corrections: if `confident` is
+large, your queries do share vocabulary with your triggers, and lexical is
+carrying real weight — inspect those queries before changing anything.
+
 **Cost.** `text-embedding-3-small` is $0.02 per 1M tokens. A correction is
 embedded once and cached on disk (`embeddings.json`), keyed by a hash of its
 text, so editing a correction re-embeds it automatically and nothing else

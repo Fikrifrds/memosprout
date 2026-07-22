@@ -30,6 +30,7 @@ import { tmpdir } from "node:os";
 import { join } from "node:path";
 
 import { MemoSprout } from "@/lib/index";
+import { CorrectionStore } from "@/lib/correction/store";
 
 const apiKey = process.env.OPENAI_API_KEY;
 if (!apiKey) {
@@ -136,6 +137,24 @@ interface Tally {
   total: number;
 }
 
+/**
+ * How the lexical layer classified each query, before embeddings ran.
+ *
+ * This is the diagnostic that says whether the hybrid design is doing
+ * anything for your corpus. `confident` queries keep the lexical answer and
+ * never reach the embedding provider; `weak` and `empty` both fall through.
+ * If `confident` is 0, hybrid is behaving exactly like pure semantic
+ * retrieval, and the two are indistinguishable on your data.
+ */
+interface GateCounts {
+  confident: number;
+  weak: number;
+  empty: number;
+}
+
+/** Mirrors the WEAK_LEXICAL_SCORE gate in lib/index.ts. */
+const WEAK_LEXICAL_SCORE = 4;
+
 async function measure(semantic: boolean) {
   const directory = await mkdtemp(join(tmpdir(), "memosprout-eval-"));
   try {
@@ -153,12 +172,23 @@ async function measure(semantic: boolean) {
       await ms.correct({ ...correction, domain: "handbook" });
     }
 
+    // Read the lexical scores directly from a second store over the same
+    // directory: context() reports what it served, not how it decided.
+    const store = new CorrectionStore(directory);
+    await store.init();
+    const gate: GateCounts = { confident: 0, weak: 0, empty: 0 };
+
     const byKind = new Map<QueryKind, Tally>();
     const failures: string[] = [];
 
     for (const query of queries) {
       const tally = byKind.get(query.kind) ?? { correct: 0, wrong: 0, total: 0 };
       tally.total += 1;
+
+      const lexicalScore = store.matchScored(query.text, "handbook")[0]?.score ?? 0;
+      if (lexicalScore === 0) gate.empty += 1;
+      else if (lexicalScore >= WEAK_LEXICAL_SCORE) gate.confident += 1;
+      else gate.weak += 1;
 
       const { corrections: got } = await ms.context(query.text, "handbook");
       const top = got[0];
@@ -183,7 +213,7 @@ async function measure(semantic: boolean) {
 
       byKind.set(query.kind, tally);
     }
-    return { byKind, failures };
+    return { byKind, failures, gate };
   } finally {
     await rm(directory, { recursive: true, force: true });
   }
@@ -233,6 +263,25 @@ console.log(`\nwrong correction served: lexical ${offTotal.wrong}, +semantic ${o
 
 console.log(`\n--- remaining failures with semantic on (${on.failures.length}) ---`);
 console.log(on.failures.join("\n") || "  none");
+
+// The hybrid design keeps a confident lexical answer and sends everything
+// else to the embeddings. That split is what distinguishes hybrid from pure
+// semantic retrieval — and when `confident` is 0, there is nothing to
+// distinguish: every query took the semantic path anyway.
+const { confident, weak, empty } = on.gate;
+console.log("\n--- lexical gate (how hybrid decided) ---");
+console.log(`  confident (kept lexical, no embedding call): ${confident}`);
+console.log(`  weak      (fell through to embeddings):      ${weak}`);
+console.log(`  empty     (fell through to embeddings):      ${empty}`);
+console.log(
+  confident === 0
+    ? "\n  No query had a confident lexical hit, so hybrid behaved exactly like\n" +
+        "  pure semantic retrieval on this corpus. A 'full semantic' mode would\n" +
+        "  return identical answers here — it would only cost more."
+    : `\n  ${confident} quer${confident === 1 ? "y" : "ies"} skipped the embedding provider entirely.\n` +
+        "  Those are the only queries where hybrid and pure semantic retrieval\n" +
+        "  can disagree; inspect them if you are weighing the two.",
+);
 
 console.log(
   "\nCost: one embedding call per query that lexical did not answer, plus one\n" +
