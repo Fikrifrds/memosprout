@@ -37,6 +37,11 @@ published, so there is no upgrade path to describe.
 - `report()` now returns `queriesWithoutMatch` and `unmatchedQueries`.
   Retrieval failing is silent — an empty context, not an error — so these
   name the phrasings your triggers do not cover yet.
+- `LLMResponse.looksStructured` flags a reply that arrived as a JSON
+  scaffold or raw chat-template tokens instead of prose. The content is
+  never altered: an evaluated model produced twenty different shapes across
+  forty-five replies, so there is no envelope to strip and picking a field
+  would mean guessing which key holds the answer.
 - `generateAliases: true` asks the model once per new correction for the
   other words users say for the same fact, and stores them as triggers. One
   call on the write, none on the read path. Off by default.

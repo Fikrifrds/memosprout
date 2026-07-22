@@ -172,24 +172,36 @@ provider can pass the first and fail the second.
 | xiaomi | mimo-v2.5 | pass | **see note** | 2026-07-22 |
 | togetherai | openai/gpt-oss-120b | **30/45 failed** | **see note** | 2026-07-22 |
 
-### Reasoning and harmony-format models need output handling
+### Some models answer with a schema instead of prose
 
-`mimo-v2.5` and `openai/gpt-oss-120b` returned their answers wrapped in a
-structure rather than as plain prose:
+`mimo-v2.5` and `openai/gpt-oss-120b` frequently replied with a structure
+rather than the sentence they were asked for:
 
 ```
-{"name":"final","content":"A standard depot shift is 8 hours."}
+{"reasoning":"...","answer":"A standard depot shift is 8 hours."}
+{"response":"A standard depot shift is 8 hours."}
+{"action":"polite_decline","action_input":"The standard depot shift is 8 hours."}
+{"finalA standard depot shift is 8 hours.
 ```
 
-The correct fact is in there, but the string MemoSprout hands back is the
-whole envelope. `check()` and any downstream rendering see the wrapper, so
-the answer is not directly shippable.
+The correct fact is usually in there, but the string MemoSprout returns is
+the whole structure, so `check()` and anything rendering the answer see the
+scaffold.
 
-This is a property of the model class, not of the provider. Both endpoints
-serve ordinary instruct models that behave normally — the suggested
-`togetherai` model in the README is `Llama-3.1-8B-Instruct-Turbo`, not
-`gpt-oss-120b`. If you use a reasoning or harmony-format model, unwrap the
-response yourself before passing it to `check()`.
+**There is no envelope to strip.** Across 45 replies, `mimo-v2.5` produced
+twenty different shapes — `reasoning`/`answer`, `response`, `content`/`role`,
+`point`, `primary_answer`/`supporting_references`, and more — plus nine that
+were not valid JSON at all. Unwrapping would mean guessing which key holds
+the answer, and a wrong guess silently shows the user the wrong text. The
+library therefore never alters the content; `LLMResponse.looksStructured`
+reports the shape so a caller can react.
+
+This is a property of the model, not of the provider or the transport. Both
+endpoints also serve ordinary instruct models that reply in prose — the
+suggested `togetherai` model in the README is `Llama-3.1-8B-Instruct-Turbo`,
+not `gpt-oss-120b`. If you use a reasoning or agent-tuned model, either
+instruct it explicitly to answer in plain prose, or extract the field
+yourself before passing the text to `check()`.
 
 `togetherai/openai/gpt-oss-120b` also failed 30 of 45 evaluation
 repetitions with server errors, independently of the wrapper issue.

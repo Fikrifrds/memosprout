@@ -36,6 +36,23 @@ export interface LLMTokenUsage {
 export interface LLMResponse {
   content: string;
   model: string;
+  /**
+   * True when the content looks like a structured scaffold rather than the
+   * prose that was asked for — a JSON object, or raw chat-template control
+   * tokens.
+   *
+   * Some models answer a plain instruction by improvising a schema:
+   * `{"reasoning":...,"answer":...}`, `{"response":...}`, `{"content":...,
+   * "role":...}`. One evaluated model produced twenty different shapes
+   * across forty-five replies. There is therefore no envelope to strip:
+   * picking a field would mean guessing which key holds the answer, and
+   * guessing wrong silently shows the user the wrong text.
+   *
+   * So the content is never altered. This flag exists so a caller can
+   * notice and react — usually by instructing the model to reply in plain
+   * prose, or by choosing a model that already does.
+   */
+  looksStructured: boolean;
   /** Null only when the endpoint omitted or returned an invalid usage block. */
   usage: LLMTokenUsage | null;
 }
@@ -157,6 +174,19 @@ export function extractJsonPayload(content: string): string {
   return trimmed;
 }
 
+/**
+ * Heuristic, and deliberately narrow: it reports a shape, never repairs one.
+ */
+export function looksStructured(content: string): boolean {
+  const trimmed = content.trim();
+  if (!trimmed) return false;
+  // Chat-template control tokens are protocol, never an answer.
+  if (/<\|(?:start|end|channel|message|assistant|system)\|>/.test(trimmed)) return true;
+  // A reply that opens a JSON object is a scaffold, whether or not the
+  // model managed to close it — malformed emissions are common.
+  return trimmed.startsWith("{") || trimmed.startsWith("[");
+}
+
 export async function callLLM(
   config: LLMProviderConfig,
   messages: Array<{ role: "system" | "user"; content: string }>,
@@ -257,6 +287,7 @@ async function callOpenAICompatible(
     content,
     model: data?.model ?? config.model,
     usage: normalizeOpenAIUsage(data?.usage),
+    looksStructured: looksStructured(content),
   };
 }
 
@@ -308,6 +339,7 @@ async function callAnthropic(
     content: textBlock.text,
     model: data?.model ?? config.model,
     usage: normalizeAnthropicUsage(data?.usage),
+    looksStructured: looksStructured(textBlock.text),
   };
 }
 

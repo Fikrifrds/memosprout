@@ -1,6 +1,7 @@
 import { afterEach, describe, expect, it, vi } from "vitest";
 
 import {
+  looksStructured,
   callLLM,
   extractJsonPayload,
   knownProviders,
@@ -98,6 +99,42 @@ describe("callLLM", () => {
     expect(claude.usage!.inputTokens).toBe(openai.usage!.inputTokens);
     expect(claude.usage!.totalTokens).toBe(openai.usage!.totalTokens);
     expect(claude.usage!.cachedInputTokens).toBe(openai.usage!.cachedInputTokens);
+  });
+
+  it("flags a reply that is a structured scaffold rather than prose", async () => {
+    // Real shapes observed from an evaluated model, which improvised a
+    // different schema on nearly every reply. The content is reported
+    // as-is: there is no single envelope, so stripping a field would mean
+    // guessing which key holds the answer.
+    for (const content of [
+      '{"reasoning":"...","answer":"A shift is 8 hours."}',
+      '{"response":"A shift is 8 hours."}',
+      '{"finalA shift is 8 hours.',
+      "<|channel|>final<|message|>A shift is 8 hours.",
+    ]) {
+      vi.stubGlobal("fetch", vi.fn().mockResolvedValue(okResponse(content)));
+      const result = await callLLM(config, [{ role: "user", content: "hi" }]);
+      expect(result.looksStructured, content).toBe(true);
+      expect(result.content).toBe(content);
+    }
+  });
+
+  it("does not flag ordinary prose, including prose that mentions braces", async () => {
+    for (const content of [
+      "A standard depot shift is 8 hours.",
+      'The config uses {"timeout": 30} as its default.',
+    ]) {
+      vi.stubGlobal("fetch", vi.fn().mockResolvedValue(okResponse(content)));
+      const result = await callLLM(config, [{ role: "user", content: "hi" }]);
+      expect(result.looksStructured, content).toBe(false);
+    }
+  });
+
+  it("treats an empty string as unstructured", () => {
+    // callLLM throws before returning empty content, so this edge is only
+    // reachable through the helper itself.
+    expect(looksStructured("")).toBe(false);
+    expect(looksStructured("   ")).toBe(false);
   });
 
   it("returns normalized Anthropic token usage", async () => {
