@@ -2,7 +2,7 @@
  * Live provider matrix.
  *
  *   pnpm tsx eval/provider-matrix/preflight.ts     # which endpoints answer
- *   pnpm tsx eval/provider-matrix/run.ts           # full matrix
+ *   pnpm tsx eval/provider-matrix/run.ts --output <run-id> # full matrix
  *   pnpm tsx eval/provider-matrix/run.ts --reps 1 --no-transfer
  *
  * Reads `.provider_list_to_test` (gitignored). Writes raw results to
@@ -113,8 +113,18 @@ const output = {
   runs,
 };
 
-const directory = join("eval", "provider-matrix", "results");
-await mkdir(directory, { recursive: true });
+const resultsRoot = join("eval", "provider-matrix", "results");
+await mkdir(resultsRoot, { recursive: true });
+const outputName = flag("output");
+if (outputName !== null && !/^[a-z0-9][a-z0-9_-]*$/.test(outputName)) {
+  throw new Error("--output must contain only lowercase letters, numbers, hyphens, or underscores.");
+}
+const directory = outputName === null ? resultsRoot : join(resultsRoot, outputName);
+if (outputName !== null) {
+  // A named paid run is immutable. Refuse accidental overwrite instead of
+  // erasing evidence that a report or later audit may still depend on.
+  await mkdir(directory);
+}
 const rawPath = join(directory, "raw-results.json");
 const summaryPath = join(directory, "summary.json");
 await writeFile(rawPath, `${JSON.stringify(output, null, 2)}\n`, "utf8");

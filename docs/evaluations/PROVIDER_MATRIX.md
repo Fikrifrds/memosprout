@@ -25,7 +25,7 @@ pnpm tsx eval/provider-matrix/verify.ts         # dataset invariants
 pnpm tsx eval/provider-matrix/regression.ts     # analysis regression checks
 pnpm tsx eval/provider-matrix/verify-claims.ts  # recompute this report
 pnpm tsx eval/provider-matrix/preflight.ts      # endpoint liveness
-pnpm tsx eval/provider-matrix/run.ts --reps 3   # paid; not rerun for v2
+pnpm tsx eval/provider-matrix/run.ts --reps 3 --output <run-id> # paid; immutable named output
 ```
 
 `verify-claims.ts` regenerates every headline number below from the stored
