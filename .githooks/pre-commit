@@ -1,0 +1,14 @@
+#!/bin/sh
+#
+# Refuses a commit that would introduce credentials.
+#
+# .gitignore is the usual defence, and it failed once: the rule protecting
+# .provider_list_to_test went missing during a branch move, and six live API
+# keys sat one `git add -A` away from a public repository. A hook checks the
+# thing being committed rather than trusting a file that can be edited, so
+# the two do not fail together.
+#
+# Installed by `pnpm hooks:install`, which `prepare` runs after install.
+# Bypass with `git commit --no-verify` when you are certain.
+
+exec node "$(git rev-parse --show-toplevel)/scripts/check-staged-secrets.mjs"

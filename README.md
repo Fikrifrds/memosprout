@@ -635,15 +635,27 @@ tarball yourself.
 
 ```bash
 pnpm install
+pnpm hooks:install # once per clone: refuse commits carrying credentials
 pnpm dev          # marketing/docs site
 pnpm cli <cmd>    # CLI
-pnpm test         # 69 test files, 474 tests
+pnpm test         # 71 test files, 535 tests
 pnpm test:live    # smoke test against a real LLM (needs an API key)
 pnpm api          # REST API server
 pnpm lint
 pnpm typecheck
 pnpm build:lib    # build the publishable package (dist/)
 ```
+
+`pnpm hooks:install` points git at `.githooks`, which refuses a commit carrying
+credentials — a key file by name, or a recognisable key format pasted into
+a source file. `.gitignore` is the usual defence and it has failed here
+before, so the hook checks what is actually staged rather than trusting a
+file that can be edited. Run it by hand with `pnpm check:secrets`, and
+bypass a false positive with `git commit --no-verify`.
+
+It is a one-time command rather than an `install` hook on purpose: the
+published package declares no install-time lifecycle scripts at all, and
+`pnpm audit:package` fails the build if one appears.
 
 ## License
 
