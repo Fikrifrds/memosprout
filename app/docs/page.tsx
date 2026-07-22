@@ -434,11 +434,22 @@ ctx = requests.post(f"{BASE}/context", headers=HEAD,
 
           <h3 className="font-semibold">Where does data live?</h3>
           <p>
-            On your server. Markdown files in a directory. No cloud, no external calls except
-            to your own LLM provider. The one feature that uploads correction content is{" "}
-            <code>semanticRetrieval</code> — comparing a query to a correction requires embedding
-            both — so if corrections must not leave your infrastructure, point{" "}
-            <code>embedding.baseUrl</code> at a local Ollama instance, or leave the feature off.
+            On your server. Markdown files in a directory, no cloud, no telemetry.
+          </p>
+          <p>
+            Worth being precise here, because it is easy to assume otherwise: storing
+            corrections, retrieving them, and blocking wrong answers involve{" "}
+            <strong>no LLM and no network calls at all</strong>. That is the default — no API
+            key required. An LLM only enters when you switch on one of the optional features (
+            <code>processMessage()</code>, <code>semanticCheck</code>,{" "}
+            <code>generateAliases</code>, <code>semanticRetrieval</code>), and then the only
+            outbound calls go to the endpoint you configured.
+          </p>
+          <p>
+            Of those, <code>semanticRetrieval</code> is the one that uploads correction content —
+            comparing a query to a correction means embedding both. If corrections must not leave
+            your infrastructure, point <code>embedding.baseUrl</code> at a local Ollama instance,
+            or leave the feature off.
           </p>
         </Section>
 

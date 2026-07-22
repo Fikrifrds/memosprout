@@ -82,7 +82,7 @@ const principles = [
   },
   {
     title: "Runs on your infrastructure",
-    body: "Corrections are Markdown files on your server. There is no MemoSprout cloud and no telemetry. The only outbound calls go to the LLM endpoint you configure, and only if you configure one — with one exception worth knowing: semantic retrieval sends the query and the corrections to your embedding provider, because comparing them means embedding both. Point it at a local model, or leave it off.",
+    body: "Corrections are Markdown files on your server. No MemoSprout cloud, no telemetry, and by default no network calls at all — storing corrections, retrieving them, and blocking wrong answers need no LLM and no API key. Outbound calls happen only when you switch on an optional LLM feature, and then only to the endpoint you configured. One of those, semantic retrieval, sends correction text to your embedding provider; point it at a local model, or leave it off.",
   },
   {
     title: "Domain-agnostic core, pluggable adapters",
