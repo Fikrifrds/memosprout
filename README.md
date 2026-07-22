@@ -926,6 +926,8 @@ blindly:
   and cross-language integration recipes
 - [docs/RELEASING.md](docs/RELEASING.md) — how releases are published
   (GitHub Actions with npm provenance)
+- [docs/DEPLOYING_SITE.md](docs/DEPLOYING_SITE.md) — deploying
+  memosprout.com, and which directories not to touch on that server
 
 ## Supply-chain safety
 

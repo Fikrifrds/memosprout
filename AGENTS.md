@@ -92,3 +92,20 @@ pnpm lint
 pnpm typecheck
 pnpm test
 ```
+
+## Shipping
+
+The package and the website ship separately and never trigger each other.
+
+- **npm release** — never `npm publish` by hand. Bump the version, push the
+  tag, cut a GitHub release; Actions publishes with provenance. Full
+  procedure and the pre-release checklist: `docs/RELEASING.md`.
+- **memosprout.com** — `pnpm deploy:site`, run from a laptop holding the SSH
+  key, never on the server. That box also hosts unrelated apps, including
+  `play.memosprout.com`, and the deploy uses `rsync --delete`: read
+  `docs/DEPLOYING_SITE.md` before changing anything about it.
+
+Retrieval numbers quoted in `README.md` and `app/docs/page.tsx` come from
+`pnpm semantic:eval` (needs `OPENAI_API_KEY`, costs a few cents). If you
+change retrieval, re-run it and update both — do not edit the numbers by
+hand.

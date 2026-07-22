@@ -126,17 +126,16 @@ The npm package page should show **"Built and signed on GitHub Actions"**.
 npm dist-tag add memosprout@0.2.1 latest
 ```
 
-## First release
+## Done already
 
-For the very first publish, prefer a pre-release so `npm install
-memosprout` does not immediately pick it up:
+`0.3.0` was published on 2026-07-22 as the first public release, from tag
+`v0.3.0`, under the `latest` dist-tag. The one-time setup above (2FA, token,
+`NPM_TOKEN` secret) is complete — you only revisit it to rotate the token.
 
-```bash
-gh release create v0.2.0 --prerelease --generate-notes --title "v0.2.0 (beta)"
-```
-
-Install it yourself the way a user would (`npm install memosprout@beta`),
-confirm it behaves, then promote it to `latest`.
+One follow-up from that setup is worth checking: the first token had to be
+scoped to **All packages**, because `memosprout` did not exist on npm yet.
+If it has not been replaced, create a token scoped to `memosprout` only,
+update the `NPM_TOKEN` secret, and revoke the broad one.
 
 ## Manual publish (escape hatch)
 
@@ -164,4 +163,13 @@ pnpm verify:readiness # offline retrieval and answer-gate effectiveness
 pnpm audit:package   # tarball supply-chain audit
 pnpm verify:package-consumer # offline ESM, CJS, types, and CLI verification
 pnpm test:live       # optional: verify against a real LLM (needs a key)
+pnpm semantic:eval   # optional: retrieval accuracy, needs OPENAI_API_KEY
 ```
+
+`semantic:eval` is the one that costs money (a few cents). Run it when you
+touch retrieval — it prints the queries it got wrong, and the README quotes
+its numbers, so a change there means the README needs re-checking.
+
+Releasing the package does **not** update memosprout.com. If the same change
+also touched `app/` or `components/`, see
+[DEPLOYING_SITE.md](DEPLOYING_SITE.md).
