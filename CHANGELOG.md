@@ -28,23 +28,20 @@ published, so there is no upgrade path to describe.
 - 13 LLM providers, plus any OpenAI- or Anthropic-compatible endpoint.
 - Corrections stored as Markdown with YAML frontmatter. No database, and no
   data leaves your infrastructure.
+- **Diagnose.** `report()` also returns `queriesWithoutMatch` and
+  `unmatchedQueries`. Retrieval failing is silent — an empty context, not an
+  error — so these name the phrasings your triggers do not cover yet.
+- `generateAliases: true` asks the model once per new correction for the
+  other words users say for the same fact, and stores them as triggers. One
+  call on the write, none on the read path. Off by default.
 - `LLMResponse.usage` reports normalized token counts. `inputTokens` is the
   whole input side on every provider, with `cachedInputTokens` and
   `cacheCreationInputTokens` as the breakdown pricing needs.
-
-### Added since the release was cut
-
-- `report()` now returns `queriesWithoutMatch` and `unmatchedQueries`.
-  Retrieval failing is silent — an empty context, not an error — so these
-  name the phrasings your triggers do not cover yet.
 - `LLMResponse.looksStructured` flags a reply that arrived as a JSON
   scaffold or raw chat-template tokens instead of prose. The content is
   never altered: an evaluated model produced twenty different shapes across
   forty-five replies, so there is no envelope to strip and picking a field
   would mean guessing which key holds the answer.
-- `generateAliases: true` asks the model once per new correction for the
-  other words users say for the same fact, and stores them as triggers. One
-  call on the write, none on the read path. Off by default.
 
 ### Known limitations
 
@@ -52,8 +49,9 @@ These are measured and documented in the README, not open questions:
 
 - **Retrieval is lexical.** Recall is 100% when the question shares
   vocabulary with the trigger and 20% for pure paraphrases. A miss is
-  silent — an empty context, not an error. Add the words your users type as
-  trigger keywords until semantic retrieval lands.
+  silent — an empty context, not an error. `unmatchedQueries` shows you
+  which phrasings are missing and `generateAliases` widens the triggers, but
+  neither is a substitute for semantic retrieval.
 - **The output gate matters most on weak models**: +48 points on a small
   model that ignored injected context, +7 to +15 on stronger ones.
 - **Published accuracy numbers come from constructed stale-context stress
