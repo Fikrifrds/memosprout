@@ -107,6 +107,7 @@ new MemoSprout("./corrections", {
   approvalRequired: true,      // default; model confidence is not validation
   autoActivateThreshold: 0.8,  // used only after explicitly setting approvalRequired: false
   semanticCheck: false,        // LLM pass in check() for paraphrases
+  generateAliases: false,      // one LLM call per new correction, on write
 });
 ```
 
@@ -518,12 +519,26 @@ On a deterministic paraphrase set, recall is **100% for queries that share
 vocabulary with the trigger and 20% for pure paraphrases**. The failure is
 silent: you get an empty context, not an error.
 
-Until semantic retrieval lands, add the words your users actually type as
-trigger keywords:
+Two things reduce this. `report()` tells you which phrasings are missing
+(`unmatchedQueries`), and `generateAliases: true` asks the model once per
+new correction for the other words users say:
 
 ```typescript
-keywords: ["uniform allowance", "workwear", "protective clothing"],
+const ms = new MemoSprout("./corrections", {
+  llm: { provider: "openai", apiKey: process.env.OPENAI_API_KEY! },
+  generateAliases: true,
+});
+
+await ms.correct({ wrong: "...EUR 120", correct: "...EUR 200",
+                   keywords: ["uniform allowance"] });
+// stored triggers: uniform allowance, workwear, protective clothing, ...
 ```
+
+The call happens on the write, so queries stay free and no latency is added
+to the read path. It is off by default because it spends money on an
+otherwise free code path, and because each extra trigger term trades a
+little retrieval precision for recall. Neither substitutes for semantic
+retrieval — they narrow the gap, they do not close it.
 
 ### The output gate helps weak models most
 

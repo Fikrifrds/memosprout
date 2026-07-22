@@ -32,6 +32,15 @@ published, so there is no upgrade path to describe.
   whole input side on every provider, with `cachedInputTokens` and
   `cacheCreationInputTokens` as the breakdown pricing needs.
 
+### Added since the release was cut
+
+- `report()` now returns `queriesWithoutMatch` and `unmatchedQueries`.
+  Retrieval failing is silent — an empty context, not an error — so these
+  name the phrasings your triggers do not cover yet.
+- `generateAliases: true` asks the model once per new correction for the
+  other words users say for the same fact, and stores them as triggers. One
+  call on the write, none on the read path. Off by default.
+
 ### Known limitations
 
 These are measured and documented in the README, not open questions:

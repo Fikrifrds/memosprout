@@ -73,6 +73,18 @@ export interface MemoSproutOptions {
    * per check() with unmatched active corrections. Default: false.
    */
   semanticCheck?: boolean;
+  /**
+   * When true and an LLM is configured, `correct()` asks the model once for
+   * other words users might use for the same fact and adds them as trigger
+   * keywords. Costs one LLM call per new correction — on the write, never
+   * on a query — and closes the case where a correction exists but nobody
+   * phrases the question the way it was filed.
+   *
+   * Default: false. It is opt-in because it spends money on a code path
+   * that is otherwise free, and because every extra trigger term trades
+   * some retrieval precision for recall.
+   */
+  generateAliases?: boolean;
 }
 
 export interface ProcessResult {
@@ -143,6 +155,7 @@ export class MemoSprout {
   private readonly approvalRequired: boolean;
   private readonly autoActivateThreshold: number;
   private readonly semanticCheckEnabled: boolean;
+  private readonly aliasGenerationEnabled: boolean;
   private ready = false;
   /**
    * Serializes read-modify-write operations (confirmCount bumps, status
@@ -177,6 +190,7 @@ export class MemoSprout {
     this.approvalRequired = options.approvalRequired ?? true;
     this.autoActivateThreshold = options.autoActivateThreshold ?? 0.8;
     this.semanticCheckEnabled = options.semanticCheck ?? false;
+    this.aliasGenerationEnabled = options.generateAliases ?? false;
   }
 
   setAdapter(adapter: import("@/lib/adapter/types").DomainAdapter): void {
@@ -239,13 +253,25 @@ export class MemoSprout {
       return updated;
     }
 
+    const keywords = [...(options.keywords ?? [])];
+    if (this.aliasGenerationEnabled && this.llmConfig) {
+      const { generateAliases } = await import("@/lib/llm/aliases");
+      keywords.push(
+        ...(await generateAliases(this.llmConfig, {
+          wrong: options.wrong,
+          correct: options.correct,
+          existingKeywords: keywords,
+        })),
+      );
+    }
+
     const correction = correctionRecordSchema.parse({
       correctionId,
       version: 1,
       status: forcedStatus ?? "active",
       domain,
       trigger: {
-        keywords: options.keywords ?? [],
+        keywords,
         entities: options.entities ?? [],
       },
       wrongPattern: options.wrong,
