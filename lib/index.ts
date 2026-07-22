@@ -29,6 +29,20 @@ import { EmbeddingIndex } from "@/lib/correction/embedding-index";
 import { wrongPatternMatchScore } from "@/lib/correction/matching";
 import { Mutex } from "@/lib/store/atomic";
 
+/**
+ * Lexical scores below this are treated as a guess rather than an answer
+ * when semantic retrieval is available to second-guess them.
+ *
+ * The store scores a phrase keyword at 4 and a single keyword at 2, so this
+ * is the line between "matched a phrase, or a keyword with corroborating
+ * content" and "matched one broad word". Measured on the eval corpus, every
+ * false positive lexical produced sat at exactly 2.
+ *
+ * Only consulted when semanticRetrieval is on; without a fallback, a weak
+ * lexical hit is still better than nothing.
+ */
+const WEAK_LEXICAL_SCORE = 4;
+
 export interface MemoSproutLlmOptions {
   /**
    * One of the supported providers (see docs/PROVIDERS.md): openai,
@@ -97,10 +111,11 @@ export interface MemoSproutOptions {
    * where a user asks about "workwear" and the correction was filed under
    * "uniform allowance".
    *
-   * Lexical retrieval still runs first and its results are kept: it is
+   * Lexical retrieval still runs first, and a confident hit is kept: it is
    * free, deterministic, and precise on exact terms. Embeddings are
-   * consulted only when it returns nothing, so the common case costs
-   * nothing and the failure case gets a second chance.
+   * consulted when lexical returns nothing *or* only a weak match, since
+   * measurement showed deferring to a weak lexical hit was worse than
+   * having no lexical layer at all. Confident hits cost nothing.
    *
    * Default: false — it is opt-in because it spends money on the read path
    * and sends the query text to the embedding provider.
@@ -455,11 +470,14 @@ export class MemoSprout {
    * context. A retrieval helper must never turn a degraded provider into a
    * thrown error on the answer path.
    */
-  private async semanticMatch(query: string, domain?: string): Promise<CorrectionRecord[]> {
-    if (!this.embeddingIndex) return [];
+  private async semanticMatch(
+    query: string,
+    domain?: string,
+  ): Promise<{ matches: CorrectionRecord[]; failed: boolean }> {
+    if (!this.embeddingIndex) return { matches: [], failed: true };
 
     const active = this.store.list({ status: "active", domain });
-    if (active.length === 0) return [];
+    if (active.length === 0) return { matches: [], failed: false };
 
     try {
       const ranked = await this.embeddingIndex.rank(
@@ -471,28 +489,54 @@ export class MemoSprout {
         this.semanticRetrievalThreshold,
       );
       const byId = new Map(active.map((c) => [c.correctionId, c]));
-      return ranked
-        .map((entry) => byId.get(entry.id))
-        .filter((c): c is CorrectionRecord => c !== undefined);
+      return {
+        matches: ranked
+          .map((entry) => byId.get(entry.id))
+          .filter((c): c is CorrectionRecord => c !== undefined),
+        failed: false,
+      };
     } catch (error) {
       console.warn(
         `[memosprout] semantic retrieval failed, using lexical results only: ` +
           `${error instanceof Error ? error.message : String(error)}`,
       );
-      return [];
+      return { matches: [], failed: true };
     }
   }
 
   async context(query: string, domain?: string): Promise<ContextResult> {
     await this.ensureReady();
 
-    let matched = this.store.match(query, domain);
+    const lexical = this.store.matchScored(query, domain);
+    let matched = lexical.map((entry) => entry.correction);
 
-    // Hybrid: lexical first because it is free and precise; embeddings only
-    // when it found nothing, which is exactly the paraphrase case. A query
-    // that lexical already answered never reaches the network.
-    if (matched.length === 0 && this.embeddingIndex) {
-      matched = await this.semanticMatch(query, domain);
+    // Hybrid, with a confidence gate. Lexical runs first because it is free
+    // and precise on exact terms — but "found something" is not the same as
+    // "found the right thing", and deferring to a weak lexical hit was
+    // measurably worse than having no lexical layer at all. A single broad
+    // keyword scores 2 and is how "what time does the office open?" lands on
+    // a home-office allowance; a phrase hit, or a keyword plus corroborating
+    // content, scores 4 or more and is worth trusting.
+    //
+    // So embeddings are consulted when lexical found nothing *or* when what
+    // it found is weak. Confident hits still never reach the network.
+    if (this.embeddingIndex) {
+      const best = lexical[0]?.score ?? 0;
+      if (best < WEAK_LEXICAL_SCORE) {
+        const semantic = await this.semanticMatch(query, domain);
+        // An empty semantic result is a judgement, not an absence: the
+        // embedding ranked every correction below the threshold, which is
+        // the model saying none of them answers this question. So it
+        // replaces the weak lexical guess even when empty. Keeping that
+        // guess is what made "what time does the office open?" return an
+        // allowance — lexical matched the bare word "office", while
+        // semantics scored the same pairing at 0.27.
+        //
+        // A provider outage is not a judgement, so it is excluded here:
+        // on failure the weak lexical result stands, which is the same
+        // answer this method would give with the feature switched off.
+        if (!semantic.failed) matched = semantic.matches;
+      }
     }
 
     const fresh: CorrectionRecord[] = [];

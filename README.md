@@ -554,10 +554,11 @@ To close the gap rather than narrow it, turn on `semanticRetrieval`.
 ### Semantic retrieval (optional)
 
 `semanticRetrieval: true` adds an embedding fallback to `context()`. Lexical
-matching still runs first and its results are kept — it is free, instant, and
-precise on exact terms. Embeddings are consulted **only when lexical found
-nothing**, which is exactly the paraphrase case, so queries that already
-worked cost nothing extra.
+matching still runs first — it is free, instant, and precise on exact terms —
+and a **confident** lexical hit is kept as-is, costing nothing extra.
+Embeddings are consulted when lexical found nothing, or found only a weak
+match (a single broad keyword). Both are cases where lexical alone is
+unreliable, and together they are the paraphrase problem.
 
 ```typescript
 const ms = new MemoSprout("./corrections", {
@@ -576,11 +577,11 @@ OpenAI `text-embedding-3-small` at the default threshold of 0.42:
 
 | Query class | n | Lexical | + Semantic |
 |-------------|---|---------|------------|
-| Paraphrase (same fact, different words) | 12 | 8% | **75%** |
+| Paraphrase (same fact, different words) | 12 | 8% | **83%** |
 | Near-miss (a very similar sibling exists) | 8 | 13% | **100%** |
-| Should-miss (adjacent topic, no correction) | 6 | 83% | 83% |
-| Unrelated | 4 | 75% | 75% |
-| **Overall** | 30 | 33% | **83%** |
+| Should-miss (adjacent topic, no correction) | 6 | 83% | **100%** |
+| Unrelated | 4 | 75% | **100%** |
+| **Overall** | 30 | 33% | **93%** |
 
 The corpus is sized on purpose. An earlier version of this eval used five
 corrections and reported 94% — a flattering number, because with five facts
@@ -588,16 +589,21 @@ there is no near neighbour to confuse. Precision is what degrades as a domain
 fills up, so the corrections here form deliberate clusters (four allowances,
 three warranties, four kinds of leave).
 
-**Read the third row before enabling this.** Semantic retrieval does not
-improve `should-miss`, and it costs a little on off-topic queries: at 0.42,
-"what time does the office open?" attaches to the home-office allowance.
-Lexical serves a wrong correction on 4 of 30 queries, semantic on 5. You are
-trading a small amount of precision for a large amount of recall — worth it
-when questions arrive in users' own words, not worth it if your users already
-phrase things the way corrections are filed.
+Precision improves too: lexical alone serves a wrong correction on 4 of 30
+queries, semantic on 1. That is not because embeddings are strictly better,
+but because they are consulted when lexical is *unsure*. Retrieval keeps the
+lexical answer only when it is confident — a phrase keyword, or a keyword
+plus corroborating content. A bare single-keyword match is treated as a guess
+and re-examined semantically, which is what stops "what time does the office
+open?" from returning a home-office allowance.
+
+An earlier version deferred to any lexical hit at all and scored 83%, worse
+than using embeddings alone. If the embedding provider is unreachable, the
+weak lexical hit stands instead, which is exactly the behaviour you would get
+with the feature off.
 
 The threshold is the lever, and 0.42 is where overall accuracy peaks on this
-corpus (0.35 → 77%, 0.42 → 83%, 0.50 → 57%). Expect to tune it for your own
+corpus (0.35 → 90%, 0.42 → 93%, 0.45 → 90%, 0.50 → 67%). Expect to tune it for your own
 data rather than trusting the default: the right value depends on how densely
 your corrections cover one topic. `pnpm semantic:eval` prints the queries it
 got wrong, so point it at a corpus resembling yours and read the failures.
@@ -605,10 +611,10 @@ got wrong, so point it at a corpus resembling yours and read the failures.
 **Cost.** `text-embedding-3-small` is $0.02 per 1M tokens. A correction is
 embedded once and cached on disk (`embeddings.json`), keyed by a hash of its
 text, so editing a correction re-embeds it automatically and nothing else
-does. At roughly 30 tokens per query, **1M queries that miss lexically cost
-about $0.60** — and queries that hit lexically cost nothing at all. Indexing
-1,000 corrections once costs well under a cent. In practice this is a
-rounding error next to the chat model that consumes the context.
+does. At roughly 30 tokens per query, **1M queries that fall through to
+embeddings cost about $0.60** — and a confident lexical hit costs nothing at
+all. Indexing 1,000 corrections once costs well under a cent. In practice this
+is a rounding error next to the chat model that consumes the context.
 
 Any endpoint with an OpenAI-shaped `/embeddings` route works — set
 `embedding: { baseUrl, model, apiKey }` for a gateway, a self-hosted model, or

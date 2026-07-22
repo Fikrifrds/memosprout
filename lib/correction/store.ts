@@ -139,6 +139,22 @@ export class CorrectionStore {
   }
 
   match(query: string, domain?: string): CorrectionRecord[] {
+    return this.matchScored(query, domain).map((entry) => entry.correction);
+  }
+
+  /**
+   * `match()` with the retrieval score kept.
+   *
+   * The score separates a confident hit from a barely-qualified one, which
+   * `match()` alone cannot express: a query matching a single broad keyword
+   * ranks identically to one matching a phrase plus corroborating content.
+   * Callers that have a fallback available — semantic retrieval — use this
+   * to decide whether the lexical answer is worth trusting.
+   */
+  matchScored(
+    query: string,
+    domain?: string,
+  ): Array<{ correction: CorrectionRecord; score: number }> {
     const normalizedQuery = normalizeText(query);
     const tokens = normalizedQuery.split(" ");
     const tokenSet = new Set(tokens);
@@ -242,6 +258,6 @@ export class CorrectionStore {
       })
       .filter((entry) => entry.qualified)
       .sort((a, b) => b.score - a.score)
-      .map((entry) => entry.correction);
+      .map((entry) => ({ correction: entry.correction, score: entry.score }));
   }
 }

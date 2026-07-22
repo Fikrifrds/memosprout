@@ -241,6 +241,63 @@ describe("semantic retrieval — with vs without", () => {
     expect(corrections).toHaveLength(0);
   });
 
+  /**
+   * The gate that took hybrid from 83% to 93% on the live corpus. Lexical
+   * matching the single broad word "office" is a guess, not an answer, and
+   * deferring to it served an allowance for "what time does the office
+   * open?". A weak lexical hit must be re-examined semantically.
+   */
+  it("overrides a weak lexical hit with the semantic judgement", async () => {
+    const fetchMock = stubEmbeddingFetch();
+    const ms = semanticInstance(directory);
+    await ms.correct({
+      wrong: "The home office allowance is EUR 25",
+      correct: "The home office allowance is EUR 40",
+      keywords: ["home office allowance"],
+      domain: "handbook",
+    });
+    fetchMock.mockClear();
+
+    // "office" alone qualifies lexically but is not what the user asked
+    // about; the embedding scores it far below the threshold.
+    const { corrections } = await ms.context("What time does the office open?", "handbook");
+
+    expect(fetchMock).toHaveBeenCalled();
+    expect(corrections).toHaveLength(0);
+  });
+
+  it("keeps a weak lexical hit when the embedding provider is down", async () => {
+    const warn = vi.spyOn(console, "warn").mockImplementation(() => {});
+    const ms = semanticInstance(directory);
+    await ms.correct({
+      wrong: "The home office allowance is EUR 25",
+      correct: "The home office allowance is EUR 40",
+      keywords: ["home office allowance"],
+      domain: "handbook",
+    });
+
+    // An outage is not a judgement: falling back to the lexical result
+    // leaves the caller exactly where the feature being off would.
+    vi.stubGlobal("fetch", vi.fn().mockRejectedValue(new Error("network down")));
+    const { corrections } = await ms.context("What time does the office open?", "handbook");
+
+    expect(corrections).toHaveLength(1);
+    expect(warn).toHaveBeenCalled();
+  });
+
+  it("does not spend an embedding call on a confident lexical hit", async () => {
+    const fetchMock = stubEmbeddingFetch();
+    const ms = semanticInstance(directory);
+    await ms.correct(UNIFORM);
+    fetchMock.mockClear();
+
+    // A phrase-keyword hit scores above the weak-lexical line.
+    const { corrections } = await ms.context("What is the uniform allowance?", "handbook");
+
+    expect(corrections).toHaveLength(1);
+    expect(fetchMock).not.toHaveBeenCalled();
+  });
+
   it("serves nothing for a query unrelated to every correction", async () => {
     stubEmbeddingFetch();
     const ms = semanticInstance(directory);
