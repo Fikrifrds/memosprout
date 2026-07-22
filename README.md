@@ -2,12 +2,16 @@
 
 **Correct once. Improve every interaction.**
 
-MemoSprout captures corrections to AI outputs, gates them before they count,
-and delivers them to every future interaction — so a mistake fixed once stops
-coming back.
+MemoSprout captures corrections to AI answers, gates them before they count,
+and retrieves the relevant ones for later questions — so a fix does not die
+with the session it was made in.
 
-Works with any AI system: RAG pipelines, chatbots, coding agents, report
-generators. Any domain where AI produces outputs that humans verify.
+Works alongside any AI system: RAG pipelines, chatbots, coding agents, report
+generators. Anywhere AI produces output that humans verify.
+
+New and unproven: released July 2026, and the numbers below come from test
+sets written for this project rather than production traffic. The
+[Limitations](#limitations) section is not buried — read it before adopting.
 
 ## Install
 
@@ -952,8 +956,10 @@ blindly:
 
 - **Corrections are verified, not blindly trusted.** Validate against
   domain-specific oracles before going live.
-- **Your data never leaves your infrastructure.** Local-first, open
-  source. Audit the code yourself.
+- **Runs on your infrastructure.** Local-first, open source, no telemetry.
+  Outbound calls go only to LLM endpoints you configure — see
+  [Does any of my data leave my machine?](#does-any-of-my-data-leave-my-machine)
+  for the one feature that uploads correction text.
 - **Portable and open.** Markdown files, not a proprietary database.
 - **Domain-agnostic core.** Pluggable adapters for any domain.
 

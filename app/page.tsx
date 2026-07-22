@@ -10,8 +10,8 @@ import { SproutMark } from "@/components/SproutMark";
 export const metadata = {
   title: "MemoSprout — Correct once. Improve every interaction.",
   description:
-    "MemoSprout captures corrections to AI outputs, gates them, and delivers them to every " +
-    "future interaction — so a mistake fixed once stops coming back.",
+    "MemoSprout stores corrections to AI answers as files — approved before use, and " +
+    "dropped when the source they came from changes. Open source, runs on your infrastructure.",
 };
 
 const steps = [
@@ -81,8 +81,8 @@ const principles = [
     body: "A user correction could be wrong or malicious. Customer corrections wait for approval, extracted ones need high confidence, and contradictions are quarantined — plus you can validate against a domain oracle: source documents, test suites, regulations.",
   },
   {
-    title: "Your data never leaves your infrastructure",
-    body: "MemoSprout runs on your infrastructure and stores corrections as Markdown files on your server. There is no MemoSprout cloud and no telemetry. The only outbound calls are to the LLM endpoint you configure — and only if you configure one.",
+    title: "Runs on your infrastructure",
+    body: "Corrections are Markdown files on your server. There is no MemoSprout cloud and no telemetry. The only outbound calls go to the LLM endpoint you configure, and only if you configure one — with one exception worth knowing: semantic retrieval sends the query and the corrections to your embedding provider, because comparing them means embedding both. Point it at a local model, or leave it off.",
   },
   {
     title: "Domain-agnostic core, pluggable adapters",
@@ -111,9 +111,9 @@ export default function HomePage() {
           </h1>
           <p className="mx-auto mt-5 max-w-2xl text-lg text-slate-600">
             AI makes mistakes. Humans fix them. But the fix lives and dies in one session —
-            tomorrow, the same mistake comes back. MemoSprout captures corrections, gates them
-            before they count, and delivers them to every future interaction. Across any domain,
-            any model, any platform.
+            tomorrow, the same mistake comes back. MemoSprout captures those corrections, gates
+            them before they count, and retrieves the relevant ones for later questions. Plain
+            files, any model, no database.
           </p>
           <div className="mt-8 flex flex-wrap items-center justify-center gap-3">
             <Link

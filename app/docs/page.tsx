@@ -147,8 +147,8 @@ Verified facts:
   return answer;
 }`}</CodeBlock>
           <p>
-            That&apos;s the whole loop: corrections are captured, gated, and delivered on
-            every future turn.
+            That&apos;s the whole loop: corrections are captured, gated, and retrieved for
+            later turns that match them.
           </p>
           <p>
             <code>check()</code> catches literal, reworded, and reordered wrong answers with

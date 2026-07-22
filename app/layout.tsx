@@ -9,9 +9,8 @@ import "./globals.css";
 export const siteUrl = "https://memosprout.com";
 
 const description =
-  "MemoSprout captures corrections to AI outputs, gates them before they count, " +
-  "and delivers them to every future interaction. Open source, local-first, " +
-  "domain-agnostic.";
+  "Corrections to AI answers, stored as files — approved before use, and dropped " +
+  "when their source changes. Open source, runs on your own infrastructure.";
 
 export const metadata: Metadata = {
   metadataBase: new URL(siteUrl),

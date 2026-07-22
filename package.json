@@ -2,7 +2,7 @@
   "name": "memosprout",
   "version": "0.5.0",
   "type": "module",
-  "description": "Domain-agnostic correction intelligence engine. Capture, validate, and deliver corrections to AI outputs.",
+  "description": "Corrections to AI answers, stored as files — approved before use, dropped when their source changes.",
   "license": "MIT",
   "keywords": [
     "ai",
