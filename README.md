@@ -703,6 +703,56 @@ sometimes answer with a JSON scaffold instead of prose, which the retrieval
 and gate layers cannot use directly. `LLMResponse.looksStructured` flags
 that so you can react. Prefer an instruct model for the answer itself.
 
+### I already have a `memory.md` (agent memory, Cursor rules, a system prompt). How does MemoSprout fit with it?
+
+They do different jobs, and they compose — MemoSprout is not a replacement
+for a memory file, and a memory file is not a substitute for MemoSprout.
+
+A `memory.md` is **static, whole-file, always-on** context: durable facts,
+preferences, and instructions you maintain by hand and load into every
+prompt. It has no notion of relevance, no gate, and no staleness — every
+line is in context for every turn, and nothing checks whether a fact in it
+is still true.
+
+MemoSprout is the opposite shape on each of those axes. It holds
+*corrections* specifically — a wrong answer paired with its fix — and:
+
+- **retrieves by relevance**, so only the corrections that bear on the
+  current question enter the prompt, not the whole store;
+- **gates before serving**, so an unverified correction is not delivered
+  until approved;
+- **expires and quarantines**, so a correction whose source document
+  changed stops being served instead of silently going stale — the thing a
+  flat memory file cannot do;
+- **keeps an audit trail** of how each correction was captured and approved.
+
+The clean division of labour:
+
+> Put stable, always-true context in `memory.md`. Put facts that get
+> **corrected**, that **change over time**, or that need **verification
+> before use** in MemoSprout.
+
+They coexist in one prompt because `context()` just returns a string. Inject
+it alongside whatever your memory file already contributes:
+
+```typescript
+const memory = await readFile("memory.md", "utf8");   // your existing file
+const { context } = await ms.context(userQuestion);   // relevant corrections
+
+const systemPrompt = [memory, context].filter(Boolean).join("\n\n");
+```
+
+One thing to avoid: do not hand-write the *same* fact into `memory.md` and
+also store a correction for it in MemoSprout. If they ever disagree, the
+model sees two "authoritative" answers with no way to choose. Keep a fact in
+one place — the durable ones in the memory file, the corrected and
+time-sensitive ones in MemoSprout.
+
+If you are building an agent whose whole memory should be gated and
+auditable, MemoSprout can be that store on its own. If you already have a
+memory file that works, keep it, and let MemoSprout own the narrower slice
+it is built for: the corrections.
+
 ### How do I know if it's actually working?
 
 `report()` is the honest signal. `correctionsServed` and `blocksTriggered`
