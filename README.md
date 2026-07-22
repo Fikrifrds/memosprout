@@ -818,7 +818,7 @@ else leaves the store on disk and untouched.
 
 ### Which model should I use?
 
-Any of the 13 named providers, or any OpenAI- or Anthropic-compatible
+Any of the 11 named providers, or any OpenAI- or Anthropic-compatible
 endpoint. The work here — classifying a message, extracting a correction,
 listing synonyms — is well within a small, cheap model's reach; the
 suggested defaults in [LLM providers](#llm-providers) are chosen for

@@ -25,15 +25,27 @@ published, so there is no upgrade path to describe.
 - **Operate.** `report()` shows whether corrections are being served and
   triggered, `audit()` returns a correction's full lifecycle, `validate()`
   checks one against a domain oracle.
-- 13 LLM providers, plus any OpenAI- or Anthropic-compatible endpoint.
-- Corrections stored as Markdown with YAML frontmatter. No database, and no
-  data leaves your infrastructure.
+- 11 named LLM providers, plus any OpenAI- or Anthropic-compatible endpoint.
+- Corrections stored as Markdown with YAML frontmatter. No database. Nothing
+  leaves your infrastructure except what you send to an LLM you configured —
+  see `semanticRetrieval` below for the one feature that uploads correction
+  text.
 - **Diagnose.** `report()` also returns `queriesWithoutMatch` and
   `unmatchedQueries`. Retrieval failing is silent — an empty context, not an
   error — so these name the phrasings your triggers do not cover yet.
 - `generateAliases: true` asks the model once per new correction for the
   other words users say for the same fact, and stores them as triggers. One
   call on the write, none on the read path. Off by default.
+- `semanticRetrieval: true` adds an embedding fallback to `context()` for
+  questions phrased in words the triggers do not cover. Lexical matching
+  still runs first and a confident hit is kept, so exact-term queries stay
+  free and deterministic; embeddings are consulted only when lexical finds
+  nothing or only a weak match. On a 24-correction corpus this moves overall
+  retrieval accuracy from 33% to 93% and cuts wrong corrections served from
+  4 to 1 (`pnpm semantic:eval` reproduces it and prints its own failures).
+  Off by default: it needs an embedding API key and it is the one feature
+  that sends correction text to a provider — point `embedding.baseUrl` at a
+  local Ollama instance to keep that on your own infrastructure.
 - `LLMResponse.usage` reports normalized token counts. `inputTokens` is the
   whole input side on every provider, with `cachedInputTokens` and
   `cacheCreationInputTokens` as the breakdown pricing needs.
