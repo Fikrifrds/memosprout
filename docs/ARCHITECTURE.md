@@ -629,10 +629,7 @@ lib/
 ├── mcp/                        # MCP server
 ├── scenario/                   # Scenario definitions (used by CodingAdapter)
 ├── ledger/                     # Outcome Ledger (historical)
-├── control-plane/              # Lifecycle management (historical)
 ├── reflex/                     # Protection Gate (historical)
-├── router/                     # Cost-Intelligence Router (historical)
-├── compiler/                   # Experience Compiler (historical)
 ├── delivery/                   # Delivery system (historical)
 ├── okf/                        # OKF render/validate (historical)
 └── codex/                      # Codex adapter (historical)

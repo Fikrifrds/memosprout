@@ -89,6 +89,16 @@ What we already have and how it maps.
 | Delivery registry | `lib/delivery/registry.ts` | 80% | SproutRegistry → CorrectionRegistry |
 | Delivery matching | `lib/delivery/get-task-context.ts` | 50% | pathInScope → keyword/entity matching |
 | Reflex gate | `lib/reflex/gate.ts` | 40% | File-edit blocking → answer blocking |
+> **Removed from the tree.** `lib/control-plane/`, `lib/compiler/`,
+> `lib/router/`, and `lib/artifact/` were Build Week modules that no
+> shipped code imported — their only consumers were their own tests.
+> They were deleted rather than kept as reference material, because git
+> already is that. Read them at the commit before the deletion:
+>
+> ```bash
+> git show 93ced9c:lib/compiler/experience-compiler.ts
+> ```
+
 | Outcome ledger | `lib/ledger/ledger.ts` | 70% | New metrics: accuracy, correction impact |
 | Control plane | `lib/control-plane/control-plane.ts` | 80% | Sprout lifecycle → correction lifecycle |
 | Experience compiler | `lib/compiler/experience-compiler.ts` | 50% | Sprout extraction → correction extraction |
