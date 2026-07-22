@@ -482,6 +482,70 @@ No database. No vendor lock-in. `git diff` your corrections.
 Writes are atomic (temp file + rename) and serialized in-process, so
 concurrent requests cannot corrupt a file or lose a `confirmCount` bump.
 
+## Limitations
+
+Read this before adopting. Each item is measured, not estimated.
+
+### Retrieval is lexical, not semantic
+
+A correction is found by matching trigger keywords, entities, and the words
+of the correction itself against the question. It handles inflection
+("dispute" finds "disputed") and reordering, but it cannot relate two
+different words for the same thing.
+
+```typescript
+await ms.correct({
+  wrong: "The annual uniform allowance is EUR 120",
+  correct: "The annual uniform allowance is EUR 200",
+  keywords: ["uniform allowance"],
+});
+
+await ms.context("How much can I claim for workwear?"); // -> no match
+```
+
+On a deterministic paraphrase set, recall is **100% for queries that share
+vocabulary with the trigger and 20% for pure paraphrases**. The failure is
+silent: you get an empty context, not an error.
+
+Until semantic retrieval lands, add the words your users actually type as
+trigger keywords:
+
+```typescript
+keywords: ["uniform allowance", "workwear", "protective clothing"],
+```
+
+### The output gate helps weak models most
+
+`check()` catches a wrong answer after generation. Across six live
+endpoints, it was worth **+48 points on a small model that ignored the
+injected context, and +7 to +15 points on stronger ones** — inside the
+measurement interval for the latter. If you already use a capable model,
+most of the benefit comes from `context()`, not from the gate.
+
+When the gate fires, do not substitute a single correction for the whole
+answer: regenerate and re-check, as the quick start shows. A correction is
+one fact, and an answer often carries several.
+
+### Benchmarks measure a constructed failure mode
+
+The published numbers come from stale-context stress tests: the retrieved
+passage is deliberately made to contradict a stored correction, so the
+baseline is designed to fail. They measure the delta MemoSprout produces on
+that failure, **not accuracy on traffic where your corpus is already
+current**. Nothing here has been measured on production traffic.
+
+### A correction is only as good as its approval
+
+`approvalRequired` defaults to `true` because model confidence is not source
+validation. MemoSprout enforces that a correction was approved before it is
+served; it cannot tell you whether the approver was right.
+
+### Not yet covered
+
+Multi-turn conversations, adversarial inputs, long-context settings, and
+corpora that are already up to date. Token and cost overhead are reported
+per call but have not been characterised over a sustained workload.
+
 ## Trust and safety
 
 Corrections change what your AI tells users, so they are not accepted

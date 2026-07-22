@@ -6,6 +6,13 @@ silently degrading correct ones.
 
 ## What is proven
 
+> **Historical.** The live paid run below predates the retrieval rework, the
+> sentence-scoped `check()`, and the gate repair loop. It is kept as recorded
+> evidence and must not be quoted as current behaviour. The deterministic
+> stress test further down runs against the present code; the provider matrix
+> has not been re-run on it.
+
+
 The live paired knowledge-drift benchmark gives the same fictional stale
 handbook passage and question to both conditions. The protected condition is
 the only one that receives MemoSprout context. With 20 current corrections,
