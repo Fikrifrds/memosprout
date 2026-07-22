@@ -572,6 +572,146 @@ Multi-turn conversations, adversarial inputs, long-context settings, and
 corpora that are already up to date. Token and cost overhead are reported
 per call but have not been characterised over a sustained workload.
 
+## FAQ
+
+### The source document gets updated and my correction is now outdated. What happens?
+
+This is the case MemoSprout is built for, so it has explicit machinery for
+it — but the machinery only runs if you give a correction a fingerprint of
+its source.
+
+When you capture the correction, record what it was based on:
+
+```typescript
+import { createHash } from "node:crypto";
+
+const doc = await fetchPolicyDoc("SK-045");        // your source of truth
+await ms.correct({
+  wrong: "Annual leave is 12 days",
+  correct: "Annual leave is 15 days since 2026",
+  source: "SK-045",
+  sourceHash: createHash("sha256").update(doc).digest("hex"),
+});
+```
+
+Then teach MemoSprout how to look up the current fingerprint:
+
+```typescript
+ms.setSourceHashProvider({
+  async getCurrentHash(sourceRef) {
+    const doc = await fetchPolicyDoc(sourceRef);       // re-fetch live
+    return createHash("sha256").update(doc).digest("hex");
+  },
+});
+```
+
+Now, on every `context()` and `check()`, MemoSprout re-computes the source
+hash. If the document changed, the correction is **quarantined** — marked
+`staleness: "source_changed"`, dropped from retrieval, and never injected
+again. It is not deleted: quarantine is a held state, not a verdict, so you
+can review why it went stale rather than silently losing the record.
+
+The reasoning is deliberate: once the underlying document changes, the
+correction may have become right, wrong, or redundant, and MemoSprout
+cannot know which. Serving a correction whose basis has shifted would be
+worse than serving nothing, so it stops serving and surfaces it for a
+human.
+
+There are three other ways a correction stops being served, in the same
+spirit of not trusting a stale fact:
+
+- **Expiry.** Set `expiresAt` when you know a correction has a shelf life
+  (a temporary policy, a rate that resets). After that date it is
+  quarantined automatically — no source hash needed.
+- **Supersession.** Capturing a newer correction that contradicts an older
+  one quarantines the old one instead of leaving the AI with two "verified"
+  answers. This happens on its own; see [Trust and safety](#trust-and-safety).
+- **Manual deprecation.** `ms.remove(id)` retires a correction you know is
+  wrong.
+
+If you record no `sourceHash`, none of the automatic source-change
+detection runs — MemoSprout has nothing to compare against, and the
+correction stays active until it expires, is superseded, or is removed by
+hand. For a RAG pipeline over documents that change, wiring up the hash
+provider is the piece that keeps the correction store honest as the corpus
+moves underneath it.
+
+### "Connect an LLM — optional." What runs without one, and what is the default?
+
+The default is **no LLM**. Constructing `new MemoSprout("./corrections")`
+with no `llm` option gives you a manual correction store, and these work
+entirely offline with no API key and no network call:
+
+| Method | Needs an LLM? |
+|---|---|
+| `correct()` | no |
+| `context()` | no |
+| `check()` (lexical) | no |
+| `list()`, `get()`, `remove()`, `report()`, `audit()` | no |
+| `processMessage()` | **yes** — returns type `"none"` without one |
+| `check()` with `semanticCheck: true` | **yes** for the semantic pass |
+| `correct()` with `generateAliases: true` | **yes** for aliases |
+| `validate()` | uses the LLM only as a fallback oracle |
+
+So without an LLM you can still capture corrections by hand, retrieve them,
+and block known-wrong answers by exact and reordered phrasing. What you lose
+is the convenience layer: automatically turning a user's "no, that's wrong"
+into a structured correction (`processMessage`), catching paraphrased wrong
+answers (`semanticCheck`), and widening triggers with synonyms
+(`generateAliases`). Add an LLM when you want those; leave it out to keep
+everything local and free.
+
+### What is `./corrections`? Do I need to create the folder first?
+
+It is the directory where corrections are written, one Markdown file each,
+plus small JSON index files for outcomes and the audit log. The argument is
+just a path — name it whatever you like; `"./corrections"` is only the
+default.
+
+**You do not create it.** MemoSprout runs `mkdir` recursively on first use,
+so a path that does not exist yet is fine. Point it wherever the corrections
+should live:
+
+```typescript
+new MemoSprout();                          // ./corrections
+new MemoSprout("./data/memosprout");       // created on first write
+new MemoSprout("/var/lib/app/corrections");
+```
+
+Because it is plain files, the store is portable and inspectable: commit it
+to git to version your corrections, diff it in a review, or copy the folder
+to move the whole knowledge base. See
+[How corrections are stored](#how-corrections-are-stored) for the file
+format.
+
+### Does any of my data leave my machine?
+
+Only what you send to the LLM, and only if you connected one. The
+correction store is local files. With no LLM configured, nothing leaves at
+all. With one, the text you pass to `processMessage()`, `check(..., {
+semanticCheck })`, or alias generation is sent to that endpoint — the
+corrections themselves are never uploaded anywhere by MemoSprout.
+
+### Which model should I use?
+
+Any of the 13 named providers, or any OpenAI- or Anthropic-compatible
+endpoint. The work here — classifying a message, extracting a correction,
+listing synonyms — is well within a small, cheap model's reach; the
+suggested defaults in [LLM providers](#llm-providers) are chosen for
+price. One caveat from live testing: reasoning and agent-tuned models
+sometimes answer with a JSON scaffold instead of prose, which the retrieval
+and gate layers cannot use directly. `LLMResponse.looksStructured` flags
+that so you can react. Prefer an instruct model for the answer itself.
+
+### How do I know if it's actually working?
+
+`report()` is the honest signal. `correctionsServed` and `blocksTriggered`
+show corrections doing their job; `queriesWithoutMatch` and
+`unmatchedQueries` show the opposite — questions that found no correction
+although the domain had some. A high `queriesWithoutMatch` usually means
+your trigger keywords do not match how users phrase things; add the words
+from `unmatchedQueries`, or turn on `generateAliases`.
+
 ## Trust and safety
 
 Corrections change what your AI tells users, so they are not accepted
