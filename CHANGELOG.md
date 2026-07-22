@@ -43,6 +43,16 @@ published, so there is no upgrade path to describe.
   forty-five replies, so there is no envelope to strip and picking a field
   would mean guessing which key holds the answer.
 
+### Evaluation
+
+- A full six-provider live run against the frozen harness is recorded in
+  `docs/evaluations/PROVIDER_MATRIX_POST_FIX.md`. Under shippable-output
+  scoring, four prose-returning providers reach 78–89% correct on
+  stale-context questions where the baseline is 0% by construction.
+  Cross-provider transfer is 44/50 at the fact level and 33/50 as usable
+  prose. `pnpm tsx eval/provider-matrix/verify-post-fix.ts` reproduces
+  every figure from the raw results.
+
 ### Known limitations
 
 These are measured and documented in the README, not open questions:

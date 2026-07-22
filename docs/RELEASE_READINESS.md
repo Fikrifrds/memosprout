@@ -6,6 +6,11 @@ silently degrading correct ones.
 
 ## What is proven
 
+> **A current run now exists.** See
+> [docs/evaluations/PROVIDER_MATRIX_POST_FIX.md](evaluations/PROVIDER_MATRIX_POST_FIX.md),
+> executed against the frozen harness after all the fixes. The block
+> below is kept for history.
+>
 > **Historical.** The live paid run below predates the retrieval rework, the
 > sentence-scoped `check()`, and the gate repair loop. It is kept as recorded
 > evidence and must not be quoted as current behaviour. The deterministic
