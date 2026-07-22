@@ -6,7 +6,17 @@ import { atomicWriteFile, Mutex } from "@/lib/store/atomic";
 
 export const outcomeEventSchema = z
   .object({
-    type: z.enum(["context_served", "block_triggered", "correction_approved", "correction_deprecated"]),
+    type: z.enum([
+      "context_served",
+      // A query that found nothing while the domain did hold active
+      // corrections. Recorded because retrieval failing is silent — the
+      // caller receives an empty context, not an error — so without this
+      // the most common failure leaves no trace at all.
+      "context_missed",
+      "block_triggered",
+      "correction_approved",
+      "correction_deprecated",
+    ]),
     correctionId: z.string().optional(),
     domain: z.string().optional(),
     query: z.string().optional(),
@@ -23,6 +33,13 @@ export const outcomeReportSchema = z
     blocksTriggered: z.number().int().nonnegative(),
     correctionsApproved: z.number().int().nonnegative(),
     correctionsDeprecated: z.number().int().nonnegative(),
+    /** Queries that matched nothing although the domain had corrections. */
+    queriesWithoutMatch: z.number().int().nonnegative(),
+    /**
+     * The most recent of those queries, so the gap is actionable: these
+     * are the phrasings your trigger keywords do not cover yet.
+     */
+    unmatchedQueries: z.array(z.string()),
     topCorrections: z.array(
       z.object({
         correctionId: z.string(),
@@ -79,6 +96,17 @@ export class OutcomeTracker {
     })));
   }
 
+  async trackContextMissed(domain?: string, query?: string): Promise<void> {
+    await this.append([
+      {
+        type: "context_missed",
+        domain,
+        query,
+        timestamp: new Date().toISOString(),
+      },
+    ]);
+  }
+
   async trackBlockTriggered(correctionId: string, domain?: string, query?: string): Promise<void> {
     await this.append([outcomeEventSchema.parse({
       type: "block_triggered",
@@ -113,8 +141,20 @@ export class OutcomeTracker {
       : this.events;
 
     const queries = new Set(
-      filtered.filter((e) => e.type === "context_served" && e.query).map((e) => e.query),
+      filtered
+        .filter((e) => (e.type === "context_served" || e.type === "context_missed") && e.query)
+        .map((e) => e.query),
     );
+
+    const missed = filtered.filter((e) => e.type === "context_missed");
+    const unmatchedQueries = [
+      ...new Set(
+        missed
+          .slice()
+          .reverse()
+          .flatMap((event) => (event.query ? [event.query] : [])),
+      ),
+    ].slice(0, 10);
 
     const perCorrection = new Map<string, { served: number; blocked: number }>();
     for (const event of filtered) {
@@ -136,6 +176,8 @@ export class OutcomeTracker {
 
     return outcomeReportSchema.parse({
       totalQueries: queries.size,
+      queriesWithoutMatch: missed.length,
+      unmatchedQueries,
       correctionsServed: filtered.filter((e) => e.type === "context_served").length,
       blocksTriggered: filtered.filter((e) => e.type === "block_triggered").length,
       correctionsApproved: filtered.filter((e) => e.type === "correction_approved").length,

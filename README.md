@@ -183,9 +183,20 @@ const report = await ms.report("support");
 //   totalQueries: 142,
 //   correctionsServed: 89,
 //   blocksTriggered: 12,
+//   queriesWithoutMatch: 31,
+//   unmatchedQueries: ["How much for workwear?", "when do I get paid out?"],
 //   topCorrections: [{ correctionId: "corr_abc", timesServed: 45, timesBlocked: 8 }],
 // }
 ```
+
+`queriesWithoutMatch` is the number that tells you whether retrieval is
+working. A correction that is never found fails silently — the caller gets
+an empty context, not an error — so `unmatchedQueries` lists the actual
+phrasings your trigger keywords did not cover. Reading that list and adding
+the words your users really type is the fastest way to improve recall.
+
+Only queries in a domain that holds active corrections are counted, so an
+unrelated question is never reported as a retrieval failure.
 
 ### `ms.audit(correctionId)`
 

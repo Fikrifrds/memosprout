@@ -173,4 +173,31 @@ describe("MemoSprout", () => {
     const goodAnswer = await ms.check("Your refund takes 5 business days");
     expect(goodAnswer.ok).toBe(true);
   });
+
+  it("report() surfaces queries that found no correction", async () => {
+    await ms.correct({
+      wrong: "The annual uniform allowance is EUR 120",
+      correct: "The annual uniform allowance is EUR 200",
+      keywords: ["uniform allowance"],
+      domain: "handbook",
+    });
+
+    await ms.context("What is the uniform allowance?", "handbook"); // hits
+    await ms.context("How much for workwear?", "handbook"); // silent miss
+
+    const report = await ms.report("handbook");
+    expect(report.queriesWithoutMatch).toBe(1);
+    expect(report.unmatchedQueries).toEqual(["How much for workwear?"]);
+  });
+
+  it("report() does not log a miss when the domain holds no corrections", async () => {
+    // Otherwise every unrelated question in an empty domain would read as
+    // a retrieval failure and the signal would be worthless.
+    await ms.context("What is the weather today?", "empty-domain");
+
+    const report = await ms.report("empty-domain");
+    expect(report.queriesWithoutMatch).toBe(0);
+    expect(report.unmatchedQueries).toEqual([]);
+  });
+
 });

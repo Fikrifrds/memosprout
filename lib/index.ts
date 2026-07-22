@@ -386,6 +386,15 @@ export class MemoSprout {
     }
 
     if (fresh.length === 0) {
+      // Retrieval failing is silent: the caller gets an empty context, not
+      // an error, and a user whose wording differs from the trigger simply
+      // sees the uncorrected answer. Record the miss so report() can show
+      // which phrasings are not covered — but only when this domain
+      // actually holds corrections, otherwise every unrelated question
+      // would be logged as a failure and the signal would be noise.
+      if (this.store.list({ status: "active", domain }).length > 0) {
+        await this.tracker.trackContextMissed(domain, query);
+      }
       return { corrections: [], context: "", staleSkipped };
     }
 
