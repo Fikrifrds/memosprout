@@ -200,4 +200,48 @@ describe("MemoSprout", () => {
     expect(report.unmatchedQueries).toEqual([]);
   });
 
+  /**
+   * A correction that is never approved is never served, and nothing pushes
+   * that fact at anyone — so without this number, captured knowledge can be
+   * dropped in silence. These pin the counting rules, since the queue is
+   * store state rather than an event count.
+   */
+  describe("report() approval queue", () => {
+    it("counts corrections waiting for a human, oldest first", async () => {
+      await ms.correct({ wrong: "A1", correct: "A2", domain: "hr", role: "customer" });
+      await ms.correct({ wrong: "B1", correct: "B2", domain: "hr", role: "customer" });
+      // Trusted source: active immediately, so it is not waiting on anyone.
+      await ms.correct({ wrong: "C1", correct: "C2", domain: "hr", role: "agent" });
+
+      const report = await ms.report("hr");
+      expect(report.pendingApprovals).toBe(2);
+      expect(report.pendingApprovalIds).toHaveLength(2);
+      expect(report.oldestPendingApprovalAt).toBeTruthy();
+    });
+
+    it("scopes the queue to the domain asked about", async () => {
+      await ms.correct({ wrong: "A1", correct: "A2", domain: "hr", role: "customer" });
+      await ms.correct({ wrong: "B1", correct: "B2", domain: "legal", role: "customer" });
+
+      expect((await ms.report("hr")).pendingApprovals).toBe(1);
+      expect((await ms.report()).pendingApprovals).toBe(2);
+    });
+
+    it("shrinks as corrections are approved", async () => {
+      await ms.correct({ wrong: "A1", correct: "A2", domain: "hr", role: "customer" });
+      await ms.correct({ wrong: "B1", correct: "B2", domain: "hr", role: "customer" });
+
+      const before = await ms.report("hr");
+      await ms.approve(before.pendingApprovalIds[0]!);
+
+      expect((await ms.report("hr")).pendingApprovals).toBe(1);
+    });
+
+    it("reports an empty queue as zero, not as missing data", async () => {
+      const report = await ms.report();
+      expect(report.pendingApprovals).toBe(0);
+      expect(report.pendingApprovalIds).toEqual([]);
+      expect(report.oldestPendingApprovalAt).toBeNull();
+    });
+  });
 });

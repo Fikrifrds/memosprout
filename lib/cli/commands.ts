@@ -156,6 +156,21 @@ export async function commandApprove(
   return new MemoSprout(directory).approve(correctionId);
 }
 
+/**
+ * Outcome report, including the approval queue.
+ *
+ * Exposed on the CLI because the two things most worth acting on —
+ * corrections waiting for a human, and questions retrieval could not answer
+ * — are both silent failures. Neither surfaces unless someone looks.
+ */
+export async function commandReport(
+  directory: string,
+  domain?: string,
+): Promise<import("@/lib/outcome/tracker").OutcomeReport> {
+  const { MemoSprout } = await import("@/lib/index");
+  return new MemoSprout(directory).report(domain);
+}
+
 export interface ActivateResult {
   correctionId: string;
   previousStatus: string;

@@ -40,6 +40,24 @@ export const outcomeReportSchema = z
      * are the phrasings your trigger keywords do not cover yet.
      */
     unmatchedQueries: z.array(z.string()),
+    /**
+     * Corrections sitting in `suggested`, waiting for a human to approve
+     * them. Nothing pushes this at you, and a correction that is never
+     * approved is never served — so a number that keeps climbing means
+     * knowledge is being captured and then silently dropped.
+     *
+     * Filled in by MemoSprout.report(), not by the tracker: this is current
+     * store state, not an event count.
+     */
+    pendingApprovals: z.number().int().nonnegative(),
+    /** The oldest of those, so the queue can be worked from the top. */
+    pendingApprovalIds: z.array(z.string()),
+    /**
+     * ISO date of the longest-waiting one, or null when nothing is pending.
+     * The age is the signal: three corrections filed this morning is a
+     * queue, three filed last quarter is an abandoned one.
+     */
+    oldestPendingApprovalAt: z.string().nullable(),
     topCorrections: z.array(
       z.object({
         correctionId: z.string(),
@@ -178,6 +196,11 @@ export class OutcomeTracker {
       totalQueries: queries.size,
       queriesWithoutMatch: missed.length,
       unmatchedQueries,
+      // Placeholders: the approval queue is store state, which this tracker
+      // cannot see. MemoSprout.report() overwrites these.
+      pendingApprovals: 0,
+      pendingApprovalIds: [],
+      oldestPendingApprovalAt: null,
       correctionsServed: filtered.filter((e) => e.type === "context_served").length,
       blocksTriggered: filtered.filter((e) => e.type === "block_triggered").length,
       correctionsApproved: filtered.filter((e) => e.type === "correction_approved").length,

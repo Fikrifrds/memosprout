@@ -2,12 +2,13 @@ import { CodingAdapter } from "@/lib/adapter/coding";
 import {
   DEFAULT_CORRECTIONS_DIR,
   commandActivate,
-  commandApprove,
   commandAdd,
+  commandApprove,
   commandCheck,
   commandInit,
   commandList,
   commandMatch,
+  commandReport,
   commandValidate,
 } from "@/lib/cli/commands";
 import { CorrectionStore } from "@/lib/correction/store";
@@ -29,6 +30,7 @@ Usage:
   memosprout activate <id>                       Activate an already-validated correction
   memosprout check <query> <answer>              Check an answer against corrections
   memosprout match <query>                       Find relevant corrections for a query
+  memosprout report [--domain <d>]               Approval queue, usage, and retrieval gaps
 
 Reviewing pending corrections:
   Corrections from customers, and LLM-extracted ones, are stored as
@@ -138,6 +140,40 @@ async function main(): Promise<void> {
           console.log(`    Wrong:   ${correction.wrongPattern}`);
           console.log(`    Correct: ${correction.correctAnswer}`);
           console.log();
+        }
+      }
+      break;
+    }
+
+    case "report": {
+      const report = await commandReport(correctionsDir, flags.domain);
+
+      // Lead with the approval queue: it is the one number that means work
+      // is waiting on a person rather than describing what already happened.
+      if (report.pendingApprovals > 0) {
+        console.log(`${report.pendingApprovals} correction(s) waiting for approval`);
+        if (report.oldestPendingApprovalAt) {
+          const days = Math.floor(
+            (Date.now() - new Date(report.oldestPendingApprovalAt).getTime()) / 86_400_000,
+          );
+          console.log(`  oldest: ${days} day(s) ago`);
+        }
+        for (const id of report.pendingApprovalIds) {
+          console.log(`  ${id}`);
+        }
+        console.log(`  approve with: memosprout approve <id>\n`);
+      }
+
+      console.log(`Queries:            ${report.totalQueries}`);
+      console.log(`Corrections served: ${report.correctionsServed}`);
+      console.log(`Blocks triggered:   ${report.blocksTriggered}`);
+      console.log(`Approved:           ${report.correctionsApproved}`);
+      console.log(`Pending approval:   ${report.pendingApprovals}`);
+      console.log(`Queries with no match: ${report.queriesWithoutMatch}`);
+      if (report.unmatchedQueries.length > 0) {
+        console.log(`\nPhrasings your triggers do not cover:`);
+        for (const query of report.unmatchedQueries) {
+          console.log(`  ${query}`);
         }
       }
       break;

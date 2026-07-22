@@ -196,15 +196,28 @@ const report = await ms.report("support");
 //   blocksTriggered: 12,
 //   queriesWithoutMatch: 31,
 //   unmatchedQueries: ["How much for workwear?", "when do I get paid out?"],
+//   pendingApprovals: 7,
+//   pendingApprovalIds: ["corr_a1b2c3d4", ...],       // oldest first
+//   oldestPendingApprovalAt: "2026-06-14T09:12:00Z",
 //   topCorrections: [{ correctionId: "corr_abc", timesServed: 45, timesBlocked: 8 }],
 // }
 ```
 
-`queriesWithoutMatch` is the number that tells you whether retrieval is
-working. A correction that is never found fails silently — the caller gets
-an empty context, not an error — so `unmatchedQueries` lists the actual
-phrasings your trigger keywords did not cover. Reading that list and adding
-the words your users really type is the fastest way to improve recall.
+Two numbers here report **silent failures** — things that go wrong without
+raising an error, and so go unnoticed until someone looks:
+
+`queriesWithoutMatch` tells you whether retrieval is working. A correction
+that is never found fails quietly — the caller gets an empty context, not an
+error — so `unmatchedQueries` lists the actual phrasings your trigger
+keywords did not cover. Adding the words your users really type is the
+fastest way to improve recall.
+
+`pendingApprovals` counts corrections waiting on a human. A correction that
+is never approved is never served, so a number that keeps climbing means
+knowledge is being captured and then dropped. `oldestPendingApprovalAt` is
+the sharper signal: three corrections filed this morning is a queue, three
+filed last quarter is an abandoned one. Nothing notifies you — poll this, or
+run `memosprout report`.
 
 Only queries in a domain that holds active corrections are counted, so an
 unrelated question is never reported as a retrieval failure.
@@ -477,8 +490,18 @@ Corrections from customers, and those an LLM extracted from a conversation,
 are stored as `suggested` and are **not served** until a human approves them:
 
 ```bash
+npx memosprout report                    # how big is the queue, and how old?
 npx memosprout list --status suggested   # see the queue
 npx memosprout approve corr_a1b2c3d4     # clear one
+```
+
+`report` leads with the queue when anything is waiting:
+
+```
+2 correction(s) waiting for approval
+  oldest: 34 day(s) ago
+  corr_e11982a8776fe177
+  approve with: memosprout approve <id>
 ```
 
 `approve` is the human sign-off path. `activate` is different — it is the

@@ -4,6 +4,28 @@ All notable changes to this project are documented here. This project
 follows [Semantic Versioning](https://semver.org/). While the major version
 is `0`, the public API may change between minor versions.
 
+## 0.5.0
+
+### Added
+
+- **`report()` now reports the approval queue** — `pendingApprovals`,
+  `pendingApprovalIds` (oldest first), and `oldestPendingApprovalAt`.
+
+  A correction that is never approved is never served, and nothing pushed
+  that fact at anyone: the queue could grow indefinitely while the report
+  said everything was fine. Both silent failures are now visible in one
+  place — questions retrieval could not answer, and corrections waiting on a
+  person. The age matters more than the count: three corrections filed this
+  morning is a queue, three filed last quarter is an abandoned one.
+
+  The numbers come from current store state rather than the event log, so
+  they are computed in `MemoSprout.report()`, not in the outcome tracker.
+
+- **`memosprout report [--domain <d>]`.** The CLI had no report command at
+  all, so none of the above was reachable without writing JavaScript. It
+  leads with the approval queue when anything is waiting, and stays quiet
+  when the queue is empty.
+
 ## 0.4.0
 
 ### Added
@@ -24,7 +46,8 @@ is `0`, the public API may change between minor versions.
 - Nothing notifies you that corrections are waiting for approval. The queue
   has to be polled with `list --status suggested`, so a correction can sit
   unserved indefinitely. Documented in the README and in `help` rather than
-  left to be discovered.
+  left to be discovered. (0.5.0 makes the queue visible in `report()` and
+  `memosprout report`; it is still polled, not pushed.)
 
 ## 0.3.0 — first public release
 

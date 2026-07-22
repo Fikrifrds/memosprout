@@ -403,7 +403,24 @@ export class MemoSprout {
 
   async report(domain?: string): Promise<OutcomeReport> {
     await this.ensureReady();
-    return this.tracker.report(domain);
+    const report = this.tracker.report(domain);
+
+    // The approval queue is current store state rather than an event count,
+    // so the tracker cannot see it. Surfaced here because a correction that
+    // is never approved is never served: without this number, captured
+    // knowledge can be dropped silently and nothing in the report says so.
+    const pending = this.store
+      .list({ status: "suggested", domain })
+      .sort((a, b) => a.submittedAt.localeCompare(b.submittedAt));
+
+    return {
+      ...report,
+      pendingApprovals: pending.length,
+      // Oldest first: a queue is worked from the front, and these are the
+      // ones most at risk of being forgotten.
+      pendingApprovalIds: pending.slice(0, 10).map((c) => c.correctionId),
+      oldestPendingApprovalAt: pending[0]?.submittedAt ?? null,
+    };
   }
 
   async audit(correctionId: string): Promise<AuditEntry[]> {
