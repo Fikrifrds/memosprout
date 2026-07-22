@@ -109,7 +109,7 @@ new MemoSprout("./corrections", {
   semanticCheck: false,        // LLM pass in check() for paraphrases
   generateAliases: false,      // one LLM call per new correction, on write
   semanticRetrieval: false,    // embedding fallback in context() for paraphrases
-  semanticRetrievalThreshold: 0.35,  // min cosine similarity for a semantic hit
+  semanticRetrievalThreshold: 0.42,  // min cosine similarity for a semantic hit
   // Embedding provider. Defaults to OpenAI text-embedding-3-small and
   // reuses llm.apiKey. Any OpenAI-shaped /embeddings route works.
   // embedding: { baseUrl: "http://localhost:11434/v1", model: "nomic-embed-text" },
@@ -571,21 +571,36 @@ await ms.correct({ wrong: "...EUR 120", correct: "...EUR 200",
 await ms.context("How much can I claim for workwear?"); // -> match
 ```
 
-Measured with `pnpm semantic:eval` on a 16-query corpus using OpenAI
-`text-embedding-3-small` at the default threshold of 0.35:
+Measured with `pnpm semantic:eval` — 24 corrections and 30 queries against
+OpenAI `text-embedding-3-small` at the default threshold of 0.42:
 
-| Query class | n  | Lexical | + Semantic |
-|-------------|----|---------|------------|
-| Shares trigger vocabulary | 5 | 40% | **100%** |
-| Pure paraphrase | 7 | 0% | **86%** |
-| Unrelated (should return nothing) | 4 | 100% | **100%** |
-| **Overall** | 16 | 38% | **94%** |
+| Query class | n | Lexical | + Semantic |
+|-------------|---|---------|------------|
+| Paraphrase (same fact, different words) | 12 | 8% | **75%** |
+| Near-miss (a very similar sibling exists) | 8 | 13% | **100%** |
+| Should-miss (adjacent topic, no correction) | 6 | 83% | 83% |
+| Unrelated | 4 | 75% | 75% |
+| **Overall** | 30 | 33% | **83%** |
 
-No wrong correction was served in either configuration. Recall is the binding
-constraint, not precision, which is why the default threshold is low; raise
-`semanticRetrievalThreshold` if you hold many corrections in one domain and
-see irrelevant ones served. At 0.55 paraphrase recall falls to 14%, so tune
-downward before upward.
+The corpus is sized on purpose. An earlier version of this eval used five
+corrections and reported 94% — a flattering number, because with five facts
+there is no near neighbour to confuse. Precision is what degrades as a domain
+fills up, so the corrections here form deliberate clusters (four allowances,
+three warranties, four kinds of leave).
+
+**Read the third row before enabling this.** Semantic retrieval does not
+improve `should-miss`, and it costs a little on off-topic queries: at 0.42,
+"what time does the office open?" attaches to the home-office allowance.
+Lexical serves a wrong correction on 4 of 30 queries, semantic on 5. You are
+trading a small amount of precision for a large amount of recall — worth it
+when questions arrive in users' own words, not worth it if your users already
+phrase things the way corrections are filed.
+
+The threshold is the lever, and 0.42 is where overall accuracy peaks on this
+corpus (0.35 → 77%, 0.42 → 83%, 0.50 → 57%). Expect to tune it for your own
+data rather than trusting the default: the right value depends on how densely
+your corrections cover one topic. `pnpm semantic:eval` prints the queries it
+got wrong, so point it at a corpus resembling yours and read the failures.
 
 **Cost.** `text-embedding-3-small` is $0.02 per 1M tokens. A correction is
 embedded once and cached on disk (`embeddings.json`), keyed by a hash of its

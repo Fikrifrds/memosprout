@@ -218,4 +218,36 @@ describe("semantic retrieval — with vs without", () => {
   it("requires a key, and says so at construction", () => {
     expect(() => new MemoSprout(directory, { semanticRetrieval: true })).toThrow(/apiKey/i);
   });
+
+  /**
+   * The threshold is the only guard against a loosely-related correction
+   * being served, and the live eval shows that guard is real: off-topic
+   * queries do attach to a near neighbour when it is set too low. This
+   * pins the mechanism so a future change cannot quietly disable it.
+   */
+  it("rejects a candidate below the threshold instead of serving the nearest one", async () => {
+    stubEmbeddingFetch();
+    const ms = new MemoSprout(directory, {
+      llm: { provider: "openai", apiKey: "sk-test" },
+      semanticRetrieval: true,
+      semanticRetrievalThreshold: 0.99,
+    });
+    await ms.correct(UNIFORM);
+
+    // The paraphrase is a genuine match at the default threshold; at 0.99
+    // nothing qualifies, and the correct behaviour is silence rather than
+    // the best available guess.
+    const { corrections } = await ms.context(PARAPHRASE, "handbook");
+    expect(corrections).toHaveLength(0);
+  });
+
+  it("serves nothing for a query unrelated to every correction", async () => {
+    stubEmbeddingFetch();
+    const ms = semanticInstance(directory);
+    await ms.correct(UNIFORM);
+    await ms.correct(PARKING);
+
+    const { corrections } = await ms.context("Who is the CEO of the company?", "handbook");
+    expect(corrections).toHaveLength(0);
+  });
 });

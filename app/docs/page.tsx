@@ -147,8 +147,9 @@ Verified facts:
             The mirror image on the read side is <code>semanticRetrieval: true</code>. Retrieval
             is lexical by default, so a correction filed under &quot;uniform allowance&quot; is
             not found by a question about &quot;workwear&quot;. With it on, a query that lexical
-            matching cannot answer falls back to embedding similarity — measured on a paraphrase
-            corpus, recall goes from <strong>0% to 86%</strong> with no loss of precision:
+            matching cannot answer falls back to embedding similarity — on a 24-correction
+            corpus, overall accuracy goes from <strong>33% to 83%</strong>, trading a little
+            precision for a lot of recall:
           </p>
           <CodeBlock>{`const ms = new MemoSprout("./corrections", {
   llm: { provider: "openai", apiKey: process.env.OPENAI_API_KEY },
@@ -344,12 +345,21 @@ ctx = requests.post(f"{BASE}/context", headers=HEAD,
             relate two different words for the same thing. Turn on{" "}
             <code>semanticRetrieval: true</code>. Lexical still runs first — free, instant, and
             precise on exact terms — and embeddings are consulted only when it finds nothing.
-            On a 16-query corpus with <code>text-embedding-3-small</code>, pure-paraphrase recall
-            went from <strong>0% to 86%</strong> and overall from <strong>38% to 94%</strong>,
-            with no unrelated correction served in either configuration. Run{" "}
-            <code>pnpm semantic:eval</code> to reproduce it. If the embedding provider fails,{" "}
-            <code>context()</code> logs a warning and returns the lexical result rather than
-            throwing.
+            On a 24-correction corpus with <code>text-embedding-3-small</code>, paraphrase recall
+            went from <strong>8% to 75%</strong> and overall accuracy from{" "}
+            <strong>33% to 83%</strong>.
+          </p>
+          <p>
+            It is a trade, not a free win. Semantic retrieval does not help on questions that
+            merely sound adjacent to your corpus, and it costs a little there: at the default
+            threshold, &quot;what time does the office open?&quot; attaches to a home-office
+            allowance correction. Across the corpus, lexical served a wrong correction on 4 of 30
+            queries and semantic on 5. Worth it when users ask in their own words; not worth it if
+            they already phrase things the way your corrections are filed. Run{" "}
+            <code>pnpm semantic:eval</code> — it prints the queries it got wrong, so you can tune{" "}
+            <code>semanticRetrievalThreshold</code> against a corpus resembling yours. If the
+            embedding provider fails, <code>context()</code> logs a warning and returns the
+            lexical result rather than throwing.
           </p>
 
           <h3 className="font-semibold">What does semantic retrieval cost?</h3>

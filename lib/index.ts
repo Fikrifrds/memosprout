@@ -107,16 +107,19 @@ export interface MemoSproutOptions {
    */
   semanticRetrieval?: boolean;
   /**
-   * Minimum cosine similarity for a semantic hit. Default: 0.35.
+   * Minimum cosine similarity for a semantic hit. Default: 0.42.
    *
-   * Measured on the paraphrase corpus with text-embedding-3-small
-   * (`pnpm semantic:eval`): paraphrase recall is 86% at 0.35, 71% at
-   * 0.40-0.45, and collapses to 14% at 0.55 — while off-topic queries were
-   * correctly rejected at every threshold tried. The binding constraint is
-   * recall, not precision, so the default sits at the low end.
+   * Tuned on the 24-correction corpus in `pnpm semantic:eval`, which is
+   * sized deliberately: on a toy store of five corrections almost any
+   * threshold looks good, because there is no near neighbour to confuse.
+   * Precision is what degrades as a domain fills up, and 0.42 is where
+   * overall accuracy peaks (83%) once near neighbours exist.
    *
-   * Raise it if you see irrelevant corrections served; that risk grows with
-   * the number of corrections in a domain, which this corpus holds small.
+   * Below it, off-topic questions start attaching to a loosely related
+   * correction ("what time does the office open" → the home-office
+   * allowance). Above ~0.47, genuine paraphrases begin dropping out. Expect
+   * to tune this per corpus rather than trusting the default: the right
+   * value depends on how densely your corrections cover one topic.
    */
   semanticRetrievalThreshold?: number;
   /**
@@ -235,7 +238,7 @@ export class MemoSprout {
     this.autoActivateThreshold = options.autoActivateThreshold ?? 0.8;
     this.semanticCheckEnabled = options.semanticCheck ?? false;
     this.aliasGenerationEnabled = options.generateAliases ?? false;
-    this.semanticRetrievalThreshold = options.semanticRetrievalThreshold ?? 0.35;
+    this.semanticRetrievalThreshold = options.semanticRetrievalThreshold ?? 0.42;
     // Resolved eagerly so a missing API key fails at construction, where the
     // caller can see it, rather than on the first query in production.
     this.embeddingIndex = options.semanticRetrieval
