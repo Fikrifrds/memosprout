@@ -108,6 +108,11 @@ new MemoSprout("./corrections", {
   autoActivateThreshold: 0.8,  // used only after explicitly setting approvalRequired: false
   semanticCheck: false,        // LLM pass in check() for paraphrases
   generateAliases: false,      // one LLM call per new correction, on write
+  semanticRetrieval: false,    // embedding fallback in context() for paraphrases
+  semanticRetrievalThreshold: 0.35,  // min cosine similarity for a semantic hit
+  // Embedding provider. Defaults to OpenAI text-embedding-3-small and
+  // reuses llm.apiKey. Any OpenAI-shaped /embeddings route works.
+  // embedding: { baseUrl: "http://localhost:11434/v1", model: "nomic-embed-text" },
 });
 ```
 
@@ -140,6 +145,11 @@ Find corrections relevant to a query. Returns `{ corrections, context }`.
 
 Inject `context` into your AI's system prompt or RAG context so it
 applies verified corrections automatically.
+
+Matching is lexical by default. With `semanticRetrieval: true`, a query that
+lexical matching cannot answer falls back to embedding similarity, so
+paraphrases still find their correction — see
+[Semantic retrieval](#semantic-retrieval-optional).
 
 ### `ms.check(answer, domain?)`
 
@@ -498,7 +508,7 @@ concurrent requests cannot corrupt a file or lose a `confirmCount` bump.
 
 Read this before adopting. Each item is measured, not estimated.
 
-### Retrieval is lexical, not semantic
+### Retrieval is lexical by default
 
 A correction is found by matching trigger keywords, entities, and the words
 of the correction itself against the question. It handles inflection
@@ -537,8 +547,65 @@ await ms.correct({ wrong: "...EUR 120", correct: "...EUR 200",
 The call happens on the write, so queries stay free and no latency is added
 to the read path. It is off by default because it spends money on an
 otherwise free code path, and because each extra trigger term trades a
-little retrieval precision for recall. Neither substitutes for semantic
-retrieval — they narrow the gap, they do not close it.
+little retrieval precision for recall.
+
+To close the gap rather than narrow it, turn on `semanticRetrieval`.
+
+### Semantic retrieval (optional)
+
+`semanticRetrieval: true` adds an embedding fallback to `context()`. Lexical
+matching still runs first and its results are kept — it is free, instant, and
+precise on exact terms. Embeddings are consulted **only when lexical found
+nothing**, which is exactly the paraphrase case, so queries that already
+worked cost nothing extra.
+
+```typescript
+const ms = new MemoSprout("./corrections", {
+  llm: { provider: "openai", apiKey: process.env.OPENAI_API_KEY! },
+  semanticRetrieval: true,
+});
+
+await ms.correct({ wrong: "...EUR 120", correct: "...EUR 200",
+                   keywords: ["uniform allowance"] });
+
+await ms.context("How much can I claim for workwear?"); // -> match
+```
+
+Measured with `pnpm semantic:eval` on a 16-query corpus using OpenAI
+`text-embedding-3-small` at the default threshold of 0.35:
+
+| Query class | n  | Lexical | + Semantic |
+|-------------|----|---------|------------|
+| Shares trigger vocabulary | 5 | 40% | **100%** |
+| Pure paraphrase | 7 | 0% | **86%** |
+| Unrelated (should return nothing) | 4 | 100% | **100%** |
+| **Overall** | 16 | 38% | **94%** |
+
+No wrong correction was served in either configuration. Recall is the binding
+constraint, not precision, which is why the default threshold is low; raise
+`semanticRetrievalThreshold` if you hold many corrections in one domain and
+see irrelevant ones served. At 0.55 paraphrase recall falls to 14%, so tune
+downward before upward.
+
+**Cost.** `text-embedding-3-small` is $0.02 per 1M tokens. A correction is
+embedded once and cached on disk (`embeddings.json`), keyed by a hash of its
+text, so editing a correction re-embeds it automatically and nothing else
+does. At roughly 30 tokens per query, **1M queries that miss lexically cost
+about $0.60** — and queries that hit lexically cost nothing at all. Indexing
+1,000 corrections once costs well under a cent. In practice this is a
+rounding error next to the chat model that consumes the context.
+
+Any endpoint with an OpenAI-shaped `/embeddings` route works — set
+`embedding: { baseUrl, model, apiKey }` for a gateway, a self-hosted model, or
+Ollama (`http://localhost:11434/v1` with `nomic-embed-text`, which is free).
+The embedding provider is independent of `llm`, so you can extract with one
+provider and embed with another; without `embedding.apiKey` it reuses
+`llm.apiKey`.
+
+It is off by default because it spends money on the read path and sends the
+query text to the embedding provider. If the provider fails, `context()` logs
+a warning and returns the lexical result — a degraded embedding endpoint never
+throws on your answer path.
 
 ### The output gate helps weak models most
 
@@ -645,21 +712,27 @@ entirely offline with no API key and no network call:
 | Method | Needs an LLM? |
 |---|---|
 | `correct()` | no |
-| `context()` | no |
+| `context()` (lexical) | no |
 | `check()` (lexical) | no |
 | `list()`, `get()`, `remove()`, `report()`, `audit()` | no |
 | `processMessage()` | **yes** — returns type `"none"` without one |
 | `check()` with `semanticCheck: true` | **yes** for the semantic pass |
 | `correct()` with `generateAliases: true` | **yes** for aliases |
+| `context()` with `semanticRetrieval: true` | **yes** — an embedding model |
 | `validate()` | uses the LLM only as a fallback oracle |
 
 So without an LLM you can still capture corrections by hand, retrieve them,
 and block known-wrong answers by exact and reordered phrasing. What you lose
 is the convenience layer: automatically turning a user's "no, that's wrong"
 into a structured correction (`processMessage`), catching paraphrased wrong
-answers (`semanticCheck`), and widening triggers with synonyms
+answers (`semanticCheck`), finding a correction from a paraphrased *question*
+(`semanticRetrieval`), and widening triggers with synonyms
 (`generateAliases`). Add an LLM when you want those; leave it out to keep
 everything local and free.
+
+Note that `semanticRetrieval` needs an *embedding* model rather than a chat
+model, and the two are configured independently — a local Ollama embedding
+endpoint keeps that path free and offline too.
 
 ### What is `./corrections`? Do I need to create the folder first?
 
@@ -689,8 +762,14 @@ format.
 Only what you send to the LLM, and only if you connected one. The
 correction store is local files. With no LLM configured, nothing leaves at
 all. With one, the text you pass to `processMessage()`, `check(..., {
-semanticCheck })`, or alias generation is sent to that endpoint — the
-corrections themselves are never uploaded anywhere by MemoSprout.
+semanticCheck })`, or alias generation is sent to that endpoint.
+
+One exception worth stating plainly: `semanticRetrieval: true` sends the
+**query text and the corrections themselves** to the embedding provider, since
+both sides have to be embedded to be compared. That is the only feature that
+uploads correction content. Point `embedding.baseUrl` at a local Ollama
+instance if the corrections must not leave your infrastructure. Everything
+else leaves the store on disk and untouched.
 
 ### Which model should I use?
 
@@ -760,7 +839,9 @@ show corrections doing their job; `queriesWithoutMatch` and
 `unmatchedQueries` show the opposite — questions that found no correction
 although the domain had some. A high `queriesWithoutMatch` usually means
 your trigger keywords do not match how users phrase things; add the words
-from `unmatchedQueries`, or turn on `generateAliases`.
+from `unmatchedQueries`, turn on `generateAliases`, or — if the unmatched
+queries are paraphrases rather than missing vocabulary — turn on
+`semanticRetrieval`, which is what that failure mode actually calls for.
 
 ## Trust and safety
 

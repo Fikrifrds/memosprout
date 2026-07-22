@@ -20,6 +20,12 @@ import {
   type LLMProviderConfig,
 } from "@/lib/llm/provider";
 import { extractCorrection } from "@/lib/llm/extractor";
+import {
+  correctionEmbeddingText,
+  resolveEmbeddingConfig,
+  type EmbeddingOptions,
+} from "@/lib/llm/embedding";
+import { EmbeddingIndex } from "@/lib/correction/embedding-index";
 import { wrongPatternMatchScore } from "@/lib/correction/matching";
 import { Mutex } from "@/lib/store/atomic";
 
@@ -85,6 +91,41 @@ export interface MemoSproutOptions {
    * some retrieval precision for recall.
    */
   generateAliases?: boolean;
+  /**
+   * When true, `context()` falls back to embedding similarity for queries
+   * that lexical retrieval did not answer — closing the paraphrase gap
+   * where a user asks about "workwear" and the correction was filed under
+   * "uniform allowance".
+   *
+   * Lexical retrieval still runs first and its results are kept: it is
+   * free, deterministic, and precise on exact terms. Embeddings are
+   * consulted only when it returns nothing, so the common case costs
+   * nothing and the failure case gets a second chance.
+   *
+   * Default: false — it is opt-in because it spends money on the read path
+   * and sends the query text to the embedding provider.
+   */
+  semanticRetrieval?: boolean;
+  /**
+   * Minimum cosine similarity for a semantic hit. Default: 0.35.
+   *
+   * Measured on the paraphrase corpus with text-embedding-3-small
+   * (`pnpm semantic:eval`): paraphrase recall is 86% at 0.35, 71% at
+   * 0.40-0.45, and collapses to 14% at 0.55 — while off-topic queries were
+   * correctly rejected at every threshold tried. The binding constraint is
+   * recall, not precision, so the default sits at the low end.
+   *
+   * Raise it if you see irrelevant corrections served; that risk grows with
+   * the number of corrections in a domain, which this corpus holds small.
+   */
+  semanticRetrievalThreshold?: number;
+  /**
+   * Embedding provider. Defaults to OpenAI `text-embedding-3-small`,
+   * reusing `llm.apiKey` when it is not set here. Any endpoint exposing an
+   * OpenAI-shaped `/embeddings` route works — set `baseUrl` for a gateway,
+   * a self-hosted model, or Ollama.
+   */
+  embedding?: EmbeddingOptions;
 }
 
 export interface ProcessResult {
@@ -156,6 +197,9 @@ export class MemoSprout {
   private readonly autoActivateThreshold: number;
   private readonly semanticCheckEnabled: boolean;
   private readonly aliasGenerationEnabled: boolean;
+  private readonly semanticRetrievalThreshold: number;
+  /** Null unless semanticRetrieval is on — construction is what costs money. */
+  private readonly embeddingIndex: EmbeddingIndex | null;
   private ready = false;
   /**
    * Serializes read-modify-write operations (confirmCount bumps, status
@@ -191,6 +235,15 @@ export class MemoSprout {
     this.autoActivateThreshold = options.autoActivateThreshold ?? 0.8;
     this.semanticCheckEnabled = options.semanticCheck ?? false;
     this.aliasGenerationEnabled = options.generateAliases ?? false;
+    this.semanticRetrievalThreshold = options.semanticRetrievalThreshold ?? 0.35;
+    // Resolved eagerly so a missing API key fails at construction, where the
+    // caller can see it, rather than on the first query in production.
+    this.embeddingIndex = options.semanticRetrieval
+      ? new EmbeddingIndex(
+          `${directory}/embeddings.json`,
+          resolveEmbeddingConfig(options.embedding ?? {}, this.llmConfig),
+        )
+      : null;
   }
 
   setAdapter(adapter: import("@/lib/adapter/types").DomainAdapter): void {
@@ -391,10 +444,53 @@ export class MemoSprout {
     return result;
   }
 
+  /**
+   * Rank active corrections against the query by embedding similarity.
+   *
+   * Fails open: an embedding outage returns no matches and logs, leaving
+   * the caller exactly where lexical retrieval left them — an empty
+   * context. A retrieval helper must never turn a degraded provider into a
+   * thrown error on the answer path.
+   */
+  private async semanticMatch(query: string, domain?: string): Promise<CorrectionRecord[]> {
+    if (!this.embeddingIndex) return [];
+
+    const active = this.store.list({ status: "active", domain });
+    if (active.length === 0) return [];
+
+    try {
+      const ranked = await this.embeddingIndex.rank(
+        query,
+        active.map((correction) => ({
+          id: correction.correctionId,
+          text: correctionEmbeddingText(correction),
+        })),
+        this.semanticRetrievalThreshold,
+      );
+      const byId = new Map(active.map((c) => [c.correctionId, c]));
+      return ranked
+        .map((entry) => byId.get(entry.id))
+        .filter((c): c is CorrectionRecord => c !== undefined);
+    } catch (error) {
+      console.warn(
+        `[memosprout] semantic retrieval failed, using lexical results only: ` +
+          `${error instanceof Error ? error.message : String(error)}`,
+      );
+      return [];
+    }
+  }
+
   async context(query: string, domain?: string): Promise<ContextResult> {
     await this.ensureReady();
 
-    const matched = this.store.match(query, domain);
+    let matched = this.store.match(query, domain);
+
+    // Hybrid: lexical first because it is free and precise; embeddings only
+    // when it found nothing, which is exactly the paraphrase case. A query
+    // that lexical already answered never reaches the network.
+    if (matched.length === 0 && this.embeddingIndex) {
+      matched = await this.semanticMatch(query, domain);
+    }
 
     const fresh: CorrectionRecord[] = [];
     let staleSkipped = 0;
@@ -799,4 +895,12 @@ export { AuditLog, type AuditEntry } from "@/lib/audit/log";
 export { createApiServer, type ApiServerOptions } from "@/lib/api/server";
 export { matchesWrongPattern, normalizeText } from "@/lib/correction/matching";
 export { semanticCheck } from "@/lib/llm/semantic-check";
+export {
+  cosineSimilarity,
+  correctionEmbeddingText,
+  embedTexts,
+  resolveEmbeddingConfig,
+  type EmbeddingOptions,
+  type EmbeddingProviderConfig,
+} from "@/lib/llm/embedding";
 export { atomicWriteFile, Mutex } from "@/lib/store/atomic";

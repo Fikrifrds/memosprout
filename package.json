@@ -69,6 +69,7 @@
     "check:generated": "pnpm --dir demo/generated-files/template check:generated",
     "demo": "vitest run tests/scenario demo/generated-files/template/tests --reporter=verbose",
     "cost:experiment": "tsx --env-file=.env scripts/run-cost-experiment.ts",
+    "semantic:eval": "tsx --env-file=.env scripts/run-semantic-retrieval-eval.ts",
     "drift:bench": "tsx scripts/run-knowledge-drift-benchmark.ts",
     "convergence:config:setup": "tsx scripts/setup-convergence-config.ts",
     "convergence:design:verify": "tsx scripts/verify-convergence-design.ts",

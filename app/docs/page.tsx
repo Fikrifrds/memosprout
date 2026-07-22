@@ -143,6 +143,25 @@ Verified facts:
   },
   semanticCheck: true,  // catches "twelve days of yearly vacation"
 });`}</CodeBlock>
+          <p>
+            The mirror image on the read side is <code>semanticRetrieval: true</code>. Retrieval
+            is lexical by default, so a correction filed under &quot;uniform allowance&quot; is
+            not found by a question about &quot;workwear&quot;. With it on, a query that lexical
+            matching cannot answer falls back to embedding similarity — measured on a paraphrase
+            corpus, recall goes from <strong>0% to 86%</strong> with no loss of precision:
+          </p>
+          <CodeBlock>{`const ms = new MemoSprout("./corrections", {
+  llm: { provider: "openai", apiKey: process.env.OPENAI_API_KEY },
+  semanticRetrieval: true,
+});
+
+await ms.context("How much can I claim for workwear?"); // -> match`}</CodeBlock>
+          <p>
+            Lexical runs first and its results are kept, so queries that already worked cost
+            nothing. Correction vectors are embedded once and cached on disk. With OpenAI{" "}
+            <code>text-embedding-3-small</code> at $0.02 per 1M tokens, a million lexical misses
+            costs roughly <strong>$0.60</strong>.
+          </p>
         </Section>
 
         {/* Manual corrections */}
@@ -220,6 +239,12 @@ ctx = requests.post(f"{BASE}/context", headers=HEAD,
               when <code>semanticCheck</code> is on. If the LLM fails, it falls back to
               lexical matching and logs a warning rather than blocking your answers.
             </li>
+            <li>
+              <span className="font-medium">Retrieval</span> is lexical by default — keywords,
+              entities, and the correction&apos;s own words, with inflection and reordering.
+              Turn on <code>semanticRetrieval</code> to add an embedding fallback for
+              paraphrased questions.
+            </li>
           </ul>
         </Section>
 
@@ -247,9 +272,60 @@ ctx = requests.post(f"{BASE}/context", headers=HEAD,
 
           <h3 className="font-semibold">Does it require an LLM?</h3>
           <p>
-            No. Capturing, storing, matching, and blocking all work without one. An LLM only
-            adds two things: detecting corrections inside ordinary messages (
-            <code>processMessage()</code>) and semantic answer checking.
+            No — the default is no LLM. Capturing, storing, matching, and blocking all work
+            without one. An LLM adds four conveniences: detecting corrections inside ordinary
+            messages (<code>processMessage()</code>), semantic answer checking (
+            <code>semanticCheck</code>), generating synonym triggers so a paraphrased
+            question still finds its correction (<code>generateAliases</code>), and embedding-based
+            retrieval for paraphrased questions (<code>semanticRetrieval</code>). The last one
+            needs an <em>embedding</em> model rather than a chat model, configured separately —
+            point it at a local Ollama instance and that path stays free and offline too.
+          </p>
+
+          <h3 className="font-semibold">
+            A source document gets updated — what happens to a correction based on the old
+            version?
+          </h3>
+          <p>
+            It stops being served. Give a correction a fingerprint of its source (
+            <code>sourceHash</code>) when you capture it, and tell MemoSprout how to fetch the
+            current fingerprint with <code>setSourceHashProvider</code>. On every{" "}
+            <code>context()</code> and <code>check()</code> the hash is recomputed; if the
+            document changed, the correction is <em>quarantined</em> — dropped from retrieval,
+            not deleted — because once its basis shifts it may have become right, wrong, or
+            redundant, and serving it anyway would be worse than serving nothing. A correction
+            also stops on an <code>expiresAt</code> date, when a newer correction supersedes it,
+            or when you <code>remove()</code> it. Without a <code>sourceHash</code>, the
+            source-change check has nothing to compare against and does not run.
+          </p>
+
+          <h3 className="font-semibold">
+            I already have agent memory — MEMORY.md, CLAUDE.md, Cursor rules, a system prompt.
+            How does MemoSprout fit with it?
+          </h3>
+          <p>
+            They do different jobs and compose in one prompt. A memory file is static,
+            whole-file, always-on context with no relevance, no gate, and no staleness — every
+            line is loaded every turn and nothing checks whether it is still true. MemoSprout is
+            the opposite on each axis: it holds <em>corrections</em>, retrieves only the ones
+            relevant to the question, gates them before serving, and quarantines them when their
+            source changes. Keep durable, always-true context in the memory file; put facts that
+            get corrected, change over time, or need verification in MemoSprout. Because{" "}
+            <code>context()</code> returns a string, you inject it alongside the memory file:{" "}
+            <code>[memory, context].filter(Boolean).join(&quot;\n\n&quot;)</code>. The one thing
+            to avoid is writing the same fact into both — if they ever disagree, the model sees
+            two authoritative answers with no way to choose.
+          </p>
+
+          <h3 className="font-semibold">How do I know it&apos;s working?</h3>
+          <p>
+            <code>report()</code> shows corrections being served and blocked, and — the honest
+            signal — <code>queriesWithoutMatch</code> with <code>unmatchedQueries</code>:
+            questions that found no correction although the domain had some. Retrieval failing is
+            silent, so a high count usually means your trigger keywords do not match how users
+            phrase things. Add the words from that list, enable <code>generateAliases</code>, or —
+            if those queries are paraphrases rather than missing vocabulary — turn on{" "}
+            <code>semanticRetrieval</code>, which is the fix aimed at that failure mode.
           </p>
 
           <h3 className="font-semibold">Is the REST API secured?</h3>
@@ -259,10 +335,42 @@ ctx = requests.post(f"{BASE}/context", headers=HEAD,
             <code>Authorization: Bearer</code> or <code>x-api-key</code>.
           </p>
 
+          <h3 className="font-semibold">
+            My users ask questions in their own words and nothing is found. What do I do?
+          </h3>
+          <p>
+            That is lexical retrieval&apos;s known limit: it matches trigger keywords, entities,
+            and the words of the correction, so it handles inflection and reordering but cannot
+            relate two different words for the same thing. Turn on{" "}
+            <code>semanticRetrieval: true</code>. Lexical still runs first — free, instant, and
+            precise on exact terms — and embeddings are consulted only when it finds nothing.
+            On a 16-query corpus with <code>text-embedding-3-small</code>, pure-paraphrase recall
+            went from <strong>0% to 86%</strong> and overall from <strong>38% to 94%</strong>,
+            with no unrelated correction served in either configuration. Run{" "}
+            <code>pnpm semantic:eval</code> to reproduce it. If the embedding provider fails,{" "}
+            <code>context()</code> logs a warning and returns the lexical result rather than
+            throwing.
+          </p>
+
+          <h3 className="font-semibold">What does semantic retrieval cost?</h3>
+          <p>
+            Very little, because the expensive half is cached. Each correction is embedded once
+            and stored in <code>embeddings.json</code>, keyed by a hash of its text, so editing a
+            correction re-embeds it and nothing else does. Only the query is embedded per call,
+            and only for queries lexical did not already answer. At OpenAI&apos;s $0.02 per 1M
+            tokens for <code>text-embedding-3-small</code> and ~30 tokens a query, one million
+            lexical misses costs about <strong>$0.60</strong>; indexing 1,000 corrections costs
+            well under a cent. Next to the chat model that consumes the context, it is a rounding
+            error.
+          </p>
+
           <h3 className="font-semibold">Where does data live?</h3>
           <p>
             On your server. Markdown files in a directory. No cloud, no external calls except
-            to your own LLM provider.
+            to your own LLM provider. The one feature that uploads correction content is{" "}
+            <code>semanticRetrieval</code> — comparing a query to a correction requires embedding
+            both — so if corrections must not leave your infrastructure, point{" "}
+            <code>embedding.baseUrl</code> at a local Ollama instance, or leave the feature off.
           </p>
         </Section>
 
