@@ -110,7 +110,7 @@ LLM returns confidence score (0.0 – 1.0)
               │
               ▼
     ┌─────────────────────┐
-    │ approvalRequired?    │
+    │ approvalRequired?    │  default: true
     └────┬───────────┬────┘
      yes │           │ no
          ▼           ▼
@@ -341,7 +341,8 @@ Custom endpoints (require baseUrl + model):
 
 ### Response normalization
 
-Every provider returns `{ content, model }` and fails as an `LLMError`
+Every provider returns `{ content, model, usage }`, with token usage
+normalized across wire formats (or `null` when an endpoint omits it), and fails as an `LLMError`
 with an actionable message. Divergent provider behavior is absorbed here:
 
 | Situation | Handling |

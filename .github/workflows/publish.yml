@@ -51,8 +51,14 @@ jobs:
       - name: Unit tests
         run: pnpm test
 
+      - name: Deterministic correction-effectiveness evaluation
+        run: pnpm verify:readiness
+
       - name: Supply-chain audit
         run: pnpm audit:package
+
+      - name: Packed-package consumer verification
+        run: pnpm verify:package-consumer
 
       - name: Verify package version matches the release tag
         if: github.event_name == 'release'

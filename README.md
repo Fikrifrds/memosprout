@@ -37,10 +37,13 @@ async function handleChat(userMessage: string, previousAIAnswer: string) {
   // 1. MemoSprout auto-detects corrections and extracts structured fields.
   //    User says: "No, annual leave is 15 days since 2026, check SK-045"
   //    LLM extracts: wrong="12 days", correct="15 days since 2026", source="SK-045"
-  //    High confidence → correction goes live automatically.
+  //    The correction is saved as suggested until it is validated/approved.
   const result = await ms.processMessage(userMessage, previousAIAnswer);
+  if (result.correctionStatus === "suggested") {
+    await queueForSourceReview(result.correctionSaved!.correctionId);
+  }
 
-  // 2. Get relevant corrections and inject into your AI's system prompt
+  // 2. Get previously approved corrections and inject them into the prompt
   const { context } = await ms.context(userMessage);
 
   // 3. Call your AI provider with `context` injected
@@ -49,7 +52,15 @@ async function handleChat(userMessage: string, previousAIAnswer: string) {
   // 4. Check the answer before sending it to the user
   const check = await ms.check(answer);
   if (!check.ok) {
-    return check.corrections[0].correct; // use the verified answer
+    // A correction is one fact, not a replacement for a potentially
+    // multi-fact answer. Regenerate the full answer and check it again.
+    const requiredFacts = check.corrections.map((item) => item.correct).join("\n");
+    const revised = await callYourAI(
+      userMessage,
+      `${context}\n\nRevise the entire answer and preserve unrelated facts.\n${requiredFacts}`,
+    );
+    if (!(await ms.check(revised)).ok) throw new Error("Unsafe answer blocked");
+    return revised;
   }
   return answer;
 }
@@ -91,8 +102,10 @@ new MemoSprout("./corrections", {
     // Shorthand: a named provider fills in baseUrl and a default model.
     // provider: "openai", apiKey: "..."
   },
-  approvalRequired: false,     // true = every correction needs approval
-  autoActivateThreshold: 0.8,  // min LLM confidence to auto-activate
+  // Optional separate judge. Prefer a domain adapter backed by a real oracle.
+  // validationLlm: { provider: "anthropic", apiKey: process.env.JUDGE_API_KEY },
+  approvalRequired: true,      // default; model confidence is not validation
+  autoActivateThreshold: 0.8,  // used only after explicitly setting approvalRequired: false
   semanticCheck: false,        // LLM pass in check() for paraphrases
 });
 ```
@@ -133,7 +146,9 @@ Check an AI-generated answer against known-wrong patterns.
 Returns `{ ok, corrections }`.
 
 If `ok` is `false`, the answer contains a known-wrong pattern. Use
-`corrections[0].correct` to fix it.
+all returned corrections as constraints when regenerating the complete
+answer, then call `check()` again. A correction is one verified fact; it is
+not a safe replacement for a multi-fact answer.
 
 Matching is layered:
 
@@ -184,12 +199,19 @@ const history = await ms.audit("corr_abc");
 ### `ms.validate(correctionId)`
 
 Validate a correction against a domain-specific oracle. Uses the
-DomainAdapter oracle if set, otherwise falls back to LLM-based
-source verification.
+DomainAdapter oracle if set, otherwise an explicitly configured, separate
+`validationLlm` for plausibility checking. The LLM fallback does not retrieve or read the
+referenced source; use a domain adapter when authoritative validation is
+required. MemoSprout rejects using the extraction model as its own judge. A
+passing suggested correction becomes `validated` and remains out
+of prompts until `ms.approve(id)` activates it. A failed correction is
+quarantined.
 
 ```typescript
 const result = await ms.validate("corr_abc");
 // { passed: true, detail: "Correction validated against scenario..." }
+
+await ms.approve("corr_abc"); // validated → active
 ```
 
 ## LLM providers
@@ -276,7 +298,15 @@ async function answer(question: string) {
 
   const check = await ms.check(response.content as string);
   if (!check.ok) {
-    return `Correction needed: ${check.corrections[0].correct}`;
+    const requiredFacts = check.corrections.map((item) => item.correct).join("\n");
+    const revised = await chain.invoke({
+      question,
+      context: `${context}\n\nRevise the complete answer using:\n${requiredFacts}`,
+    });
+    if (!(await ms.check(revised.content as string)).ok) {
+      throw new Error("Unsafe answer blocked");
+    }
+    return revised.content;
   }
   return response.content;
 }
@@ -301,7 +331,16 @@ async function answer(question: string) {
   });
 
   const check = await ms.check(text);
-  return check.ok ? text : `Correction: ${check.corrections[0].correct}`;
+  if (check.ok) return text;
+
+  const requiredFacts = check.corrections.map((item) => item.correct).join("\n");
+  const { text: revised } = await generateText({
+    model: openai("gpt-4o"),
+    system: `${context}\n\nRevise the complete answer using:\n${requiredFacts}`,
+    prompt: question,
+  });
+  if (!(await ms.check(revised)).ok) throw new Error("Unsafe answer blocked");
+  return revised;
 }
 ```
 
@@ -443,6 +482,70 @@ No database. No vendor lock-in. `git diff` your corrections.
 Writes are atomic (temp file + rename) and serialized in-process, so
 concurrent requests cannot corrupt a file or lose a `confirmCount` bump.
 
+## Limitations
+
+Read this before adopting. Each item is measured, not estimated.
+
+### Retrieval is lexical, not semantic
+
+A correction is found by matching trigger keywords, entities, and the words
+of the correction itself against the question. It handles inflection
+("dispute" finds "disputed") and reordering, but it cannot relate two
+different words for the same thing.
+
+```typescript
+await ms.correct({
+  wrong: "The annual uniform allowance is EUR 120",
+  correct: "The annual uniform allowance is EUR 200",
+  keywords: ["uniform allowance"],
+});
+
+await ms.context("How much can I claim for workwear?"); // -> no match
+```
+
+On a deterministic paraphrase set, recall is **100% for queries that share
+vocabulary with the trigger and 20% for pure paraphrases**. The failure is
+silent: you get an empty context, not an error.
+
+Until semantic retrieval lands, add the words your users actually type as
+trigger keywords:
+
+```typescript
+keywords: ["uniform allowance", "workwear", "protective clothing"],
+```
+
+### The output gate helps weak models most
+
+`check()` catches a wrong answer after generation. Across six live
+endpoints, it was worth **+48 points on a small model that ignored the
+injected context, and +7 to +15 points on stronger ones** — inside the
+measurement interval for the latter. If you already use a capable model,
+most of the benefit comes from `context()`, not from the gate.
+
+When the gate fires, do not substitute a single correction for the whole
+answer: regenerate and re-check, as the quick start shows. A correction is
+one fact, and an answer often carries several.
+
+### Benchmarks measure a constructed failure mode
+
+The published numbers come from stale-context stress tests: the retrieved
+passage is deliberately made to contradict a stored correction, so the
+baseline is designed to fail. They measure the delta MemoSprout produces on
+that failure, **not accuracy on traffic where your corpus is already
+current**. Nothing here has been measured on production traffic.
+
+### A correction is only as good as its approval
+
+`approvalRequired` defaults to `true` because model confidence is not source
+validation. MemoSprout enforces that a correction was approved before it is
+served; it cannot tell you whether the approver was right.
+
+### Not yet covered
+
+Multi-turn conversations, adversarial inputs, long-context settings, and
+corpora that are already up to date. Token and cost overhead are reported
+per call but have not been characterised over a sustained workload.
+
 ## Trust and safety
 
 Corrections change what your AI tells users, so they are not accepted
@@ -450,10 +553,10 @@ blindly:
 
 - **Role-based trust.** `agent`/`admin`/`system` corrections go live;
   `customer` corrections are always saved as `suggested` pending approval.
-- **Confidence threshold.** LLM-extracted corrections auto-activate only
-  at confidence ≥ `autoActivateThreshold` (default `0.8`). Set
-  `approvalRequired: true` to require manual approval for everything —
-  recommended when the input comes from the public.
+- **Safe default.** LLM-extracted corrections require approval by default;
+  model confidence is not source validation. Setting `approvalRequired: false`
+  explicitly enables auto-activation at `autoActivateThreshold` (default
+  `0.8`) and should be limited to a trusted input channel.
 - **Prompt-injection hardening.** User text is framed as data, not
   instructions, in every LLM prompt; extracted output is validated with a
   strict schema and unknown ids are discarded.

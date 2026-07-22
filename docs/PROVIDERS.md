@@ -51,7 +51,8 @@ the same way:
 - **API key**: https://console.anthropic.com/settings/keys
 - Uses Anthropic's native message format internally (`x-api-key` +
   `anthropic-version` headers, `max_tokens` capped at 1024) — normalized to
-  the same `{ content, model }` result.
+  the same `{ content, model, usage }` result. `usage` is normalized and is
+  `null` only when the endpoint omits or returns an invalid usage block.
 
 ### deepseek
 - **Base URL**: `https://api.deepseek.com/v1` · **API format**: openai-compatible
@@ -158,16 +159,40 @@ false-positive guards, extraction) against the real provider.
 
 ## Verification status
 
-Providers that have passed the full live check suite (8/8):
+Two different things are worth separating: whether the transport works, and
+whether the model returns an answer you can put in front of a user. A
+provider can pass the first and fail the second.
 
-| Provider | Model tested | Date |
-|---|---|---|
-| openai | gpt-4o-mini | 2026-07-21 |
-| anthropic | claude-haiku-4-5-20251001 | 2026-07-21 |
-| qwen | qwen3.8-max-preview | 2026-07-21 |
-| openrouter | openai/gpt-4o-mini | 2026-07-21 |
-| xiaomi | mimo-v2.5 | 2026-07-21 |
-| togetherai | openai/gpt-oss-120b | 2026-07-21 |
+| Provider | Model tested | Transport | Usable prose | Date |
+|---|---|---|---|---|
+| openai | gpt-4o-mini | pass | pass | 2026-07-21 |
+| anthropic | claude-haiku-4-5-20251001 | pass | pass | 2026-07-21 |
+| qwen | qwen3.8-max-preview | pass | pass | 2026-07-21 |
+| openrouter | openai/gpt-4o-mini | pass | pass | 2026-07-21 |
+| xiaomi | mimo-v2.5 | pass | **see note** | 2026-07-22 |
+| togetherai | openai/gpt-oss-120b | **30/45 failed** | **see note** | 2026-07-22 |
+
+### Reasoning and harmony-format models need output handling
+
+`mimo-v2.5` and `openai/gpt-oss-120b` returned their answers wrapped in a
+structure rather than as plain prose:
+
+```
+{"name":"final","content":"A standard depot shift is 8 hours."}
+```
+
+The correct fact is in there, but the string MemoSprout hands back is the
+whole envelope. `check()` and any downstream rendering see the wrapper, so
+the answer is not directly shippable.
+
+This is a property of the model class, not of the provider. Both endpoints
+serve ordinary instruct models that behave normally — the suggested
+`togetherai` model in the README is `Llama-3.1-8B-Instruct-Turbo`, not
+`gpt-oss-120b`. If you use a reasoning or harmony-format model, unwrap the
+response yourself before passing it to `check()`.
+
+`togetherai/openai/gpt-oss-120b` also failed 30 of 45 evaluation
+repetitions with server errors, independently of the wrapper issue.
 
 Both wire formats are covered: `anthropic` exercises the `/messages` path,
 the rest exercise the OpenAI-compatible path. Remaining providers

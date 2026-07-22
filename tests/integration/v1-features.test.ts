@@ -144,11 +144,24 @@ describe("Oracle validation via adapter", () => {
       correct: "Add duplicate event ID check in src/payment-store.ts before processing",
       keywords: ["src/payment-store.ts"],
       entities: ["idempotency"],
+      role: "customer",
     });
 
     const result = await ms.validate(correction.correctionId);
     expect(result.passed).toBe(true);
     expect(result.detail).toContain("idempotency");
+
+    const validated = await ms.get(correction.correctionId);
+    expect(validated?.status).toBe("validated");
+    expect(validated?.validatedBy).toContain("coding-oracle");
+    expect(validated?.validatedAt).not.toBeNull();
+    expect(validated?.lastValidatedAt).not.toBeNull();
+
+    // Oracle validation and release are separate decisions. A validated
+    // correction remains out of prompts until an authorized approval.
+    expect((await ms.context("payment idempotency", "general")).corrections).toEqual([]);
+    await ms.approve(correction.correctionId);
+    expect((await ms.get(correction.correctionId))?.status).toBe("active");
   });
 
   it("fails validation for unknown scenario", async () => {
@@ -161,6 +174,8 @@ describe("Oracle validation via adapter", () => {
 
     const result = await ms.validate(correction.correctionId);
     expect(result.passed).toBe(false);
+    expect((await ms.get(correction.correctionId))?.status).toBe("quarantined");
+    expect((await ms.get(correction.correctionId))?.lastValidatedAt).not.toBeNull();
   });
 
   it("fails validation without adapter", async () => {
@@ -169,7 +184,7 @@ describe("Oracle validation via adapter", () => {
 
     const result = await msNoAdapter.validate(correction.correctionId);
     expect(result.passed).toBe(false);
-    expect(result.detail).toContain("No domain adapter");
+    expect(result.detail).toContain("No validation oracle");
   });
 
   it("records revalidation in audit trail", async () => {

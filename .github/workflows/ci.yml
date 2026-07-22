@@ -36,7 +36,15 @@ jobs:
       - name: Unit tests
         run: pnpm test
 
+      - name: Deterministic correction-effectiveness evaluation
+        run: pnpm verify:readiness
+
       # Verifies the tarball that would reach users: no install hooks, no
       # child_process/eval, only documented endpoints, dist/-only contents.
       - name: Supply-chain audit
         run: pnpm audit:package
+
+      # Extracts the real tarball into an isolated consumer and verifies ESM,
+      # CommonJS, TypeScript entrypoints, and the CLI without network access.
+      - name: Packed-package consumer verification
+        run: pnpm verify:package-consumer

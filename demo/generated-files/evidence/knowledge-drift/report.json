@@ -1,0 +1,934 @@
+{
+  "createdAt": "2026-07-21T21:19:48.557Z",
+  "model": "claude-haiku-4-5-20251001",
+  "totals": {
+    "cases": 26,
+    "driftCases": 20,
+    "controlCases": 6,
+    "storeSize": 40
+  },
+  "drift": {
+    "baselinePassed": 0,
+    "protectedPassedBeforeGate": 20,
+    "protectedPassed": 20,
+    "liftPoints": 100,
+    "retrievalRecall": 1,
+    "retrievalPrecision": 0.6125
+  },
+  "control": {
+    "baselinePassed": 6,
+    "protectedPassed": 6,
+    "falseBlocks": 0
+  },
+  "harmfulBlocks": [],
+  "regressions": [],
+  "cases": [
+    {
+      "caseId": "annual-leave",
+      "kind": "drift",
+      "baseline": {
+        "answer": "A full-time Calyx Freight employee accrues 12 days of annual leave per calendar year.",
+        "grade": {
+          "passed": false,
+          "missing": [
+            "18 days|eighteen days"
+          ],
+          "forbidden": [
+            "12 days"
+          ]
+        }
+      },
+      "protected": {
+        "modelAnswer": "Full-time employees at Calyx Freight accrue 18 days of annual leave per year, effective 1 January 2026 (Handbook 4.1 rev. 2026-01).",
+        "answer": "Full-time employees at Calyx Freight accrue 18 days of annual leave per year, effective 1 January 2026 (Handbook 4.1 rev. 2026-01).",
+        "grade": {
+          "passed": true,
+          "missing": [],
+          "forbidden": []
+        },
+        "gradeBeforeGate": {
+          "passed": true,
+          "missing": [],
+          "forbidden": []
+        },
+        "blocked": false,
+        "servedCorrectionIds": [
+          "corr_330ab4ce3d236c52",
+          "corr_a10fb5da8dc3813c",
+          "corr_5d5a5d70fbbb91a5"
+        ],
+        "expectedCorrectionId": "corr_330ab4ce3d236c52"
+      }
+    },
+    {
+      "caseId": "probation-period",
+      "kind": "drift",
+      "baseline": {
+        "answer": "According to section 2.3 of the Calyx Freight Handbook, the probation period for a new hire is 3 months.",
+        "grade": {
+          "passed": false,
+          "missing": [
+            "6 months|six months"
+          ],
+          "forbidden": [
+            "3 months"
+          ]
+        }
+      },
+      "protected": {
+        "modelAnswer": "New hires serve a probation period of 6 months, per Handbook 2.3 rev. 2026-01.",
+        "answer": "New hires serve a probation period of 6 months",
+        "grade": {
+          "passed": true,
+          "missing": [],
+          "forbidden": []
+        },
+        "gradeBeforeGate": {
+          "passed": true,
+          "missing": [],
+          "forbidden": []
+        },
+        "blocked": true,
+        "servedCorrectionIds": [
+          "corr_aba8e395be87fc5e"
+        ],
+        "expectedCorrectionId": "corr_aba8e395be87fc5e"
+      }
+    },
+    {
+      "caseId": "expense-window",
+      "kind": "drift",
+      "baseline": {
+        "answer": "According to section 7.2 of the Calyx Freight Handbook, you must submit expense claims within 30 days of the purchase date.",
+        "grade": {
+          "passed": false,
+          "missing": [
+            "45 days|forty-five days"
+          ],
+          "forbidden": [
+            "30 days"
+          ]
+        }
+      },
+      "protected": {
+        "modelAnswer": "You have **45 days** from the purchase date to submit an expense claim (Finance Policy FP-12).",
+        "answer": "You have **45 days** from the purchase date to submit an expense claim (Finance Policy FP-12).",
+        "grade": {
+          "passed": true,
+          "missing": [],
+          "forbidden": []
+        },
+        "gradeBeforeGate": {
+          "passed": true,
+          "missing": [],
+          "forbidden": []
+        },
+        "blocked": false,
+        "servedCorrectionIds": [
+          "corr_83c813a07be58801",
+          "corr_23d34f16b28457ea"
+        ],
+        "expectedCorrectionId": "corr_83c813a07be58801"
+      }
+    },
+    {
+      "caseId": "mileage-rate",
+      "kind": "drift",
+      "baseline": {
+        "answer": "According to Calyx Freight Handbook section 7.4, private car use is reimbursed at EUR 0.58 per kilometre.",
+        "grade": {
+          "passed": false,
+          "missing": [
+            "0.67"
+          ],
+          "forbidden": [
+            "0.58"
+          ]
+        }
+      },
+      "protected": {
+        "modelAnswer": "Private car use is reimbursed at EUR 0.67 per kilometre, as specified in Finance Policy FP-14.",
+        "answer": "Private car use is reimbursed at EUR 0.67 per kilometre, as specified in Finance Policy FP-14.",
+        "grade": {
+          "passed": true,
+          "missing": [],
+          "forbidden": []
+        },
+        "gradeBeforeGate": {
+          "passed": true,
+          "missing": [],
+          "forbidden": []
+        },
+        "blocked": false,
+        "servedCorrectionIds": [
+          "corr_e5994f9cd5278ab6",
+          "corr_b291d60c34971ba2",
+          "corr_540613ecd6af3fd4",
+          "corr_83c813a07be58801"
+        ],
+        "expectedCorrectionId": "corr_e5994f9cd5278ab6"
+      }
+    },
+    {
+      "caseId": "per-diem",
+      "kind": "drift",
+      "baseline": {
+        "answer": "According to section 7.5 of the Calyx Freight Handbook, the domestic per diem allowance is EUR 45 per overnight stay.",
+        "grade": {
+          "passed": false,
+          "missing": [
+            "60"
+          ],
+          "forbidden": [
+            "45"
+          ]
+        }
+      },
+      "protected": {
+        "modelAnswer": "The domestic per diem allowance is EUR 60 per overnight stay, as per Finance Policy FP-15.",
+        "answer": "The domestic per diem allowance is EUR 60 per overnight stay, as per Finance Policy FP-15.",
+        "grade": {
+          "passed": true,
+          "missing": [],
+          "forbidden": []
+        },
+        "gradeBeforeGate": {
+          "passed": true,
+          "missing": [],
+          "forbidden": []
+        },
+        "blocked": false,
+        "servedCorrectionIds": [
+          "corr_540613ecd6af3fd4",
+          "corr_4daceaf211e2c89f",
+          "corr_ba74b4a3bab67749",
+          "corr_b291d60c34971ba2"
+        ],
+        "expectedCorrectionId": "corr_540613ecd6af3fd4"
+      }
+    },
+    {
+      "caseId": "laptop-refresh",
+      "kind": "drift",
+      "baseline": {
+        "answer": "According to the Calyx Freight Handbook section 9.1, company laptops are replaced on a 4-year refresh cycle.",
+        "grade": {
+          "passed": false,
+          "missing": [
+            "3 year|three year|3 years|three years"
+          ],
+          "forbidden": []
+        }
+      },
+      "protected": {
+        "modelAnswer": "Company laptops are replaced on a 3-year refresh cycle, according to IT Policy IT-07.",
+        "answer": "Company laptops are replaced on a 3-year refresh cycle, according to IT Policy IT-07.",
+        "grade": {
+          "passed": true,
+          "missing": [],
+          "forbidden": []
+        },
+        "gradeBeforeGate": {
+          "passed": true,
+          "missing": [],
+          "forbidden": []
+        },
+        "blocked": false,
+        "servedCorrectionIds": [
+          "corr_3c93ec60448e2e4c",
+          "corr_b034d78f9e01f733"
+        ],
+        "expectedCorrectionId": "corr_3c93ec60448e2e4c"
+      }
+    },
+    {
+      "caseId": "overtime-threshold",
+      "kind": "drift",
+      "baseline": {
+        "answer": "You need written manager approval when you exceed 10 overtime hours per month.",
+        "grade": {
+          "passed": false,
+          "missing": [
+            "6 overtime hours|6 hours|six hours"
+          ],
+          "forbidden": [
+            "10 overtime hours"
+          ]
+        }
+      },
+      "protected": {
+        "modelAnswer": "According to the verified corrections I've been provided, written manager approval is required beyond **6 overtime hours per month** (Handbook 3.6 rev. 2026-02), not the 10 hours stated in the handbook context you've shared.",
+        "answer": "According to the verified corrections I've been provided, written manager approval is required beyond **6 overtime hours per month** (Handbook 3.6 rev. 2026-02), not the 10 hours stated in the handbook context you've shared.",
+        "grade": {
+          "passed": true,
+          "missing": [],
+          "forbidden": []
+        },
+        "gradeBeforeGate": {
+          "passed": true,
+          "missing": [],
+          "forbidden": []
+        },
+        "blocked": false,
+        "servedCorrectionIds": [
+          "corr_1a3d49dfa31a452c",
+          "corr_da001eee4d5dd0cc",
+          "corr_fb950abc3c8f9706",
+          "corr_4968ed6c915a394a"
+        ],
+        "expectedCorrectionId": "corr_1a3d49dfa31a452c"
+      }
+    },
+    {
+      "caseId": "parental-leave",
+      "kind": "drift",
+      "baseline": {
+        "answer": "Calyx Freight offers 8 weeks of paid parental leave.",
+        "grade": {
+          "passed": false,
+          "missing": [
+            "16 weeks|sixteen weeks"
+          ],
+          "forbidden": [
+            "8 weeks"
+          ]
+        }
+      },
+      "protected": {
+        "modelAnswer": "Calyx Freight offers 16 weeks of paid parental leave. This reflects the corrected policy from Handbook 4.5 rev. 2026-01, which supersedes the outdated 8-week figure.",
+        "answer": "Calyx Freight offers 16 weeks of paid parental leave. This reflects the corrected policy from Handbook 4.5 rev. 2026-01, which supersedes the outdated 8-week figure.",
+        "grade": {
+          "passed": true,
+          "missing": [],
+          "forbidden": []
+        },
+        "gradeBeforeGate": {
+          "passed": true,
+          "missing": [],
+          "forbidden": []
+        },
+        "blocked": false,
+        "servedCorrectionIds": [
+          "corr_5e71f7bb65936c86",
+          "corr_346beb59b476135d",
+          "corr_330ab4ce3d236c52"
+        ],
+        "expectedCorrectionId": "corr_5e71f7bb65936c86"
+      }
+    },
+    {
+      "caseId": "remote-days",
+      "kind": "drift",
+      "baseline": {
+        "answer": "According to section 3.2 of the Calyx Freight Handbook, office staff may work remotely 2 days per week.",
+        "grade": {
+          "passed": false,
+          "missing": [
+            "3 days|three days"
+          ],
+          "forbidden": [
+            "2 days"
+          ]
+        }
+      },
+      "protected": {
+        "modelAnswer": "Office staff may work remotely **3 days per week**, as per Handbook 3.2 rev. 2026-03. This supersedes the earlier handbook text shown in the context.",
+        "answer": "Office staff may work remotely 3 days per week",
+        "grade": {
+          "passed": true,
+          "missing": [],
+          "forbidden": []
+        },
+        "gradeBeforeGate": {
+          "passed": true,
+          "missing": [],
+          "forbidden": []
+        },
+        "blocked": true,
+        "servedCorrectionIds": [
+          "corr_94276f7d24f92fcd",
+          "corr_a10fb5da8dc3813c",
+          "corr_330ab4ce3d236c52"
+        ],
+        "expectedCorrectionId": "corr_94276f7d24f92fcd"
+      }
+    },
+    {
+      "caseId": "payment-terms",
+      "kind": "drift",
+      "baseline": {
+        "answer": "According to section 8.1 of the Calyx Freight Handbook, standard customer invoices carry net 60 payment terms.",
+        "grade": {
+          "passed": false,
+          "missing": [
+            "net 30|30 day"
+          ],
+          "forbidden": [
+            "net 60"
+          ]
+        }
+      },
+      "protected": {
+        "modelAnswer": "Standard customer invoices carry net 30 payment terms.\n\n(Note: The handbook context you provided contains outdated information. The correct policy per Billing Policy BP-03 is net 30, not net 60.)",
+        "answer": "Standard customer invoices carry net 30 payment terms.\n\n(Note: The handbook context you provided contains outdated information. The correct policy per Billing Policy BP-03 is net 30, not net 60.)",
+        "grade": {
+          "passed": true,
+          "missing": [],
+          "forbidden": []
+        },
+        "gradeBeforeGate": {
+          "passed": true,
+          "missing": [],
+          "forbidden": []
+        },
+        "blocked": false,
+        "servedCorrectionIds": [
+          "corr_ccd287005cb1c42a",
+          "corr_fb950abc3c8f9706",
+          "corr_346beb59b476135d"
+        ],
+        "expectedCorrectionId": "corr_ccd287005cb1c42a"
+      }
+    },
+    {
+      "caseId": "claim-window",
+      "kind": "drift",
+      "baseline": {
+        "answer": "According to Calyx Freight policy, a customer has 9 months from the date of delivery to file a freight damage claim.",
+        "grade": {
+          "passed": false,
+          "missing": [
+            "12 months|twelve months"
+          ],
+          "forbidden": [
+            "9 months"
+          ]
+        }
+      },
+      "protected": {
+        "modelAnswer": "Freight damage claims must be filed within 12 months of delivery. (Source: Claims Policy CL-02)",
+        "answer": "Freight damage claims must be filed within 12 months of delivery. (Source: Claims Policy CL-02)",
+        "grade": {
+          "passed": true,
+          "missing": [],
+          "forbidden": []
+        },
+        "gradeBeforeGate": {
+          "passed": true,
+          "missing": [],
+          "forbidden": []
+        },
+        "blocked": false,
+        "servedCorrectionIds": [
+          "corr_23d34f16b28457ea",
+          "corr_83c813a07be58801"
+        ],
+        "expectedCorrectionId": "corr_23d34f16b28457ea"
+      }
+    },
+    {
+      "caseId": "ltl-discount",
+      "kind": "drift",
+      "baseline": {
+        "answer": "According to section 10.2 of the Calyx Freight Handbook, the minimum shipment weight to qualify for the LTL volume discount is 500 kg per shipment.",
+        "grade": {
+          "passed": false,
+          "missing": [
+            "300"
+          ],
+          "forbidden": [
+            "500"
+          ]
+        }
+      },
+      "protected": {
+        "modelAnswer": "The minimum shipment weight to qualify for the LTL volume discount is **300 kg per shipment**, according to Pricing Policy PR-09.",
+        "answer": "The minimum shipment weight to qualify for the LTL volume discount is **300 kg per shipment**, according to Pricing Policy PR-09.",
+        "grade": {
+          "passed": true,
+          "missing": [],
+          "forbidden": []
+        },
+        "gradeBeforeGate": {
+          "passed": true,
+          "missing": [],
+          "forbidden": []
+        },
+        "blocked": false,
+        "servedCorrectionIds": [
+          "corr_b291d60c34971ba2"
+        ],
+        "expectedCorrectionId": "corr_b291d60c34971ba2"
+      }
+    },
+    {
+      "caseId": "fuel-surcharge",
+      "kind": "drift",
+      "baseline": {
+        "answer": "According to section 10.5 of the Calyx Freight Handbook, the fuel surcharge is recalculated quarterly.",
+        "grade": {
+          "passed": false,
+          "missing": [
+            "monthly|each month|every month"
+          ],
+          "forbidden": [
+            "quarterly"
+          ]
+        }
+      },
+      "protected": {
+        "modelAnswer": "The fuel surcharge is recalculated monthly, according to Pricing Policy PR-11.",
+        "answer": "The fuel surcharge is recalculated monthly",
+        "grade": {
+          "passed": true,
+          "missing": [],
+          "forbidden": []
+        },
+        "gradeBeforeGate": {
+          "passed": true,
+          "missing": [],
+          "forbidden": []
+        },
+        "blocked": true,
+        "servedCorrectionIds": [
+          "corr_b696d50f0def420b"
+        ],
+        "expectedCorrectionId": "corr_b696d50f0def420b"
+      }
+    },
+    {
+      "caseId": "temperature-log",
+      "kind": "drift",
+      "baseline": {
+        "answer": "According to Calyx Freight Handbook section 12.3, cold-chain temperatures must be logged every 4 hours.",
+        "grade": {
+          "passed": false,
+          "missing": [
+            "every 2 hours|2 hours|two hours"
+          ],
+          "forbidden": [
+            "every 4 hours",
+            "4 hours"
+          ]
+        }
+      },
+      "protected": {
+        "modelAnswer": "According to the important correction provided, cold-chain temperatures are logged every 2 hours, as specified in Warehouse SOP WH-05.",
+        "answer": "According to the important correction provided, cold-chain temperatures are logged every 2 hours, as specified in Warehouse SOP WH-05.",
+        "grade": {
+          "passed": true,
+          "missing": [],
+          "forbidden": []
+        },
+        "gradeBeforeGate": {
+          "passed": true,
+          "missing": [],
+          "forbidden": []
+        },
+        "blocked": false,
+        "servedCorrectionIds": [
+          "corr_2a725960cfa8cf08"
+        ],
+        "expectedCorrectionId": "corr_2a725960cfa8cf08"
+      }
+    },
+    {
+      "caseId": "driver-rest",
+      "kind": "drift",
+      "baseline": {
+        "answer": "According to section 13.1 of the Calyx Freight Handbook, drivers must take a mandatory rest break after 5 hours of driving.",
+        "grade": {
+          "passed": false,
+          "missing": [
+            "4 hours|four hours"
+          ],
+          "forbidden": [
+            "5 hours"
+          ]
+        }
+      },
+      "protected": {
+        "modelAnswer": "According to the important correction that overrides the handbook: Drivers take a mandatory rest break after **4 hours of driving**, as stated in Driver SOP DR-01.",
+        "answer": "According to the important correction that overrides the handbook: Drivers take a mandatory rest break after **4 hours of driving**, as stated in Driver SOP DR-01.",
+        "grade": {
+          "passed": true,
+          "missing": [],
+          "forbidden": []
+        },
+        "gradeBeforeGate": {
+          "passed": true,
+          "missing": [],
+          "forbidden": []
+        },
+        "blocked": false,
+        "servedCorrectionIds": [
+          "corr_efbda10e49cb62f0"
+        ],
+        "expectedCorrectionId": "corr_efbda10e49cb62f0"
+      }
+    },
+    {
+      "caseId": "badge-renewal",
+      "kind": "drift",
+      "baseline": {
+        "answer": "According to the Calyx Freight Handbook section 14.2, site security badges must be renewed every 24 months.",
+        "grade": {
+          "passed": false,
+          "missing": [
+            "12 months|twelve months|every year|annually"
+          ],
+          "forbidden": [
+            "24 months"
+          ]
+        }
+      },
+      "protected": {
+        "modelAnswer": "Site security badges are renewed every 12 months.\n\n(Note: This corrects the outdated information in section 14.2 of the handbook. The current policy per Security Policy SEC-04 requires renewal every 12 months, not 24 months.)",
+        "answer": "Site security badges are renewed every 12 months.\n\n(Note: This corrects the outdated information in section 14.2 of the handbook. The current policy per Security Policy SEC-04 requires renewal every 12 months, not 24 months.)",
+        "grade": {
+          "passed": true,
+          "missing": [],
+          "forbidden": []
+        },
+        "gradeBeforeGate": {
+          "passed": true,
+          "missing": [],
+          "forbidden": []
+        },
+        "blocked": false,
+        "servedCorrectionIds": [
+          "corr_3cfe5ba79fd6a839"
+        ],
+        "expectedCorrectionId": "corr_3cfe5ba79fd6a839"
+      }
+    },
+    {
+      "caseId": "password-rotation",
+      "kind": "drift",
+      "baseline": {
+        "answer": "According to section 9.6 (IT Security) of the Calyx Freight Handbook, employees must change their password every 90 days.",
+        "grade": {
+          "passed": false,
+          "missing": [
+            "no longer|not required|only|breach|suspect"
+          ],
+          "forbidden": [
+            "every 90 days",
+            "90 days"
+          ]
+        }
+      },
+      "protected": {
+        "modelAnswer": "According to the verified correction to IT Policy IT-11, scheduled password rotation is no longer required; passwords are changed only on suspected compromise.",
+        "answer": "According to the verified correction to IT Policy IT-11, scheduled password rotation is no longer required; passwords are changed only on suspected compromise.",
+        "grade": {
+          "passed": true,
+          "missing": [],
+          "forbidden": []
+        },
+        "gradeBeforeGate": {
+          "passed": true,
+          "missing": [],
+          "forbidden": []
+        },
+        "blocked": false,
+        "servedCorrectionIds": [
+          "corr_27e70ec3663c17e8"
+        ],
+        "expectedCorrectionId": "corr_27e70ec3663c17e8"
+      }
+    },
+    {
+      "caseId": "incident-report",
+      "kind": "drift",
+      "baseline": {
+        "answer": "According to Calyx Freight Handbook section 15.1 (Safety), workplace incident reports must be filed within 72 hours.",
+        "grade": {
+          "passed": false,
+          "missing": [
+            "24 hours|twenty-four hours"
+          ],
+          "forbidden": [
+            "72 hours"
+          ]
+        }
+      },
+      "protected": {
+        "modelAnswer": "According to the verified correction to Calyx Freight policy, workplace incident reports are filed within **24 hours**, as stated in Safety Policy SA-02.",
+        "answer": "According to the verified correction to Calyx Freight policy, workplace incident reports are filed within **24 hours**, as stated in Safety Policy SA-02.",
+        "grade": {
+          "passed": true,
+          "missing": [],
+          "forbidden": []
+        },
+        "gradeBeforeGate": {
+          "passed": true,
+          "missing": [],
+          "forbidden": []
+        },
+        "blocked": false,
+        "servedCorrectionIds": [
+          "corr_20462ab2fe54fd08"
+        ],
+        "expectedCorrectionId": "corr_20462ab2fe54fd08"
+      }
+    },
+    {
+      "caseId": "vendor-approvals",
+      "kind": "drift",
+      "baseline": {
+        "answer": "According to section 8.7 of the Calyx Freight Handbook, a new vendor requires 2 approvers before onboarding.",
+        "grade": {
+          "passed": false,
+          "missing": [
+            "3 approvers|three approvers"
+          ],
+          "forbidden": [
+            "2 approvers"
+          ]
+        }
+      },
+      "protected": {
+        "modelAnswer": "According to the important corrections I've been provided, new vendors require **3 approvers** before onboarding, as stated in Procurement Policy PC-06.",
+        "answer": "According to the important corrections I've been provided, new vendors require **3 approvers** before onboarding, as stated in Procurement Policy PC-06.",
+        "grade": {
+          "passed": true,
+          "missing": [],
+          "forbidden": []
+        },
+        "gradeBeforeGate": {
+          "passed": true,
+          "missing": [],
+          "forbidden": []
+        },
+        "blocked": false,
+        "servedCorrectionIds": [
+          "corr_bf3db1600d729af3",
+          "corr_aba8e395be87fc5e"
+        ],
+        "expectedCorrectionId": "corr_bf3db1600d729af3"
+      }
+    },
+    {
+      "caseId": "training-hours",
+      "kind": "drift",
+      "baseline": {
+        "answer": "According to section 5.3 of the Calyx Freight Handbook, each employee is expected to complete 16 training hours per year.",
+        "grade": {
+          "passed": false,
+          "missing": [
+            "24 training hours|24 hours|twenty-four hours"
+          ],
+          "forbidden": [
+            "16 training hours"
+          ]
+        }
+      },
+      "protected": {
+        "modelAnswer": "Each employee completes **24 training hours per year**, not 16 as stated in that handbook section. This reflects the corrected policy per Handbook 5.3 rev. 2026-02.",
+        "answer": "Each employee completes 24 training hours per year",
+        "grade": {
+          "passed": true,
+          "missing": [],
+          "forbidden": []
+        },
+        "gradeBeforeGate": {
+          "passed": true,
+          "missing": [],
+          "forbidden": []
+        },
+        "blocked": true,
+        "servedCorrectionIds": [
+          "corr_4968ed6c915a394a",
+          "corr_ff91a315daaa2151",
+          "corr_ba74b4a3bab67749",
+          "corr_a10fb5da8dc3813c",
+          "corr_1a3d49dfa31a452c",
+          "corr_330ab4ce3d236c52"
+        ],
+        "expectedCorrectionId": "corr_4968ed6c915a394a"
+      }
+    },
+    {
+      "caseId": "control-office-hours",
+      "kind": "control",
+      "baseline": {
+        "answer": "The Calyx Freight head office is open from 08:00 to 17:00 on weekdays.",
+        "grade": {
+          "passed": true,
+          "missing": [],
+          "forbidden": []
+        }
+      },
+      "protected": {
+        "modelAnswer": "The Calyx Freight head office is open from 08:00 to 17:00 on weekdays.",
+        "answer": "The Calyx Freight head office is open from 08:00 to 17:00 on weekdays.",
+        "grade": {
+          "passed": true,
+          "missing": [],
+          "forbidden": []
+        },
+        "gradeBeforeGate": {
+          "passed": true,
+          "missing": [],
+          "forbidden": []
+        },
+        "blocked": false,
+        "servedCorrectionIds": [
+          "corr_fb950abc3c8f9706",
+          "corr_346beb59b476135d",
+          "corr_20462ab2fe54fd08",
+          "corr_2a725960cfa8cf08"
+        ],
+        "expectedCorrectionId": null
+      }
+    },
+    {
+      "caseId": "control-hq-location",
+      "kind": "control",
+      "baseline": {
+        "answer": "According to the Calyx Freight Handbook, the head office is located in Rotterdam, the Netherlands.",
+        "grade": {
+          "passed": true,
+          "missing": [],
+          "forbidden": []
+        }
+      },
+      "protected": {
+        "modelAnswer": "According to the handbook, the Calyx Freight head office is located in Rotterdam, the Netherlands.",
+        "answer": "According to the handbook, the Calyx Freight head office is located in Rotterdam, the Netherlands.",
+        "grade": {
+          "passed": true,
+          "missing": [],
+          "forbidden": []
+        },
+        "gradeBeforeGate": {
+          "passed": true,
+          "missing": [],
+          "forbidden": []
+        },
+        "blocked": false,
+        "servedCorrectionIds": [],
+        "expectedCorrectionId": null
+      }
+    },
+    {
+      "caseId": "control-po-approver",
+      "kind": "control",
+      "baseline": {
+        "answer": "According to section 8.4 of the Calyx Freight Handbook, purchase orders above EUR 10,000 are approved by the Finance Director.",
+        "grade": {
+          "passed": true,
+          "missing": [],
+          "forbidden": []
+        }
+      },
+      "protected": {
+        "modelAnswer": "According to section 8.4 of the Calyx Freight Handbook, purchase orders above EUR 10,000 are approved by the Finance Director.",
+        "answer": "According to section 8.4 of the Calyx Freight Handbook, purchase orders above EUR 10,000 are approved by the Finance Director.",
+        "grade": {
+          "passed": true,
+          "missing": [],
+          "forbidden": []
+        },
+        "gradeBeforeGate": {
+          "passed": true,
+          "missing": [],
+          "forbidden": []
+        },
+        "blocked": false,
+        "servedCorrectionIds": [],
+        "expectedCorrectionId": null
+      }
+    },
+    {
+      "caseId": "control-safety-hotline",
+      "kind": "control",
+      "baseline": {
+        "answer": "You should call extension 4400 to report an urgent safety hazard to the safety hotline.",
+        "grade": {
+          "passed": true,
+          "missing": [],
+          "forbidden": []
+        }
+      },
+      "protected": {
+        "modelAnswer": "You call extension 4400 to report an urgent safety hazard to the safety hotline.",
+        "answer": "You call extension 4400 to report an urgent safety hazard to the safety hotline.",
+        "grade": {
+          "passed": true,
+          "missing": [],
+          "forbidden": []
+        },
+        "gradeBeforeGate": {
+          "passed": true,
+          "missing": [],
+          "forbidden": []
+        },
+        "blocked": false,
+        "servedCorrectionIds": [
+          "corr_20462ab2fe54fd08"
+        ],
+        "expectedCorrectionId": null
+      }
+    },
+    {
+      "caseId": "control-meeting-room",
+      "kind": "control",
+      "baseline": {
+        "answer": "According to the handbook, meeting rooms at Calyx Freight offices are booked through the Deskly portal.",
+        "grade": {
+          "passed": true,
+          "missing": [],
+          "forbidden": []
+        }
+      },
+      "protected": {
+        "modelAnswer": "According to the handbook, meeting rooms are booked through the Deskly portal.",
+        "answer": "According to the handbook, meeting rooms are booked through the Deskly portal.",
+        "grade": {
+          "passed": true,
+          "missing": [],
+          "forbidden": []
+        },
+        "gradeBeforeGate": {
+          "passed": true,
+          "missing": [],
+          "forbidden": []
+        },
+        "blocked": false,
+        "servedCorrectionIds": [],
+        "expectedCorrectionId": null
+      }
+    },
+    {
+      "caseId": "control-uniform",
+      "kind": "control",
+      "baseline": {
+        "answer": "According to section 12.1 of the Calyx Freight Handbook, everyone entering the warehouse floor is required to wear high-visibility clothing, including visitors.",
+        "grade": {
+          "passed": true,
+          "missing": [],
+          "forbidden": []
+        }
+      },
+      "protected": {
+        "modelAnswer": "According to section 12.1 of the Calyx Freight Handbook, everyone entering the warehouse floor is required to wear high-visibility clothing, including visitors.",
+        "answer": "According to section 12.1 of the Calyx Freight Handbook, everyone entering the warehouse floor is required to wear high-visibility clothing, including visitors.",
+        "grade": {
+          "passed": true,
+          "missing": [],
+          "forbidden": []
+        },
+        "gradeBeforeGate": {
+          "passed": true,
+          "missing": [],
+          "forbidden": []
+        },
+        "blocked": false,
+        "servedCorrectionIds": [],
+        "expectedCorrectionId": null
+      }
+    }
+  ]
+}

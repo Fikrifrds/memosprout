@@ -10,9 +10,9 @@ import {
 
 const config = resolveProviderConfig({ provider: "openai", apiKey: "sk-test" });
 
-function okResponse(content: string): Response {
+function okResponse(content: string, usage?: unknown): Response {
   return new Response(
-    JSON.stringify({ choices: [{ message: { content } }], model: "gpt-4o-mini" }),
+    JSON.stringify({ choices: [{ message: { content } }], model: "gpt-4o-mini", usage }),
     { status: 200, headers: { "Content-Type": "application/json" } },
   );
 }
@@ -26,6 +26,103 @@ describe("callLLM", () => {
     vi.stubGlobal("fetch", vi.fn().mockResolvedValue(okResponse('{"ok":true}')));
     const result = await callLLM(config, [{ role: "user", content: "hi" }]);
     expect(result.content).toBe('{"ok":true}');
+    expect(result.usage).toBeNull();
+  });
+
+  it("returns normalized OpenAI-compatible token usage", async () => {
+    vi.stubGlobal("fetch", vi.fn().mockResolvedValue(okResponse("ok", {
+      prompt_tokens: 120,
+      completion_tokens: 30,
+      total_tokens: 150,
+      prompt_tokens_details: { cached_tokens: 40 },
+    })));
+
+    const result = await callLLM(config, [{ role: "user", content: "hi" }]);
+    expect(result.usage).toEqual({
+      inputTokens: 120,
+      outputTokens: 30,
+      totalTokens: 150,
+      cachedInputTokens: 40,
+      cacheCreationInputTokens: null,
+    });
+  });
+
+  it("derives the total when an endpoint omits total_tokens", async () => {
+    // vLLM, LiteLLM and similar gateways report the parts without the sum.
+    // Dropping the whole usage block over a derivable field would discard
+    // the only cost data those endpoints provide.
+    vi.stubGlobal("fetch", vi.fn().mockResolvedValue(okResponse("ok", {
+      prompt_tokens: 120,
+      completion_tokens: 30,
+    })));
+
+    const result = await callLLM(config, [{ role: "user", content: "hi" }]);
+    expect(result.usage).toEqual({
+      inputTokens: 120,
+      outputTokens: 30,
+      totalTokens: 150,
+      cachedInputTokens: null,
+      cacheCreationInputTokens: null,
+    });
+  });
+
+  it("keeps usage null when the block is malformed", async () => {
+    vi.stubGlobal("fetch", vi.fn().mockResolvedValue(okResponse("ok", {
+      prompt_tokens: "many",
+      completion_tokens: null,
+    })));
+
+    const result = await callLLM(config, [{ role: "user", content: "hi" }]);
+    expect(result.usage).toBeNull();
+  });
+
+  it("reports the same input-side meaning on both wire formats", async () => {
+    // Anthropic excludes cache figures from input_tokens and OpenAI
+    // includes them. Identical real usage must produce identical numbers.
+    vi.stubGlobal("fetch", vi.fn().mockResolvedValue(okResponse("ok", {
+      prompt_tokens: 140,
+      completion_tokens: 20,
+      total_tokens: 160,
+      prompt_tokens_details: { cached_tokens: 50 },
+    })));
+    const openai = await callLLM(config, [{ role: "user", content: "hi" }]);
+
+    const anthropic = resolveProviderConfig({ provider: "anthropic", apiKey: "sk-test" });
+    vi.stubGlobal("fetch", vi.fn().mockResolvedValue(new Response(JSON.stringify({
+      content: [{ type: "text", text: "ok" }],
+      model: "claude-haiku-4-5-20251001",
+      usage: { input_tokens: 90, output_tokens: 20, cache_read_input_tokens: 50 },
+    }), { status: 200, headers: { "Content-Type": "application/json" } })));
+    const claude = await callLLM(anthropic, [{ role: "user", content: "hi" }]);
+
+    expect(claude.usage!.inputTokens).toBe(openai.usage!.inputTokens);
+    expect(claude.usage!.totalTokens).toBe(openai.usage!.totalTokens);
+    expect(claude.usage!.cachedInputTokens).toBe(openai.usage!.cachedInputTokens);
+  });
+
+  it("returns normalized Anthropic token usage", async () => {
+    const anthropic = resolveProviderConfig({ provider: "anthropic", apiKey: "sk-test" });
+    vi.stubGlobal("fetch", vi.fn().mockResolvedValue(new Response(JSON.stringify({
+      content: [{ type: "text", text: "ok" }],
+      model: "claude-haiku-4-5-20251001",
+      usage: {
+        input_tokens: 80,
+        output_tokens: 20,
+        cache_read_input_tokens: 50,
+        cache_creation_input_tokens: 10,
+      },
+    }), { status: 200, headers: { "Content-Type": "application/json" } })));
+
+    const result = await callLLM(anthropic, [{ role: "user", content: "hi" }]);
+    // 80 base + 50 cache reads + 10 cache writes: inputTokens is the whole
+    // input side, matching what OpenAI's prompt_tokens already reports.
+    expect(result.usage).toEqual({
+      inputTokens: 140,
+      outputTokens: 20,
+      totalTokens: 160,
+      cachedInputTokens: 50,
+      cacheCreationInputTokens: 10,
+    });
   });
 
   it("retries once on a 500 and succeeds", async () => {

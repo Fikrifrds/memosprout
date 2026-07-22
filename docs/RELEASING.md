@@ -102,7 +102,9 @@ gh release create v0.2.1 --generate-notes
 
 The workflow triggers on release publication and will:
 
-1. Typecheck, run the full test suite, and run the supply-chain audit
+1. Typecheck, run the full test suite, run the supply-chain audit, and
+   consume the packed artifact through its ESM, CommonJS, TypeScript, and
+   CLI entrypoints
 2. Verify `package.json` version matches the release tag
 3. Publish with `--provenance`, choosing the dist-tag from whether the
    release is marked pre-release
@@ -158,6 +160,8 @@ faster feedback:
 ```bash
 pnpm typecheck
 pnpm test
+pnpm verify:readiness # offline retrieval and answer-gate effectiveness
 pnpm audit:package   # tarball supply-chain audit
+pnpm verify:package-consumer # offline ESM, CJS, types, and CLI verification
 pnpm test:live       # optional: verify against a real LLM (needs a key)
 ```

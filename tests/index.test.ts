@@ -79,6 +79,39 @@ describe("MemoSprout", () => {
     expect(result.corrections[0].correct).toBe("15 days of annual leave");
   });
 
+  it("check() ranks the strongest match first", async () => {
+    await ms.correct({
+      wrong: "Refunds are processed in 3 business days",
+      correct: "Refunds are processed in 5 business days",
+      keywords: ["refund"],
+    });
+    await ms.correct({
+      wrong: "Refunds are processed in 3 days",
+      correct: "Refunds are processed in 5 days",
+      keywords: ["refund"],
+    });
+
+    // Callers act on corrections[0], so the verbatim match has to lead.
+    const result = await ms.check("Refunds are processed in 3 business days.");
+    expect(result.ok).toBe(false);
+    expect(result.corrections[0].correct).toBe("Refunds are processed in 5 business days");
+  });
+
+  it("check() does not block a correct answer that states a second fact", async () => {
+    await ms.correct({
+      wrong: "New hires serve a probation period of 3 months",
+      correct: "New hires serve a probation period of 6 months",
+      keywords: ["probation"],
+    });
+
+    // The "3" belongs to "3 approvers", not to the probation claim.
+    const result = await ms.check(
+      "New vendors require 3 approvers before onboarding. " +
+        "New hires serve a probation period of 6 months.",
+    );
+    expect(result.ok).toBe(true);
+  });
+
   it("check() passes a correct answer", async () => {
     await ms.correct({
       wrong: "12 days of annual leave",
