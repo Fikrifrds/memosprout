@@ -522,11 +522,19 @@ and oracle validation.
 pnpm cli init                              Create corrections directory
 pnpm cli add --domain <d> --wrong <w> --correct <c> [options]
 pnpm cli list [--status <s>] [--domain <d>]
+pnpm cli approve <id>                      Human sign-off on a pending correction
 pnpm cli validate <id>                     Validate against oracle
-pnpm cli activate <id>                     Activate a validated correction
+pnpm cli activate <id>                     Activate an already-validated correction
 pnpm cli check <query> <answer>            Check an answer
 pnpm cli match <query>                     Find relevant corrections
+pnpm cli report [--domain <d>]             Approval queue, usage, retrieval gaps
 ```
+
+`approve` and `activate` are different paths to `active`, and conflating
+them is the easy mistake: `approve` is a human vouching for a correction
+(the route for anything `suggested` — customer submissions and LLM
+extractions), while `activate` is the final step of the oracle path and
+accepts only an already-`validated` record.
 
 ---
 
@@ -558,6 +566,11 @@ const report = await ms.report("support");
 //   blocksTriggered: 12,
 //   correctionsApproved: 5,
 //   correctionsDeprecated: 1,
+//   queriesWithoutMatch: 31,
+//   unmatchedQueries: ["How much for workwear?", ...],
+//   pendingApprovals: 7,
+//   pendingApprovalIds: ["corr_a1b2c3d4", ...],        // oldest first
+//   oldestPendingApprovalAt: "2026-06-14T09:12:00Z",
 //   topCorrections: [
 //     { correctionId: "corr_abc", timesServed: 45, timesBlocked: 8 },
 //     ...
@@ -566,6 +579,23 @@ const report = await ms.report("support");
 ```
 
 This proves corrections actually help — not just an assumption.
+
+Two fields report **silent failures**, which is what makes the report worth
+reading rather than merely reassuring:
+
+- `queriesWithoutMatch` / `unmatchedQueries` — retrieval returned nothing.
+  The caller got an empty context, not an error, so nothing else would tell
+  you.
+- `pendingApprovals` / `oldestPendingApprovalAt` — corrections captured but
+  never approved, and therefore never served. The age matters more than the
+  count: a queue filed this morning is being worked, one filed last quarter
+  is abandoned.
+
+The approval fields are **current store state**, not event counts, so
+`OutcomeTracker` cannot compute them — it emits neutral placeholders and
+`MemoSprout.report()` fills them in from `store.list({ status: "suggested" })`.
+Keeping that split explicit avoids implying the tracker knows something it
+does not.
 
 ---
 

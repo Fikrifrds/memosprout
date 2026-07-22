@@ -203,8 +203,34 @@ await ms.context("How much can I claim for workwear?"); // -> match`}</CodeBlock
 });`}</CodeBlock>
         </Section>
 
+        {/* CLI */}
+        <Section id="cli" title="5. Review the queue from the terminal">
+          <p>
+            Corrections from customers, and those an LLM extracted from a conversation, are
+            stored as <code>suggested</code> and are <strong>not served</strong> until a human
+            approves them. The CLI is how you work that queue without writing code:
+          </p>
+          <CodeBlock>{`npx memosprout report                    # how big is the queue, and how old?
+npx memosprout list --status suggested   # see what is waiting
+npx memosprout approve corr_a1b2c3d4     # clear one`}</CodeBlock>
+          <p>
+            <code>report</code> leads with the queue whenever anything is waiting, and stays
+            quiet when it is empty:
+          </p>
+          <CodeBlock>{`2 correction(s) waiting for approval
+  oldest: 34 day(s) ago
+  corr_e11982a8776fe177
+  approve with: memosprout approve <id>`}</CodeBlock>
+          <p>
+            <code>approve</code> is the human sign-off path. <code>activate</code> is a different
+            thing — the last step of the oracle path, which only accepts an already-
+            <code>validated</code> correction. Nothing notifies you that the queue is filling up,
+            so if you accept corrections from untrusted sources, check it on a schedule.
+          </p>
+        </Section>
+
         {/* REST API */}
-        <Section id="rest-api" title="5. Call it from Python, PHP, Go — optional">
+        <Section id="rest-api" title="6. Call it from Python, PHP, Go — optional">
           <p>
             Run the built-in REST API server and call it over HTTP — the full feature set,
             not a subset:
@@ -342,12 +368,23 @@ ctx = requests.post(f"{BASE}/context", headers=HEAD,
           <h3 className="font-semibold">How do I know it&apos;s working?</h3>
           <p>
             <code>report()</code> shows corrections being served and blocked, and — the honest
-            signal — <code>queriesWithoutMatch</code> with <code>unmatchedQueries</code>:
-            questions that found no correction although the domain had some. Retrieval failing is
-            silent, so a high count usually means your trigger keywords do not match how users
-            phrase things. Add the words from that list, enable <code>generateAliases</code>, or —
-            if those queries are paraphrases rather than missing vocabulary — turn on{" "}
-            <code>semanticRetrieval</code>, which is the fix aimed at that failure mode.
+            part — the two ways MemoSprout fails <em>silently</em>, without raising an error.
+          </p>
+          <p>
+            <strong>Questions that found nothing.</strong>{" "}
+            <code>queriesWithoutMatch</code> with <code>unmatchedQueries</code>: questions that
+            found no correction although the domain had some. A high count usually means your
+            trigger keywords do not match how users phrase things. Add the words from that list,
+            enable <code>generateAliases</code>, or — if those queries are paraphrases rather
+            than missing vocabulary — turn on <code>semanticRetrieval</code>.
+          </p>
+          <p>
+            <strong>Corrections nobody approved.</strong> <code>pendingApprovals</code> counts
+            corrections waiting on a human. One that is never approved is never served, so a
+            climbing number means knowledge is being captured and then dropped.{" "}
+            <code>oldestPendingApprovalAt</code> is the sharper signal: three corrections filed
+            this morning is a queue, three filed last quarter is an abandoned one. Nothing
+            notifies you — poll it, or run <code>memosprout report</code>.
           </p>
 
           <h3 className="font-semibold">Is the REST API secured?</h3>
