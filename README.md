@@ -969,6 +969,30 @@ blindly:
 - **Portable and open.** Markdown files, not a proprietary database.
 - **Domain-agnostic core.** Pluggable adapters for any domain.
 
+## How this differs from an agent-memory store
+
+Most agent-memory work optimizes storage and recall — remember more, retrieve
+better, forget less. That is useful, and a crowded field. MemoSprout is built
+around the question that comes after storage: not *did we store it*, but *is
+it still true, who approved it, and where did it come from*.
+
+| The storage question | The question MemoSprout asks |
+|---|---|
+| How much can we remember | Is this fact still true |
+| How well can we retrieve it | Who reviewed it, and when |
+| How little do we forget | What source is it traceable to |
+
+These are different layers, not competitors: a memory store holds what was
+said, and MemoSprout governs which facts are trustworthy enough to serve. A
+store can hold the raw material while MemoSprout decides what gets served —
+the two compose.
+
+This framing comes from a 2026 survey of agent-memory frameworks that found
+the field focused on storage and retrieval, with verification, staleness, and
+approval largely left aside. It reflects that snapshot, not a standing claim
+about any specific tool — those move quickly, and this is a positioning of
+MemoSprout, not an audit of others.
+
 ## Governance for a knowledge base
 
 Regulations such as the EU AI Act now ask RAG systems to trace a retrieved

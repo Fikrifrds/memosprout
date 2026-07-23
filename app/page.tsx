@@ -237,6 +237,41 @@ export default function HomePage() {
 
         <section className="border-t border-slate-200 py-14">
           <h2 className="text-center text-2xl font-bold tracking-tight">
+            A different question than most memory tools
+          </h2>
+          <p className="mx-auto mt-4 max-w-2xl text-center text-sm text-slate-600">
+            Most agent-memory work is about storing more and recalling better — more context,
+            smarter retrieval, less forgetting. That is genuinely useful, and a crowded field.
+            MemoSprout is built around a different question, the one that comes after storage:
+            not <em>did we store it</em>, but <em>is it still true, who approved it, and where
+            did it come from</em>.
+          </p>
+          <div className="mx-auto mt-8 grid max-w-3xl gap-4 sm:grid-cols-2">
+            <div className="rounded-xl border border-slate-200 bg-white p-5">
+              <h3 className="text-sm font-semibold text-slate-500">The storage question</h3>
+              <ul className="mt-2 space-y-1 text-sm text-slate-600">
+                <li>How much can we remember</li>
+                <li>How well can we retrieve it</li>
+                <li>How little do we forget</li>
+              </ul>
+            </div>
+            <div className="rounded-xl border border-teal-200 bg-teal-50/50 p-5">
+              <h3 className="text-sm font-semibold text-teal-800">The question MemoSprout asks</h3>
+              <ul className="mt-2 space-y-1 text-sm text-slate-700">
+                <li>Is this fact still true</li>
+                <li>Who reviewed it, and when</li>
+                <li>What source is it traceable to</li>
+              </ul>
+            </div>
+          </div>
+          <p className="mx-auto mt-6 max-w-2xl text-center text-xs text-slate-400">
+            Less a competitor than a different layer: a memory store holds what was said, while
+            MemoSprout governs which facts are trustworthy enough to serve. The two can compose.
+          </p>
+        </section>
+
+        <section className="border-t border-slate-200 py-14">
+          <h2 className="text-center text-2xl font-bold tracking-tight">
             The governance a knowledge base needs, in a library
           </h2>
           <p className="mx-auto mt-4 max-w-2xl text-center text-sm text-slate-600">
