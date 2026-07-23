@@ -969,6 +969,27 @@ blindly:
 - **Portable and open.** Markdown files, not a proprietary database.
 - **Domain-agnostic core.** Pluggable adapters for any domain.
 
+## Governance for a knowledge base
+
+Regulations such as the EU AI Act now ask RAG systems to trace a retrieved
+fact to an authoritative source, show it was reviewed before use, and be able
+to prove it was current at the time of retrieval — the things a bare vector
+database cannot answer. MemoSprout was built around the same three, so the
+record already exists:
+
+- **Traceable to a source.** A correction carries `sourceRef` and a
+  `sourceHash` fingerprint of the document it came from.
+- **Reviewed before use.** A correction is served only after approval, and
+  `audit()` returns the full lifecycle — who submitted it, who approved it,
+  when it was validated, why it was quarantined.
+- **Current, or withdrawn.** When the source document changes, the correction
+  is quarantined rather than served, so a fact that can no longer be certified
+  stops being asserted.
+
+This is a library, not legal advice or a certified compliance product. It
+produces the provenance and approval record; whether that record satisfies a
+particular regulation is a question for your own review.
+
 ## Documentation
 
 - [docs/PROVIDERS.md](docs/PROVIDERS.md) — every supported LLM provider,

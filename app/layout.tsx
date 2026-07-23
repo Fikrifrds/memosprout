@@ -33,6 +33,9 @@ export const metadata: Metadata = {
     "AI guardrails",
     "chatbot accuracy",
     "correction engine",
+    "RAG governance",
+    "RAG provenance",
+    "AI audit trail",
   ],
   alternates: { canonical: "/" },
   openGraph: {

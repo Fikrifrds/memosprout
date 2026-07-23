@@ -112,7 +112,7 @@ export default function HomePage() {
             <SproutMark className="h-16 w-16" animate />
           </div>
           <p className="mb-3 text-sm font-semibold uppercase tracking-wide text-teal-700">
-            Correction memory for AI systems
+            Governed correction memory for AI systems
           </p>
           <h1 className="text-4xl font-bold tracking-tight sm:text-5xl">
             Correct once. Improve every interaction.
@@ -233,6 +233,47 @@ export default function HomePage() {
               </div>
             ))}
           </div>
+        </section>
+
+        <section className="border-t border-slate-200 py-14">
+          <h2 className="text-center text-2xl font-bold tracking-tight">
+            The governance a knowledge base needs, in a library
+          </h2>
+          <p className="mx-auto mt-4 max-w-2xl text-center text-sm text-slate-600">
+            Regulations like the EU AI Act now ask RAG systems to trace a retrieved fact to an
+            authoritative source, show it was reviewed before use, and prove it was current at
+            the time. Those are the three things a vector database cannot answer — and the three
+            MemoSprout was built around. It does not make you compliant; it gives you the record
+            to work from.
+          </p>
+          <div className="mx-auto mt-8 grid max-w-3xl gap-4 sm:grid-cols-3">
+            <div className="rounded-xl border border-slate-200 bg-white p-5">
+              <h3 className="text-sm font-semibold">Traceable to a source</h3>
+              <p className="mt-2 text-sm text-slate-600">
+                Each correction carries the document it came from and a fingerprint of it, so a
+                served fact points back to where it was decided.
+              </p>
+            </div>
+            <div className="rounded-xl border border-slate-200 bg-white p-5">
+              <h3 className="text-sm font-semibold">Reviewed before use</h3>
+              <p className="mt-2 text-sm text-slate-600">
+                A correction is served only after a human approves it, and{" "}
+                <code>audit()</code> returns who submitted it, who approved it, and when.
+              </p>
+            </div>
+            <div className="rounded-xl border border-slate-200 bg-white p-5">
+              <h3 className="text-sm font-semibold">Current, or withdrawn</h3>
+              <p className="mt-2 text-sm text-slate-600">
+                When the source document changes, the correction is quarantined instead of
+                served — so a fact that is no longer certifiable stops being asserted.
+              </p>
+            </div>
+          </div>
+          <p className="mx-auto mt-6 max-w-2xl text-center text-xs text-slate-400">
+            MemoSprout is a library, not legal advice or a certified compliance product. It
+            produces the provenance and approval record; whether that satisfies a given
+            regulation is a question for your own review.
+          </p>
         </section>
 
         <section className="border-t border-slate-200 py-14 text-center">
