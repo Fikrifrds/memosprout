@@ -255,3 +255,86 @@ export function commandMatch(
   const context = adapter.buildContext(corrections);
   return { query, corrections, context };
 }
+
+export interface SyncOptions {
+  url: string;
+  apiKey: string;
+  directory: string;
+}
+
+export interface SyncResult {
+  pushed: number;
+  pushRejected: number;
+  pulled: number;
+  cursor: string | null;
+}
+
+const snapshotResponseSchema = correctionRecordSchema.array();
+
+/**
+ * Sync with a MemoSprout Cloud remote: push local `suggested` corrections,
+ * then pull the approved snapshot and write it into the local store. The
+ * cursor persists in `<dir>/.sync-cursor` so pulls are incremental.
+ */
+export async function commandSync(
+  store: CorrectionStore,
+  options: SyncOptions,
+): Promise<SyncResult> {
+  const { readFile, writeFile } = await import("node:fs/promises");
+  const { join } = await import("node:path");
+  const cursorPath = join(options.directory, ".sync-cursor");
+  const headers = {
+    authorization: `Bearer ${options.apiKey}`,
+    "content-type": "application/json",
+  };
+
+  let pushed = 0;
+  let pushRejected = 0;
+  for (const correction of store.list({ status: "suggested" })) {
+    const response = await fetch(`${options.url}/v1/corrections`, {
+      method: "POST",
+      headers,
+      body: JSON.stringify(correction),
+    });
+    if (!response.ok) {
+      throw new Error(`push failed (${response.status}): ${await response.text()}`);
+    }
+    const body = (await response.json()) as { accepted: boolean };
+    if (body.accepted) pushed++;
+    else pushRejected++;
+  }
+
+  let cursor: string | null = null;
+  try {
+    cursor = (await readFile(cursorPath, "utf8")).trim() || null;
+  } catch {
+    // first sync: no cursor yet
+  }
+
+  let pulled = 0;
+  let hasMore = true;
+  while (hasMore) {
+    const query = cursor ? `?since=${encodeURIComponent(cursor)}` : "";
+    const response = await fetch(`${options.url}/v1/snapshot${query}`, { headers });
+    if (!response.ok) {
+      throw new Error(`pull failed (${response.status}): ${await response.text()}`);
+    }
+    const body = (await response.json()) as {
+      corrections: unknown;
+      cursor: string | null;
+      hasMore: boolean;
+    };
+    const corrections = snapshotResponseSchema.parse(body.corrections);
+    for (const record of corrections) {
+      await store.save(record);
+      pulled++;
+    }
+    cursor = body.cursor ?? cursor;
+    hasMore = body.hasMore && corrections.length > 0;
+  }
+
+  if (cursor) {
+    await writeFile(cursorPath, cursor, "utf8");
+  }
+  return { pushed, pushRejected, pulled, cursor };
+}

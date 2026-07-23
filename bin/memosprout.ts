@@ -8,6 +8,7 @@ import {
   commandInit,
   commandList,
   commandMatch,
+  commandSync,
   commandReport,
   commandValidate,
 } from "@/lib/cli/commands";
@@ -30,6 +31,7 @@ Usage:
   memosprout activate <id>                       Activate an already-validated correction
   memosprout check <query> <answer>              Check an answer against corrections
   memosprout match <query>                       Find relevant corrections for a query
+  memosprout sync [--url <u>] [--key <k>]        Sync with a MemoSprout Cloud remote
   memosprout report [--domain <d>]               Approval queue, usage, and retrieval gaps
 
 Reviewing pending corrections:
@@ -269,6 +271,22 @@ async function main(): Promise<void> {
           console.log(`\nContext to inject:\n\n${result.context}`);
         }
       }
+      break;
+    }
+
+    case "sync": {
+      const url = flags.url ?? process.env.MEMOSPROUT_REMOTE_URL;
+      const apiKey = flags.key ?? process.env.MEMOSPROUT_API_KEY;
+      if (!url || !apiKey) {
+        console.error(
+          "Error: remote is required — pass --url/--key or set MEMOSPROUT_REMOTE_URL and MEMOSPROUT_API_KEY.",
+        );
+        process.exit(1);
+      }
+      const result = await commandSync(store, { url, apiKey, directory: correctionsDir });
+      console.log(
+        `Pushed ${result.pushed} suggested (${result.pushRejected} already known), pulled ${result.pulled} approved.`,
+      );
       break;
     }
 
